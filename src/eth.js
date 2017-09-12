@@ -17,14 +17,9 @@ export const getContractAddress = (symbol) => {
 }
 
 export const getETHBalance = async (address, cb) => {
-	return new Promise(async (resolve, reject)=>{
-		web3.eth.getBalance(address, (err, balance) =>{
-			if (err) {
-				return reject(err)
-			}
-			resolve(toDecimal(balance, 18))
-		})
-	})
+	return web3.eth.getBalance(address).then((balance)=>
+		Promise.resolve(toDecimal(balance, 18))
+	).catch((err)=>Promise.reject(err))
 }
 
 export const getTokenInfo = async(contractAddress, fields, meta) => {
@@ -40,8 +35,7 @@ export const getTokenInfo = async(contractAddress, fields, meta) => {
 
 	const info = {}
 
-	return new Promise(async (resolve, reject)=>{
-		const res = await Promise.all(queries)
+	return Promise.all(queries).then((res)=>{
 		res.forEach((value, i)=>{
 			info[fields[i]] = value
 		})
@@ -49,34 +43,27 @@ export const getTokenInfo = async(contractAddress, fields, meta) => {
 		if (balance && decimals) {
 			info['formattedBalance'] = toDecimal(balance, decimals).toString(10)
 		}
-		resolve(info)
+		return Promise.resolve(info)
 	})
 }
 
 export const getTokenBalance = async(contractAddress, address) => {
-	return new Promise(async (resolve, reject)=>{
-		const info = await getTokenInfo(
-			contractAddress, 
-			['decimals', 'balance'],
-			{ address }
-		)
-		resolve(info['formattedBalance'])
-	})
+	return getTokenInfo(
+		contractAddress, 
+		['decimals', 'balance'],
+		{ address }
+	).then((info)=>Promise.resolve(info['formattedBalance']))
 }
 
 export const getAllTokenBalances = async(address) => {
 	const queue = new BlueBirdQueue({
 		concurrency: 10
 	})
-
-	return new Promise(async (resolve, reject)=>{
-		const queries = Object.keys(TOKEN_CONTRACTS).map((symbol)=>{
-			return async ()=>(
-				{[symbol]: await getTokenBalance(TOKEN_CONTRACTS[symbol], address)}
-			)
-		})
-		queue.add(queries)
-		const res = await queue.start()
-		resolve(res)
+	const queries = Object.keys(TOKEN_CONTRACTS).map((symbol)=>{
+		return async ()=>(
+			{[symbol]: await getTokenBalance(TOKEN_CONTRACTS[symbol], address)}
+		)
 	})
+	queue.add(queries)
+	return queue.start().then(Promise.resolve)
 }
