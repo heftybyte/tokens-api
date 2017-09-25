@@ -14,6 +14,7 @@ import {
 	getTokenInfo
 } from './eth'
 
+app.use(express.static('public'))
 app.use(bodyParser.json())
 
 app.get('/account/:address', async (req, res)=>{
