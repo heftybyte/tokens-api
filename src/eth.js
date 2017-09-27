@@ -1,6 +1,10 @@
+// Required by the cryptocompare library
+global.fetch = require('node-fetch')
+
 const Web3 = require('web3');
 const abi = require('human-standard-token-abi')
 const BlueBirdQueue = require('bluebird-queue')
+const cc = require('cryptocompare')
 
 import { toDecimal } from './helpers'
 
@@ -13,6 +17,12 @@ const CONTRACT_ADDRESSES = require('../data/tokens-reversed');
 export const getContractAddress = (symbol) => {
 	const tokenMeta = TOKEN_CONTRACTS[symbol]
 	return tokenMeta ? tokenMeta.address : null
+}
+
+export const getPriceForSymbol = (fsym, tsym) => {
+  return cc.price(fsym, tsym).then(price => {
+    return Promise.resolve(price[tsym])
+  })
 }
 
 export const getETHBalance = async (address, cb) => {
@@ -55,7 +65,7 @@ export const getTokenInfo = async(contractAddress, fields, meta) => {
 
 export const getTokenBalance = async(contractAddress, address) => {
 	return getTokenInfo(
-		contractAddress, 
+		contractAddress,
 		['decimals', 'balance', 'symbol'],
 		{ address }
 	).then((info)=>Promise.resolve(info['formattedBalance']))
@@ -68,7 +78,7 @@ export const getAllTokenBalances = async(address, includeZeroBalances = false) =
 		concurrency: 10
 	})
 	// TODO: unfortunately, ethereum addresses have no direct reference to which contract
-	// addresses (a.k.a. tokens) are associated with it. This means we have to search 
+	// addresses (a.k.a. tokens) are associated with it. This means we have to search
 	// every single token to see if it has a balance 💩💩💩. Luckily, there should be
 	// a way to optimize this by looking at all the transactions associated with the given
 	// ethereum address and keep track of which contract addresses (tokens) were involved
@@ -78,7 +88,8 @@ export const getAllTokenBalances = async(address, includeZeroBalances = false) =
 			if (balance === "0" && !includeZeroBalances) {
 				return
 			}
-			balances[symbol] = balance
+      const price = await getPriceForSymbol('USD', symbol) * balance
+			balances[symbol] = {balance, price}
 		}
 	})
 	queue.add(queries)
