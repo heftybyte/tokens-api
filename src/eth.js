@@ -1,6 +1,10 @@
+// Required by the cryptocompare library
+global.fetch = require('node-fetch')
+
 const Web3 = require('web3');
 const abi = require('human-standard-token-abi')
 const BlueBirdQueue = require('bluebird-queue')
+const cc = require('cryptocompare')
 
 import { toDecimal } from './helpers'
 
@@ -14,6 +18,12 @@ const TOKEN_CONTRACTS = {
 
 export const getContractAddress = (symbol) => {
 	return TOKEN_CONTRACTS[symbol]
+}
+
+export const getPriceForSymbol = (fsym, tsym) => {
+  return cc.price(fsym, tsym).then(price => {
+    return Promise.resolve(price[tsym])
+  })
 }
 
 export const getETHBalance = async (address, cb) => {
@@ -49,7 +59,7 @@ export const getTokenInfo = async(contractAddress, fields, meta) => {
 
 export const getTokenBalance = async(contractAddress, address) => {
 	return getTokenInfo(
-		contractAddress, 
+		contractAddress,
 		['decimals', 'balance'],
 		{ address }
 	).then((info)=>Promise.resolve(info['formattedBalance']))
@@ -60,9 +70,12 @@ export const getAllTokenBalances = async(address) => {
 		concurrency: 10
 	})
 	const queries = Object.keys(TOKEN_CONTRACTS).map((symbol)=>{
-		return async ()=>(
-			{[symbol]: await getTokenBalance(TOKEN_CONTRACTS[symbol], address)}
-		)
+		return async ()=>{
+      const balance = await getTokenBalance(TOKEN_CONTRACTS[symbol], address)
+      const price = await getPriceForSymbol('USD', symbol) * balance
+
+      return { [symbol]: { balance, price } }
+		}
 	})
 	queue.add(queries)
 	return queue.start().then(Promise.resolve)
