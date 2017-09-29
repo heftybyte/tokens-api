@@ -47,7 +47,7 @@ app.get('/token/:symbol', async (req, res)=>{
 
 app.get('/token/:symbol/price', async (req, res)=>{
 	const symbol = req.params.symbol.toUpperCase()
-  const price = await getPriceForSymbol('USD', symbol)
+  const price = await getPriceForSymbol(symbol, 'USD')
 
   res.send({ symbol, price })
 })
