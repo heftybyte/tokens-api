@@ -15,6 +15,7 @@ import {
   getPriceForSymbol
 } from './eth'
 
+app.use(express.static('public'))
 app.use(bodyParser.json())
 
 app.get('/account/:address', async (req, res)=>{
@@ -34,7 +35,13 @@ app.get('/account/:address/tokens', async (req, res)=>{
 	const { address } = req.params
 	const contractAddress = getContractAddress(address) || address
 	const balances = await getAllTokenBalances(contractAddress)
-	res.send(balances)
+	const totalValue = balances.reduce((acc, token)=>{
+		return acc + (token.price * token.balance)
+	}, 0)
+	res.send({
+		totalValue: totalValue,
+		tokens: balances
+	})
 })
 
 app.get('/token/:symbol', async (req, res)=>{
@@ -46,9 +53,8 @@ app.get('/token/:symbol', async (req, res)=>{
 
 app.get('/token/:symbol/price', async (req, res)=>{
 	const symbol = req.params.symbol.toUpperCase()
-  const price = await getPriceForSymbol('USD', symbol)
-
-  res.send({ symbol, price })
+ 	const price = await getPriceForSymbol(symbol, 'USD')
+  	res.send({ symbol, price })
 })
 
 app.listen(APP_PORT, ()=>{
