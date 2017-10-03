@@ -8,13 +8,13 @@ module.exports = function(Token) {
   Token.getInfo = async(symbol, cb) => {
     const contractAddress = getContractAddress(symbol) || symbol;
     const token = await getTokenInfo(contractAddress);
-    return cb(null, {token});
+    return cb(null, token);
   };
 
   Token.getSymbolPrice = async(symbol, cb) => {
-    symbol = symbol.toUpperCase;
+    symbol = symbol.toUpperCase();
     const price = await getPriceForSymbol(symbol, 'USD');
-    return cb(null, {price});
+    return cb(null, price);
   };
 
   Token.remoteMethod('getInfo', {

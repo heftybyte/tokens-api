@@ -8,13 +8,13 @@ import {
 module.exports = function(Account) {
   Account.getBalance = async(address, cb) => {
     const balance = await getETHBalance(address);
-    return cb(null, {balance});
+    return cb(null, balance);
   };
 
   Account.getTokenBalance = async(address, symbol, cb) => {
     const contractAddress = getContractAddress(symbol) || symbol;
     const balance = await getTokenBalance(contractAddress, address);
-    return cb(null, {balance});
+    return cb(null, balance);
   };
 
   Account.getTokens = async(address, cb) => {
