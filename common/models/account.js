@@ -28,7 +28,7 @@ module.exports = function(Account) {
 
   Account.remoteMethod('getBalance', {
     http: {
-      path: '/address/:address',
+      path: '/:address',
       verb: 'get',
     },
     accepts: {
@@ -49,7 +49,7 @@ module.exports = function(Account) {
 
   Account.remoteMethod('getTokenBalance', {
     http: {
-      path: '/address/:address/token/:symbol',
+      path: '/:address/token/:symbol',
       verb: 'get',
     },
     accepts: [
@@ -82,7 +82,7 @@ module.exports = function(Account) {
 
   Account.remoteMethod('getTokens', {
     http: {
-      path: '/address/:address/tokens',
+      path: '/:address/tokens',
       verb: 'get',
     },
     accepts: {
@@ -101,4 +101,5 @@ module.exports = function(Account) {
     description: ['Gets the total balance for the specified Ethereum Address ',
       'as well as its tokens, their respective prices, and balances'],
   });
+  Account.disableRemoteMethodByName('findById');
 };

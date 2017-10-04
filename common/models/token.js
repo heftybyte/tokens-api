@@ -19,7 +19,7 @@ module.exports = function(Token) {
 
   Token.remoteMethod('getInfo', {
     http: {
-      path: '/token/:symbol',
+      path: '/:symbol',
       verb: 'get',
     },
     accepts: {
@@ -40,7 +40,7 @@ module.exports = function(Token) {
 
   Token.remoteMethod('getSymbolPrice', {
     http: {
-      path: '/token/:symbol/price',
+      path: '/:symbol/price',
       verb: 'get',
     },
     accepts: {
@@ -58,4 +58,5 @@ module.exports = function(Token) {
     },
     description: 'Gets the price of the specified token',
   });
+  Token.disableRemoteMethodByName('findById');
 };
