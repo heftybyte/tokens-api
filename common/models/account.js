@@ -96,7 +96,7 @@ module.exports = function(Account) {
     },
     returns: {
       name: 'balance and tokens',
-      type: 'string',
+      type: 'object',
     },
     description: ['Gets the total balance for the specified Ethereum Address ',
       'as well as its tokens, their respective prices, and balances'],

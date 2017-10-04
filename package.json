@@ -8,6 +8,7 @@
     "build": "babel . -d dist",
     "start": "nodemon server/server.js --exec babel-node",
     "start-debug": "nodemon debug server/server.js --exec babel-node",
+    "inspect": "babel-node --inspect server/server.js",
     "serve": "node dist/server.js"
   },
   "author": "",
