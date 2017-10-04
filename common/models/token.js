@@ -32,7 +32,7 @@ module.exports = function(Token) {
       required: true,
     },
     returns: {
-      name: 'info',
+      name: 'token',
       type: 'object',
     },
     description: 'Gets information about the specified token',
