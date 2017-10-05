@@ -17,7 +17,7 @@ module.exports = function(Account) {
     return cb(null, balance);
   };
 
-  Account.getTokens = async(address, cb) => {
+  Account.getPortfolio = async(address, cb) => {
     const contractAddress = getContractAddress(address) || address;
     const balances = await getAllTokenBalances(contractAddress);
     const totalValue = balances.reduce((acc, token)=>{
@@ -80,9 +80,9 @@ module.exports = function(Account) {
       'for the specified Ethereum Address '],
   });
 
-  Account.remoteMethod('getTokens', {
+  Account.remoteMethod('getPortfolio', {
     http: {
-      path: '/:address/tokens',
+      path: '/:address/portfolio',
       verb: 'get',
     },
     accepts: {
@@ -95,7 +95,7 @@ module.exports = function(Account) {
       required: true,
     },
     returns: {
-      name: 'balance and tokens',
+      name: 'portfolio',
       type: 'object',
     },
     description: ['Gets the total balance for the specified Ethereum Address ',
