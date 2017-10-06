@@ -8,5 +8,5 @@ console.log('Attempting to migrate Accounts Model');
 ds.createModel(
   AccountSchema.name, AccountSchema.properties, AccountSchema.options);
 ds.automigrate((err, instance) => {
-  console.log(err, instance);
+  if (err) console.log('Migrating Accounts Model failed');
 });
