@@ -28,6 +28,7 @@ module.exports = function(Account) {
 
   Account.registerDevice = (data, cb) => {
     Account.create(data, (err, instance) => {
+      console.log(err, instance);
       if (err) {
         const error = new Error(err.message);
         error.status = 400;
