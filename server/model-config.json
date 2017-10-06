@@ -14,36 +14,36 @@
     ]
   },
   "User": {
-    "dataSource": "db"
+    "dataSource": "arangodbDs"
   },
   "AccessToken": {
-    "dataSource": "db",
+    "dataSource": "arangodbDs",
     "public": false
   },
   "ACL": {
-    "dataSource": "db",
+    "dataSource": "arangodbDs",
     "public": false
   },
   "RoleMapping": {
-    "dataSource": "db",
+    "dataSource": "arangodbDs",
     "public": false,
     "options": {
       "strictObjectIDCoercion": true
     }
   },
   "Role": {
-    "dataSource": "db",
+    "dataSource": "arangodbDs",
     "public": false
   },
   "Message": {
     "dataSource": null
   },
   "Account": {
-    "dataSource": "db",
+    "dataSource": "arangodbDs",
     "public": true
   },
   "Token": {
-    "dataSource": "db",
+    "dataSource": "arangodbDs",
     "public": true
   }
 }

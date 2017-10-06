@@ -26,6 +26,18 @@ module.exports = function(Account) {
     return cb(null, {totalValue, balances});
   };
 
+  Account.registerDevice = (data, cb) => {
+    Account.create(data, (err, instance) => {
+      if (err) {
+        const error = new Error(err.message);
+        error.status = 400;
+        cb(error);
+      } else {
+        cb(null);
+      }
+    });
+  };
+
   Account.remoteMethod('getBalance', {
     http: {
       path: '/:address',
@@ -100,6 +112,26 @@ module.exports = function(Account) {
     },
     description: ['Gets the total balance for the specified Ethereum Address ',
       'as well as its tokens, their respective prices, and balances'],
+  });
+
+  Account.remoteMethod('registerDevice', {
+    http: {
+      path: '/register',
+      verb: 'post',
+    },
+    accepts: {
+      arg: 'data',
+      type: 'object',
+      http: {
+        source: 'body',
+      },
+      returns: {
+        name: 'status',
+        type: 'object',
+      },
+      description: 'Should be a json payload containing the deviceId',
+    },
+    description: 'Registers a User\'s deviceId in the database',
   });
   Account.disableRemoteMethodByName('findById');
 };

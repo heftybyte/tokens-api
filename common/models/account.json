@@ -1,11 +1,23 @@
 {
   "name": "Account",
-  "base": "PersistedModel",
+  "base": "User",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
-  "properties": {},
+  "properties": {
+    "deviceId": {
+      "type": "string",
+      "required": true
+    },
+    "addresses": {
+      "type": [
+        "string"
+      ],
+      "required": true,
+      "default": []
+    }
+  },
   "validations": [],
   "relations": {},
   "acls": [],
