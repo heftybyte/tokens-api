@@ -9,6 +9,13 @@
     "deviceId": {
       "type": "string",
       "required": true
+    },
+    "addresses": {
+      "type": [
+        "string"
+      ],
+      "required": true,
+      "default": []
     }
   },
   "validations": [],
