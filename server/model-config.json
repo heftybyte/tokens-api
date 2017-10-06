@@ -14,7 +14,8 @@
     ]
   },
   "User": {
-    "dataSource": "arangodbDs"
+    "dataSource": "arangodbDs",
+    "public": false
   },
   "AccessToken": {
     "dataSource": "arangodbDs",
@@ -34,9 +35,6 @@
   "Role": {
     "dataSource": "arangodbDs",
     "public": false
-  },
-  "Message": {
-    "dataSource": null
   },
   "Account": {
     "dataSource": "arangodbDs",
