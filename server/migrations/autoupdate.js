@@ -12,9 +12,9 @@ collections.forEach((modelName)=>{
 
 	ds.isActual(modelName, (err, isActual)=>{
 
-		// if (isActual) {
-		// 	return
-		// }
+		if (isActual) {
+			return
+		}
 
 		ds.autoupdate(modelName, (err)=> {
 		  if (err) {

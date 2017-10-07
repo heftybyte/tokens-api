@@ -36,11 +36,11 @@
     "dataSource": "arangodbDs",
     "public": false
   },
-  "Account": {
+  "account": {
     "dataSource": "arangodbDs",
     "public": true
   },
-  "Token": {
+  "eth": {
     "dataSource": "arangodbDs",
     "public": true
   }

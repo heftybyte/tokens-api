@@ -4,12 +4,12 @@
     "connector": "memory"
   },
   "arangodbDs": {
-    "name": "arangodbDs",
-    "connector": "loopback-connector-arangodb",
     "host": "127.0.0.1",
     "port": 8529,
+    "database": "tokens-api",
     "username": "root",
     "password": "arangodb",
-    "database": "tokens-api"
+    "name": "arangodbDs",
+    "connector": "loopback-connector-arangodb"
   }
 }
