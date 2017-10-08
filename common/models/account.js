@@ -109,6 +109,14 @@ module.exports = function(Account) {
       path: '/register',
       verb: 'post',
     },
+    accepts: {
+      arg: 'data',
+      type: 'object',
+      http: {
+        source: 'body',
+      },
+      description: 'Ethereum address',
+    },
     returns: { 
       "root": true,
       "type": "account"
