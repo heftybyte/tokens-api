@@ -10,7 +10,8 @@
     "start-debug": "nodemon debug server/server.js --exec babel-node",
     "inspect": "babel-node --inspect server/server.js",
     "serve": "node dist/server.js",
-    "initial-migration": "babel-node server/migrations/automigrate-*.js"
+    "automigrate": "babel-node server/migrations/automigrate.js",
+    "autoupdate": "babel-node server/migrations/autoupdate.js"
   },
   "author": "",
   "license": "ISC",
@@ -28,7 +29,6 @@
     "loopback": "^3.0.0",
     "loopback-boot": "^2.6.5",
     "loopback-component-explorer": "^5.0.0",
-    "loopback-connector-arango": "github:duffn/loopback-connector-arango",
     "loopback-connector-arangodb": "^2.0.0",
     "loopback-connector-mysql": "^2.4.1",
     "node-fetch": "^1.7.3",

@@ -1,14 +1,42 @@
 # tokens-api
 Api for ERC-20 token http://erc-20.io
 
-You need to install arangoDB
+## Dependencies
 
-running `brew install arangodb` on a mac should do.
+### ArangoDB
 
-after installing, create the database `tokens-api`
+Installation
 
-go to `server/datasources.json` and verify the setting for your database 
+```
+$ brew install arangodb
+```
+
+
+After installing, create the database `tokens-api`. Go to `server/datasources.json` and verify the setting for your database 
+
+You'll need to enable auth on your arangodb instance 
+
+Connect to the database
+
+```
+$ arangosh --server.endpoint tcp://127.0.0.1:8529 --server.database "_system"
+```
+
+Set password to enable auth
+
+```
+arangosh> require("org/arangodb/users").save("root", "arangodb");
+```
 
 next you need to migrate the database
 
-run `npm run initial-migration`
+```
+$ npm run automigrate
+```
+
+or for a specific model
+
+
+```
+$ npm run automigrate ModelName
+```
