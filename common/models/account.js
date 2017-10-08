@@ -96,7 +96,7 @@ module.exports = function(Account) {
     const tokens = (await getAllTokenBalances(address)).map((token)=>({
       ...token,
       imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`      
-    }))
+    })).sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
     const totalValue = tokens.reduce((acc, token)=>{
       return acc + (token.price * token.balance);
     }, 0);
