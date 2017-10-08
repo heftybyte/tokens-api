@@ -1,25 +1,54 @@
 {
-  "name": "Account",
+  "name": "account",
   "base": "User",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
+  "strict": true,
   "properties": {
-    "deviceId": {
-      "type": "string",
-      "required": true
-    },
     "addresses": {
       "type": [
         "string"
       ],
-      "required": true,
       "default": []
+    },
+    "email": {
+      "type": "string",
+      "required": false
+    },
+    "password": {
+      "type": "string",
+      "required": false
     }
   },
   "validations": [],
   "relations": {},
-  "acls": [],
+  "acls": [
+    {
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "DENY",
+      "property": "getPortfolio"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$owner",
+      "permission": "ALLOW",
+      "property": "getPortfolio"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$owner",
+      "permission": "ALLOW",
+      "property": "addAddress"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "register"
+    }
+  ],
   "methods": {}
 }

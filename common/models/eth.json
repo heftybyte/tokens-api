@@ -1,6 +1,7 @@
 {
-  "name": "Token",
-  "base": "PersistedModel",
+  "name": "eth",
+  "plural": "eth",
+  "base": "Model",
   "idInjection": true,
   "options": {
     "validateUpsert": true
