@@ -1,34 +1,10 @@
 import {
   getAllTokenBalances
-} from '../../utils/eth.js';
+} from '../../lib/eth.js';
+
+import web3 from '../../lib/web3'
 
 module.exports = function(Account) {
-
-  Account.getPortfolio = async (id, cb) => {
-    let err = null
-    const account = await Account.findById(id).catch(e=>{err=e})
-    
-    if (!err && !account) {
-      err = new Error("Account not found")
-      err.status = 404
-    } else if (!account.addresses.length) {
-      err = new Error('No addresses associated with this account')
-      err.status = 404
-    }
-
-    if (err) {
-      return cb(err)
-    }
-
-    const address = JSON.parse(account.addresses[0]) // TODO: fetch for multiple addresses
-    const balances = await getAllTokenBalances(address)
-    const totalValue = balances.reduce((acc, token)=>{
-      return acc + (token.price * token.balance);
-    }, 0);
-    return cb(null, {totalValue, balances})
-  
-  };
-
   Account.register = (data, cb) => {
     Account.create(data, (err, instance) => {
       if (err) {
@@ -84,45 +60,95 @@ module.exports = function(Account) {
     return fn.promise;
   };
 
-  Account.remoteMethod('getPortfolio', {
-    http: {
-      path: '/:id/portfolio',
-      verb: 'get',
-    },
-    accepts: {
-      arg: 'id',
-      type: 'string',
-      'http': {
-        source: 'path',
-      },
-      description: 'The id of the user',
-      required: true,
-    },
-    returns: {
-      name: 'portfolio',
-      type: 'object',
-    },
-    description: ['Gets the total balance for the specified Ethereum Address ',
-      'as well as its tokens, their respective prices, and balances'],
-  });
+  Account.prototype.addAddress = async function (data, cb) {
+    const { address } = data
+    let err = null
+    if (!web3.utils.isAddress(address)) {
+      err = new Error('Invalid ethereum address')
+      err.status = 400
+      return cb(err)
+    }
+    this.addresses.push(JSON.stringify(address))
+    const account = await this.save().catch(e=>err=e)
+    if (err) {
+      return cb(err);
+    }
+    return cb(null, account)
+  }
+
+  Account.prototype.getPortfolio = async function (cb) {
+    let err = null
+    const account = await Account.findById(this.id).catch(e=>{err=e})
+    
+    if (!err && !account) {
+      err = new Error("Account not found")
+      err.status = 404
+    } else if (!account.addresses.length) {
+      err = new Error('No addresses associated with this account')
+      err.status = 404
+    }
+
+    if (err) {
+      return cb(err)
+    }
+
+    const address = account.addresses[0] // TODO: fetch for multiple addresses
+    const tokens = (await getAllTokenBalances(address)).map((token)=>({
+      ...token,
+      imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`      
+    }))
+    const totalValue = tokens.reduce((acc, token)=>{
+      return acc + (token.price * token.balance);
+    }, 0);
+    return cb(null, {totalValue, tokens})
+  
+  };
 
   Account.remoteMethod('register', {
     http: {
       path: '/register',
       verb: 'post',
     },
-    accepts: {
-      arg: 'data',
-      type: 'object',
-      http: {
-        source: 'body',
-      },
-      description: 'Should be a json payload containing the deviceId',
-    },
     returns: { 
       "root": true,
       "type": "account"
     },
     description: 'Registers a User\'s deviceId in the database',
+  });
+
+  Account.remoteMethod('addAddress', {
+    isStatic: false,
+    http: {
+      path: '/address',
+      verb: 'post',
+    },
+    accepts: [
+      {
+        arg: 'address',
+        type: 'object',
+        http: {
+          source: 'body',
+        },
+        description: 'Ethereum address',
+      }
+    ],
+    returns: { 
+      "root": true,
+      "type": "account"
+    },
+    description: 'Add an ethereum address to a user\'s account',
+  });
+
+  Account.remoteMethod('getPortfolio', {
+    isStatic: false,
+    http: {
+      path: '/portfolio',
+      verb: 'get',
+    },
+    returns: {
+      root: true,
+    },
+    description: ['Gets the total balance for the specified Ethereum Address ',
+      'as well as its tokens, their respective prices, and balances'],
   });
 };

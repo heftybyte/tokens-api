@@ -5,7 +5,7 @@ import {
   getAllTokenBalances,
   getPriceForSymbol,
   getTokenInfo
-} from '../../utils/eth.js';
+} from '../../lib/eth.js';
 
 module.exports = function(Eth) {
 
