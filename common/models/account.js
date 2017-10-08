@@ -1,137 +1,154 @@
 import {
-	getContractAddress,
-	getETHBalance,
-	getTokenBalance,
-	getAllTokenBalances,
-} from '../../utils/eth.js';
+  getAllTokenBalances
+} from '../../lib/eth.js';
+
+import web3 from '../../lib/web3'
 
 module.exports = function(Account) {
-  Account.getBalance = async(address, cb) => {
-    const balance = await getETHBalance(address);
-    return cb(null, balance);
-  };
-
-  Account.getTokenBalance = async(address, symbol, cb) => {
-    const contractAddress = getContractAddress(symbol) || symbol;
-    const balance = await getTokenBalance(contractAddress, address);
-    return cb(null, balance);
-  };
-
-  Account.getPortfolio = async(address, cb) => {
-    const contractAddress = getContractAddress(address) || address;
-    const balances = await getAllTokenBalances(contractAddress);
-    const totalValue = balances.reduce((acc, token)=>{
-      return acc + (token.price * token.balance);
-    }, 0);
-    return cb(null, {totalValue, balances});
-  };
-
-  Account.registerDevice = (data, cb) => {
+  Account.register = (data, cb) => {
     Account.create(data, (err, instance) => {
       if (err) {
         const error = new Error(err.message);
         error.status = 400;
         cb(error);
       } else {
-        cb(null);
+        cb(null, instance);
       }
     });
   };
 
-  Account.remoteMethod('getBalance', {
-    http: {
-      path: '/:address',
-      verb: 'get',
-    },
-    accepts: {
-      arg: 'address',
-      type: 'string',
-      http: {
-        source: 'path',
-      },
-      description: 'The address of the Ethereum Wallet',
-      required: true,
-    },
-    returns: {
-      name: 'balance',
-      type: 'string',
-    },
-    description: 'Gets the total balance of the specified Ethereum address',
-  });
+  Account.login = function(credentials, include, fn) {
+    Account.findOne({where: credentials}, function(err, user) {
+      var defaultError = new Error('login failed');
+      defaultError.statusCode = 401;
+      defaultError.code = 'LOGIN_FAILED';
 
-  Account.remoteMethod('getTokenBalance', {
-    http: {
-      path: '/:address/token/:symbol',
-      verb: 'get',
-    },
-    accepts: [
-      {
-        arg: 'address',
-        type: 'string',
-        http: {
-          source: 'path',
-        },
-        description: 'The address of the Ethereum Wallet',
-        required: true,
-      },
-      {
-        arg: 'symbol',
-        type: 'string',
-        http: {
-          source: 'path',
-        },
-        description: 'The Token Symbol to get the balance for',
-        required: true,
-      },
-    ],
-    returns: {
-      name: 'balance',
-      type: 'string',
-    },
-    description: ['Gets the balance of a particular token ',
-      'for the specified Ethereum Address '],
-  });
+      function tokenHandler(err, token) {
+        if (err) return fn(err);
+        if (Array.isArray(include) ? include.indexOf('user') !== -1 : include === 'user') {
+          token.__data.user = user;
+        }
+        fn(err, token);
+      }
 
-  Account.remoteMethod('getPortfolio', {
-    http: {
-      path: '/:address/portfolio',
-      verb: 'get',
-    },
-    accepts: {
-      arg: 'address',
-      type: 'string',
-      'http': {
-        source: 'path',
-      },
-      description: 'The address of the Ethereum Wallet',
-      required: true,
-    },
-    returns: {
-      name: 'portfolio',
-      type: 'object',
-    },
-    description: ['Gets the total balance for the specified Ethereum Address ',
-      'as well as its tokens, their respective prices, and balances'],
-  });
+      if (err) {
+        console.log('An error is reported from User.findOne: %j', err);
+        fn(defaultError);
+      } else if (user) {
+        if (Account.settings.emailVerificationRequired && !user.emailVerified) {
+          // Fail to log in if email verification is not done yet
+          console.log('User email has not been verified');
+          err = new Error('login failed as the email has not been verified');
+          err.statusCode = 401;
+          err.code = 'LOGIN_FAILED_EMAIL_NOT_VERIFIED';
+          err.details = {
+            userId: user.id,
+          };
+          fn(err);
+        } else {
+          if (user.createAccessToken.length === 2) {
+            user.createAccessToken(credentials.ttl, tokenHandler);
+          } else {
+            user.createAccessToken(credentials.ttl, credentials, tokenHandler);
+          }
+        }
+      } else {
+        console.log('No matching record is found for user %s', credentials.id);
+        fn(defaultError);
+      }
+    });
+    return fn.promise;
+  };
 
-  Account.remoteMethod('registerDevice', {
+  Account.prototype.addAddress = async function (data, cb) {
+    const { address } = data
+    let err = null
+    if (!web3.utils.isAddress(address)) {
+      err = new Error('Invalid ethereum address')
+      err.status = 400
+      return cb(err)
+    }
+    this.addresses.push(JSON.stringify(address))
+    const account = await this.save().catch(e=>err=e)
+    if (err) {
+      return cb(err);
+    }
+    return cb(null, account)
+  }
+
+  Account.prototype.getPortfolio = async function (cb) {
+    let err = null
+    const account = await Account.findById(this.id).catch(e=>{err=e})
+    
+    if (!err && !account) {
+      err = new Error("Account not found")
+      err.status = 404
+    } else if (!account.addresses.length) {
+      err = new Error('No addresses associated with this account')
+      err.status = 404
+    }
+
+    if (err) {
+      return cb(err)
+    }
+
+    const address = account.addresses[0] // TODO: fetch for multiple addresses
+    const tokens = (await getAllTokenBalances(address)).map((token)=>({
+      ...token,
+      imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`      
+    }))
+    const totalValue = tokens.reduce((acc, token)=>{
+      return acc + (token.price * token.balance);
+    }, 0);
+    return cb(null, {totalValue, tokens})
+  
+  };
+
+  Account.remoteMethod('register', {
     http: {
       path: '/register',
       verb: 'post',
     },
-    accepts: {
-      arg: 'data',
-      type: 'object',
-      http: {
-        source: 'body',
-      },
-      returns: {
-        name: 'status',
-        type: 'object',
-      },
-      description: 'Should be a json payload containing the deviceId',
+    returns: { 
+      "root": true,
+      "type": "account"
     },
     description: 'Registers a User\'s deviceId in the database',
   });
-  Account.disableRemoteMethodByName('findById');
+
+  Account.remoteMethod('addAddress', {
+    isStatic: false,
+    http: {
+      path: '/address',
+      verb: 'post',
+    },
+    accepts: [
+      {
+        arg: 'address',
+        type: 'object',
+        http: {
+          source: 'body',
+        },
+        description: 'Ethereum address',
+      }
+    ],
+    returns: { 
+      "root": true,
+      "type": "account"
+    },
+    description: 'Add an ethereum address to a user\'s account',
+  });
+
+  Account.remoteMethod('getPortfolio', {
+    isStatic: false,
+    http: {
+      path: '/portfolio',
+      verb: 'get',
+    },
+    returns: {
+      root: true,
+    },
+    description: ['Gets the total balance for the specified Ethereum Address ',
+      'as well as its tokens, their respective prices, and balances'],
+  });
 };
