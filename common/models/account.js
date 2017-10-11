@@ -147,8 +147,10 @@ module.exports = function(Account) {
       }
     },
     returns: {
-      root: true
-    }
+      root: true,
+      type: 'account'
+    },
+    description: 'Shows metadata information details for a token'
   });
 
   Account.remoteMethod('register', {
