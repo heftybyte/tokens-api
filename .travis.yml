@@ -1,0 +1,18 @@
+language: node_js
+node_js:
+  - "8"
+install:
+  - npm install
+deploy:
+  - provider: elasticbeanstalk
+    access_key_id: "AKIAITMYF7T7LCIHSOVA"
+    secret_access_key: "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"
+    region: "us-west-2"
+    app: "Tokens"
+    env: "Tokens-env"
+    bucket_name: "elasticbeanstalk-us-west-2-606460127508"
+    skip_cleanup: true
+    on:
+      branch: master
+notifications:
+    slack: heftybyte:MfzjodikjxZSS1Vbqyg8inIv
