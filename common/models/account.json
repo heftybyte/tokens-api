@@ -39,6 +39,18 @@
     },
     {
       "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "DENY",
+      "property": "tokensMetadata"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$owner",
+      "permission": "ALLOW",
+      "property": "tokensMetadata"
+    },
+    {
+      "principalType": "ROLE",
       "principalId": "$owner",
       "permission": "ALLOW",
       "property": "addAddress"

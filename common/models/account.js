@@ -1,5 +1,8 @@
 import {
-  getAllTokenBalances
+  getAllTokenBalances,
+  getTokenBalance,
+  getContractAddress,
+  getPriceForSymbol
 } from '../../lib/eth.js';
 
 import web3 from '../../lib/web3'
@@ -79,7 +82,7 @@ module.exports = function(Account) {
   Account.prototype.getPortfolio = async function (cb) {
     let err = null
     const account = await Account.findById(this.id).catch(e=>{err=e})
-    
+
     if (!err && !account) {
       err = new Error("Account not found")
       err.status = 404
@@ -92,17 +95,63 @@ module.exports = function(Account) {
       return cb(err)
     }
 
-    const address = account.addresses[0] // TODO: fetch for multiple addresses
+    const address = account.addresses[0].replace(/\W+/g, '') // TODO: fetch for multiple addresses
     const tokens = (await getAllTokenBalances(address)).map((token)=>({
       ...token,
-      imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`      
+      imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`
     })).sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
     const totalValue = tokens.reduce((acc, token)=>{
       return acc + (token.price * token.balance);
     }, 0);
     return cb(null, {totalValue, tokens})
-  
+
   };
+
+  Account.prototype.tokensMetadata = async function (sym, cb) {
+    let err = null
+    const symbol = sym.toUpperCase()
+    const account = await Account.findById(this.id).catch(e=>{err=e})
+
+    if (!err && !account) {
+      err = new Error("Account not found")
+      err.status = 404
+    } else if (!account.addresses.length) {
+      err = new Error('No addresses associated with this account')
+      err.status = 404
+    }
+
+    if (err) {
+      return cb(err)
+    }
+
+    const address = account.addresses[0].replace(/\W+/g, '')
+
+    const { price, marketCap, volume24Hr } = await getPriceForSymbol(symbol, 'USD');
+    const quantity = await getTokenBalance(getContractAddress(symbol), address)
+    const totalValue = quantity * price
+
+    return cb(null, {price, quantity, totalValue, marketCap, volume24Hr});
+  };
+
+  Account.remoteMethod('tokensMetadata', {
+    isStatic: false,
+    http: {
+      path: '/portfolio/token/:symbol',
+      verb: 'get'
+    },
+    accepts: {
+      arg: 'symbol',
+      type: 'string',
+      http: {
+        source: 'path'
+      }
+    },
+    returns: {
+      root: true,
+      type: 'account'
+    },
+    description: 'Shows metadata information details for a token'
+  });
 
   Account.remoteMethod('register', {
     http: {
@@ -117,7 +166,7 @@ module.exports = function(Account) {
       },
       description: 'Ethereum address',
     },
-    returns: { 
+    returns: {
       "root": true,
       "type": "account"
     },
@@ -140,7 +189,7 @@ module.exports = function(Account) {
         description: 'Ethereum address',
       }
     ],
-    returns: { 
+    returns: {
       "root": true,
       "type": "account"
     },
