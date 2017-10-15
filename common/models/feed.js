@@ -1,4 +1,4 @@
-const app = require('../../server/server')
+const constants = require('../../constants')
 
 module.exports = function(Feed) {
 	Feed.getLatest = async(id, cb) => {
@@ -27,21 +27,22 @@ module.exports = function(Feed) {
 
 	Feed.remoteMethod('getLatest', {
 		http: {
-			path: 'feed/latest/:id',
+			path: constants.ENDPOINT.FEED_REQUEST,
 			verb: 'get'
 		},
-		accepts: {
+		accepts: [{
+			required: false,
 			arg: 'id',
 			type: 'string',
 			http: {
 				source : 'path'
 			},
 			description : "The id of the last lastest feed retreived",
-			required: false,
-		},
+			optional: true
+		}],
 		returns: {
-			name: 'feed',
-			type: 'object'
+			root: true,
+			type: "feed"
 		},
 		description : "Fetch user lastest feed",
 	});
