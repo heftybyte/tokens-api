@@ -43,5 +43,9 @@
   "eth": {
     "dataSource": "arangodbDs",
     "public": true
+  },
+  "feed": {
+    "dataSource": "arangodbDs",
+    "public": true
   }
 }
