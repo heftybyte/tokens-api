@@ -36,11 +36,11 @@
 		"link": {
 			"target": {
 				"type": "string",
-				"enum": ["external", "app"]
+				"enum": ["web","internal", "app"]
 			},
 			"uri": "string",
 			"params": {
-					"type": "object"
+				"type": "object"
 			}
 		}
 	},
