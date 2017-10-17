@@ -79,53 +79,52 @@ module.exports = function(Account) {
     return cb(null, account)
   }
 
-  Account.prototype.getPortfolio = async function (cb) {
+  const getAccount = async (id) => {
     let err = null
-    const account = await Account.findById(this.id).catch(e=>{err=e})
+    const account = await Account.findById(id).catch(e=>{err=e})
 
     if (!err && !account) {
       err = new Error("Account not found")
       err.status = 404
-    } else if (!account.addresses.length) {
+    } else if (!err && account && !account.addresses.length) {
       err = new Error('No addresses associated with this account')
       err.status = 404
     }
 
+    return {
+      account,
+      err
+    }
+  }
+
+  Account.prototype.getPortfolio = async function (cb) {
+    let { err, account } = await getAccount(this.id)
     if (err) {
       return cb(err)
     }
 
     const address = account.addresses[0].replace(/\W+/g, '') // TODO: fetch for multiple addresses
+    
     const tokens = (await getAllTokenBalances(address)).map((token)=>({
       ...token,
       imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`
     })).sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
+    
     const totalValue = tokens.reduce((acc, token)=>{
       return acc + (token.price * token.balance);
     }, 0);
-    return cb(null, {totalValue, tokens})
-
+    
+    return cb(null, { tokens, totalValue })
   };
 
-  Account.prototype.tokensMetadata = async function (sym, cb) {
-    let err = null
-    const symbol = sym.toUpperCase()
-    const account = await Account.findById(this.id).catch(e=>{err=e})
-
-    if (!err && !account) {
-      err = new Error("Account not found")
-      err.status = 404
-    } else if (!account.addresses.length) {
-      err = new Error('No addresses associated with this account')
-      err.status = 404
-    }
-
+  Account.prototype.getTokenMeta = async function (sym, cb) {
+    let { err, account } = await getAccount(this.id)
     if (err) {
       return cb(err)
     }
 
+    const symbol = sym.toUpperCase()
     const address = account.addresses[0].replace(/\W+/g, '')
-
     const { price, marketCap, volume24Hr } = await getPriceForSymbol(symbol, 'USD');
     const quantity = await getTokenBalance(getContractAddress(symbol), address)
     const totalValue = quantity * price
@@ -133,7 +132,7 @@ module.exports = function(Account) {
     return cb(null, {price, quantity, totalValue, marketCap, volume24Hr});
   };
 
-  Account.remoteMethod('tokensMetadata', {
+  Account.remoteMethod('getTokenMeta', {
     isStatic: false,
     http: {
       path: '/portfolio/token/:symbol',

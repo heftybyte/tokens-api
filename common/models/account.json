@@ -13,6 +13,21 @@
       ],
       "default": []
     },
+    "tokens": {
+      "type": [
+        {
+          "balance": "number",
+          "address": "string"
+        }
+      ],
+      "default": []
+    },
+    "watchList": {
+      "type": [
+        "string"
+      ],
+      "default": []
+    },
     "email": {
       "type": "string",
       "required": false
@@ -20,6 +35,9 @@
     "password": {
       "type": "string",
       "required": false
+    },
+    "accessKey": {
+      "type": "string"
     }
   },
   "validations": [],
