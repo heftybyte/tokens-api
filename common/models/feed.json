@@ -34,12 +34,14 @@
 			"required": false
 		},
 		"link": {
-			"type": "string",
-			"enum": ["external", "app"]
-		},
-		"uri": "string",
-		"params": {
-				"type": "object"
+			"target": {
+				"type": "string",
+				"enum": ["external", "app"]
+			},
+			"uri": "string",
+			"params": {
+					"type": "object"
+			}
 		}
 	},
 	"validations": [],
