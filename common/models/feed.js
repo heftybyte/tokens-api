@@ -10,6 +10,7 @@ module.exports = function(Feed) {
 			const lastFeed = await Feed.findById(id).catch(e => {err=e});
 			if(err){
 				cb(err , null)
+				return
 			}
 
 			query = {where: {createdAt: {gt: feed.createdAt}}}
@@ -20,6 +21,7 @@ module.exports = function(Feed) {
 		const recentFeed = await Feed.find(query).catch(e =>{err=e});
 		if(err){
 			cb(err, null)
+			return
 		}
 
 		cb(null ,recentFeed);
