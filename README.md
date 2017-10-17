@@ -1,6 +1,11 @@
 # tokens-api
 Api for ERC-20 token http://erc-20.io
 
+Use `npm` instead of `yarn` until the following web3/yarn bugs are resolved:
+- https://github.com/ethereum/web3.js/issues/966
+- https://github.com/yarnpkg/yarn/issues/711
+
+
 ## Dependencies
 
 ### ArangoDB
