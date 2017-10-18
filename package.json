@@ -12,7 +12,8 @@
     "inspect": "babel-node --inspect server/server.js",
     "serve": "node dist/server.js",
     "automigrate": "babel-node server/migrations/automigrate.js",
-    "autoupdate": "babel-node server/migrations/autoupdate.js"
+    "autoupdate": "babel-node server/migrations/autoupdate.js",
+    "seed-tokens": "babel-node server/seed/tokens.js"
   },
   "author": "",
   "license": "ISC",
