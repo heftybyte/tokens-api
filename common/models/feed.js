@@ -1,21 +1,15 @@
 const constants = require('../../constants')
 
 module.exports = function(Feed) {
-	Feed.getLatest = async(id, cb) => {
+	Feed.getLatest = async(createdAt, cb) => {
 
 		let query = {}
 		let err = null
 
-		if(id){
-			const lastFeed = await Feed.findById(id).catch(e => {err=e});
-			if(err){
-				cb(err , null)
-				return
-			}
-
-			query = {where: {createdAt: {gt: feed.createdAt}}}
+		if(createdAt){
+			query = {where: {createdAt: {gt: createdAt}}}
 		}
-
+		
 		query = { ...query , order: 'createdAt DESC', limit: 10};
 
 		const recentFeed = await Feed.find(query).catch(e =>{err=e});
@@ -26,6 +20,15 @@ module.exports = function(Feed) {
 
 		cb(null ,recentFeed);
 	}
+
+	Feed.observe('before save', function updateTimestamp(ctx, next) {
+		if (ctx.isNewInstance) {
+			ctx.instance.createdAt = Date.now();
+		} else if (ctx.data) {
+			ctx.data["updatedAt"] = Date.now();
+		}
+		next();
+	});
 
 	Feed.remoteMethod('getLatest', {
 		http: {

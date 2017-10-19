@@ -25,6 +25,9 @@
 		"createdAt": {
 			"type": "date"
 		},
+		"updatedAt": {
+			"type": "date"
+		},
 		"image": {
 			"type": "string",
 			"required": false
