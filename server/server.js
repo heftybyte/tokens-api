@@ -1,3 +1,4 @@
+require('dotenv').load();
 import loopback from 'loopback';
 import boot from 'loopback-boot';
 

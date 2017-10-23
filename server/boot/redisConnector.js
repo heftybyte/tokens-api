@@ -3,8 +3,8 @@
 let redis = require('redis');
 
 let client = redis.createClient({
-  port: '6379',
-  host: '127.0.0.1',
+  port: process.env.REDIS_PORT || '6379',
+  host: process.env.REDIS_HOST || 'localhost',
   retry_strategy(options) {
     console.log('redis retry <<<<<<', options.attempt);
     if (options.error && options.error.code === 'ECONNREFUSED') {
