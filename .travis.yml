@@ -5,6 +5,7 @@ install:
   - npm install
   - npm run build
   - cd dist/ && zip -r dist.zip .
+  - ls
 deploy:
   - provider: elasticbeanstalk
     access_key_id: "AKIAITMYF7T7LCIHSOVA"
@@ -16,6 +17,6 @@ deploy:
     skip_cleanup: true
     zip_file: "dist.zip"
     on:
-      branch: master
+      branch: travis-deploy
 notifications:
     slack: heftybyte:MfzjodikjxZSS1Vbqyg8inIv
