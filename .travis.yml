@@ -8,8 +8,8 @@ install:
   - ls
 deploy:
   - provider: elasticbeanstalk
-    access_key_id: "AKIAITMYF7T7LCIHSOVA"
-    secret_access_key: "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"
+    access_key_id: ENV["access_key_id"]
+    secret_access_key: ENV["secret_access_key"]
     region: "us-west-2"
     app: "Tokens"
     env: "Tokens-env"
