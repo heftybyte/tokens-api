@@ -3,6 +3,9 @@ node_js:
   - "8"
 install:
   - npm install
+  - npm run build
+  - apt-get install zip
+  - zip -r dist.zip dist/
 deploy:
   - provider: elasticbeanstalk
     access_key_id: "AKIAITMYF7T7LCIHSOVA"
@@ -12,6 +15,7 @@ deploy:
     env: "Tokens-env"
     bucket_name: "elasticbeanstalk-us-west-2-606460127508"
     skip_cleanup: true
+    zip_file: "dist.zip"
     on:
       branch: master
 notifications:
