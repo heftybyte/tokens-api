@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 0",
     "build": "babel . -d dist --ignore node_modules --copy-files",
-    "start": "cd dist && node server/server.js",
+    "start": "node server/server.js",
     "start-dev": "nodemon server/server.js --exec babel-node",
     "start-debug": "nodemon debug server/server.js --exec babel-node",
     "inspect": "babel-node --inspect server/server.js",
@@ -17,6 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "babel-polyfill": "^6.26.0",
     "bignumber.js": "^4.0.4",
     "bluebird": "^3.5.0",
     "bluebird-queue": "0.0.8",

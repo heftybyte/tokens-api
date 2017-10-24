@@ -3,15 +3,19 @@ node_js:
   - "8"
 install:
   - npm install
+  - npm run build
+  - cd dist/ && zip -r dist.zip .
+  - ls
 deploy:
   - provider: elasticbeanstalk
-    access_key_id: "AKIAITMYF7T7LCIHSOVA"
-    secret_access_key: "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"
+    access_key_id: $access_key_id
+    secret_access_key: $secret_access_key
     region: "us-west-2"
     app: "Tokens"
     env: "Tokens-env"
     bucket_name: "elasticbeanstalk-us-west-2-606460127508"
     skip_cleanup: true
+    zip_file: "dist.zip"
     on:
       branch: master
 notifications:
