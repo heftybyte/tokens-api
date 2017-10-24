@@ -17,6 +17,6 @@ deploy:
     skip_cleanup: true
     zip_file: "dist.zip"
     on:
-      branch: travis-deploy
+      branch: master
 notifications:
     slack: heftybyte:MfzjodikjxZSS1Vbqyg8inIv
