@@ -4,8 +4,7 @@ node_js:
 install:
   - npm install
   - npm run build
-  - apt-get install zip
-  - zip -r dist.zip dist/
+  - cd dist/ && zip -r dist.zip .
 deploy:
   - provider: elasticbeanstalk
     access_key_id: "AKIAITMYF7T7LCIHSOVA"
