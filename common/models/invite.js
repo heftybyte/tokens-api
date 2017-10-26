@@ -1,13 +1,6 @@
 module.exports = function(Invite) {
   Invite.getCode = (cb) => {
-    let code = Invite.generateCode();
-	  /* Invite.findOne({where: {invite_code: 'hFj979zj2rd'}}, (err, code) => {
-      // console.log(err, code);
-		  if(!code)
-		  {
-		  	console.log(code)
-		  }
-	  }); */
+    let code = Invite.generateCode()
 	  Invite.create({invite_code: code}, (err, instance) => {
 		  if (err) {
 			  const error = new Error(err.message);
