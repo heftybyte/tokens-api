@@ -107,7 +107,6 @@ module.exports = function(Eth) {
     description: ['Gets the balance of a particular token ',
       'for the specified Ethereum Address '],
   });
-
   Eth.remoteMethod('getTokenPrice', {
     http: {
       path: '/token/:symbol/price',

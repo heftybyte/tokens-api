@@ -1,0 +1,33 @@
+{
+  "name": "Invite",
+  "plural": "Invite",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "invite_code": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "DENY"
+    },
+    {
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "getCode"
+    }
+  ],
+  "methods": {}
+}

@@ -1,11 +1,11 @@
 {
   "name": "account",
   "base": "User",
+  "strict": true,
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
-  "strict": true,
   "properties": {
     "addresses": {
       "type": [
