@@ -150,22 +150,50 @@ module.exports = function(Account) {
       return cb(err);
     }
 
-    const tokenBalances = account.addresses.map(async(address) => {
+    //get all balance requests as promises
+    const tokenBalancesPromises = account.addresses.map(async(address) => {
       address = address.replace(/\W+/g, '');
       return await getAllTokenBalances(address);
     });
 
-    const balances = await Promise.all(tokenBalances)
+    // get actual token data in arrays
+    const balances = await Promise.all(tokenBalancesPromises)
       .catch(e=> {
         const error = new Error('An error occurred fetching your portfolio');
         error.status = 400;
         return cb(null, error);
       });
+    // concat all arrays into one which might include duplicates
+    let tokens = balances.reduce((acc, curr) => acc.concat(curr), []);
 
-    const tokens = balances.reduce((acc, curr) => acc.concat(curr), []);
-    const totalValue = tokens.reduce(
+    const duplicateBalanceMap = {};
+    const symbolMap = {};
+
+    // filter duplicates out
+    const filteredTokens = tokens.filter(token => {
+      // use a lookup map to find duplicates
+      if (symbolMap[token.symbol]) {
+        // store the balance of duplicate elements
+        duplicateBalanceMap[token.symbol] = duplicateBalanceMap[token.symbol] || [];
+        duplicateBalanceMap[token.symbol].push(token.balance);
+        return false;
+      } else {
+        symbolMap[token.symbol] = 1;
+        return true;
+      }
+    });
+
+    // add the duplicate balances back to the filtered tokens
+    filteredTokens.forEach((token, index) => {
+      if (duplicateBalanceMap[token.symbol] && duplicateBalanceMap[tokens.symbol].length) {
+        filteredTokens[index].balance += duplicateBalanceMap[token.symbol].reduce((acc, balance) => acc + balance, 0);
+      }
+    });
+
+    // get the total value of all unique tokens
+    const totalValue = filteredTokens.reduce(
       (acc, curr) => acc += (curr.price * curr.balance), 0);
-    return cb(null, {tokens, totalValue});
+    return cb(null, {tokens: filteredTokens, totalValue});
   };
 
   Account.prototype.getTokenMeta = async function (sym, cb) {
