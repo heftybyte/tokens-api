@@ -145,22 +145,27 @@ module.exports = function(Account) {
   }
 
   Account.prototype.getPortfolio = async function (cb) {
-    let { err, account } = await getAccount(this.id)
+    let {err, account} = await getAccount(this.id);
     if (err) {
-      return cb(err)
+      return cb(err);
     }
 
-    const address = JSON.parse(account.addresses[0]) // TODO: fetch for multiple addresses
+    const tokenBalances = account.addresses.map(async(address) => {
+      address = address.replace(/\W+/g, '');
+      return await getAllTokenBalances(address);
+    });
 
-    const tokens = (await getAllTokenBalances(address)).map((token)=>({
-      ...token,
-      imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`
-    })).sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
-    const totalValue = tokens.reduce((acc, token)=>{
-      return acc + (token.price * token.balance);
-    }, 0);
+    const balances = await Promise.all(tokenBalances)
+      .catch(e=> {
+        const error = new Error('An error occurred fetching your portfolio');
+        error.status = 400;
+        return cb(null, error);
+      });
 
-    return cb(null, { tokens, totalValue })
+    const tokens = balances.reduce((acc, curr) => acc.concat(curr), []);
+    const totalValue = tokens.reduce(
+      (acc, curr) => acc += (curr.price * curr.balance), 0);
+    return cb(null, {tokens, totalValue});
   };
 
   Account.prototype.getTokenMeta = async function (sym, cb) {
