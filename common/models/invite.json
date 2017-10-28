@@ -3,13 +3,17 @@
   "plural": "Invite",
   "base": "PersistedModel",
   "idInjection": true,
+  "strict": true,
   "options": {
     "validateUpsert": true
   },
   "properties": {
     "invite_code": {
       "type": "string",
-      "required": true
+      "required": true,
+      "index": {
+        "unique": true
+      }
     }
   },
   "validations": [],
