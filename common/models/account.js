@@ -90,11 +90,9 @@ module.exports = function(Account) {
       return cb(err)
     }
 
-    const addressIndex = findIndex(address, account.addresses, (currentAddress, addressToFind) => (
-      addressToFind === JSON.parse(currentAddress)
-    ))
+    const addressIndex = account.addresses.indexOf(JSON.stringify(address))
 
-    if (typeof addressIndex === "undefined") {
+    if (addressIndex === -1) {
       err = new Error(`The address ${address} is not associated with the specified user account`)
       err.status = 404
       return cb(err)
@@ -104,14 +102,6 @@ module.exports = function(Account) {
     await account.save();
 
     return cb(null, account)
-  }
-
-  const findIndex = (elem, arr, fn) => {
-    let index;
-
-    arr.forEach((item, count) => { if (fn.call(null, item, elem)) index = count; return; })
-
-    return index;
   }
 
   const getAccount = async (id) => {
