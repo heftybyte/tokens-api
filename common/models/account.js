@@ -92,12 +92,37 @@ module.exports = function(Account) {
       err = new Error('Invalid ethereum address')
       err.status = 400
       return cb(err)
+    } else if ( this.addresses.includes(JSON.stringify(address)) ) {
+      err = new Error('This address has already been added to this user account')
+      err.status = 422
+      return cb(err)
     }
+
     this.addresses.push(JSON.stringify(address))
     const account = await this.save().catch(e=>err=e)
     if (err) {
       return cb(err);
     }
+    return cb(null, account)
+  }
+
+  Account.prototype.deleteAddress = async function (address, cb) {
+    let { err, account } = await getAccount(this.id)
+    if (err) {
+      return cb(err)
+    }
+
+    const addressIndex = account.addresses.indexOf(JSON.stringify(address))
+
+    if (addressIndex === -1) {
+      err = new Error(`The address ${address} is not associated with the specified user account`)
+      err.status = 404
+      return cb(err)
+    }
+
+    account.addresses.splice(addressIndex, 1)
+    await account.save();
+
     return cb(null, account)
   }
 
@@ -125,8 +150,8 @@ module.exports = function(Account) {
       return cb(err)
     }
 
-    const address = account.addresses[0].replace(/\W+/g, '') // TODO: fetch for multiple addresses
-    
+    const address = JSON.parse(account.addresses[0]) // TODO: fetch for multiple addresses
+
     const tokens = (await getAllTokenBalances(address)).map((token)=>({
       ...token,
       imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`
@@ -134,7 +159,7 @@ module.exports = function(Account) {
     const totalValue = tokens.reduce((acc, token)=>{
       return acc + (token.price * token.balance);
     }, 0);
-    
+
     return cb(null, { tokens, totalValue })
   };
 
@@ -145,7 +170,7 @@ module.exports = function(Account) {
     }
 
     const symbol = sym.toUpperCase()
-    const address = account.addresses[0].replace(/\W+/g, '')
+    const address = JSON.parse(account.addresses[0])
     const { price, marketCap, volume24Hr } = await getPriceForSymbol(symbol, 'USD');
     const quantity = await getTokenBalance(getContractAddress(symbol), address)
     const totalValue = quantity * price
@@ -214,6 +239,26 @@ module.exports = function(Account) {
       "type": "account"
     },
     description: 'Add an ethereum address to a user\'s account',
+  });
+
+  Account.remoteMethod('deleteAddress', {
+    isStatic: false,
+    http: {
+      path: '/addresses/:address',
+      verb: 'delete',
+    },
+    accepts: {
+      arg: 'address',
+      type: 'string',
+      http: {
+        source: 'path'
+      }
+    },
+    returns: {
+      "root": true,
+      "type": "account"
+    },
+    description: 'Delete an ethereum address from a user\'s account'
   });
 
   Account.remoteMethod('getPortfolio', {
