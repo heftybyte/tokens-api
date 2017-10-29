@@ -1,7 +1,3 @@
-{
-	"strict": true
-}
-
 module.exports = function(Invite) {
   Invite.getCode = (cb) => {
     let code = Invite.generateCode()
