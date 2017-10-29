@@ -151,9 +151,9 @@ module.exports = function(Account) {
     }
 
     //get all balance requests as promises
-    const tokenBalancesPromises = account.addresses.map(async(address) => {
+    const tokenBalancesPromises = account.addresses.map((address) => {
       address = address.replace(/\W+/g, '');
-      return await getAllTokenBalances(address);
+      return getAllTokenBalances(address);
     });
 
     // get actual token data in arrays
@@ -164,31 +164,27 @@ module.exports = function(Account) {
         return cb(null, error);
       });
     // concat all arrays into one which might include duplicates
-    let tokens = balances.reduce((acc, curr) => acc.concat(curr), []);
+    let tokens = balances.reduce((acc, curr) => acc.concat(curr), [])
 
-    const duplicateBalanceMap = {};
-    const symbolMap = {};
+    const aggregateTokenBalances = {}
 
     // filter duplicates out
-    const filteredTokens = tokens.filter(token => {
+    tokens.forEach(token => {
       // use a lookup map to find duplicates
-      if (symbolMap[token.symbol]) {
-        // store the balance of duplicate elements
-        duplicateBalanceMap[token.symbol] = duplicateBalanceMap[token.symbol] || [];
-        duplicateBalanceMap[token.symbol].push(token.balance);
-        return false;
+      if (aggregateTokenBalances[token.symbol]) {
+        aggregateTokenBalances[token.symbol].balance += token.balance
       } else {
-        symbolMap[token.symbol] = 1;
-        return true;
+        aggregateTokenBalances[token.symbol] = token
       }
     });
 
-    // add the duplicate balances back to the filtered tokens
-    filteredTokens.forEach((token, index) => {
-      if (duplicateBalanceMap[token.symbol] && duplicateBalanceMap[tokens.symbol].length) {
-        filteredTokens[index].balance += duplicateBalanceMap[token.symbol].reduce((acc, balance) => acc + balance, 0);
+    const filteredTokens = Object.keys(aggregateTokenBalances).map((symbol)=>{
+      const token = aggregateTokenBalances[symbol]
+      return {
+        ...token,
+        imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`
       }
-    });
+    })
 
     // get the total value of all unique tokens
     const totalValue = filteredTokens.reduce(
