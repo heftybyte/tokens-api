@@ -1,54 +1,65 @@
 {
-	"name": "feed",
-	"plural": "feed",
-	"base": "Model",
-	"idInjection": true,
-	"options": {
-		"validateUpsert": true
-	},
-	"properties": {
-		"type": {
-			"type": "string",
-			"required": true,
-			"enum": [
-				"ARTICLE", "ICO", "ANNOUNCMENT", "AD", "IMAGE", "VIDEO"
-			]
-		},
-		"title": {
-			"type": "string",
-			"required": true
-		},
-		"body": {
-			"type": "string",
-			"required": true
-		},
-		"createdAt": {
-			"type": "date"
-		},
-		"updatedAt": {
-			"type": "date"
-		},
-		"image": {
-			"type": "string",
-			"required": false
-		},
-		"tags": {
-			"type": "array",
-			"required": false
-		},
-		"link": {
-			"target": {
-				"type": "string",
-				"enum": ["web","internal", "app"]
-			},
-			"uri": "string",
-			"params": {
-				"type": "object"
-			}
-		}
-	},
-	"validations": [],
-	"relations": {},
-	"acls": [],
-	"methods": {}
+  "name": "feed",
+  "plural": "feed",
+  "base": "Model",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "type": {
+      "type": "string",
+      "required": true,
+      "enum": [
+        "ARTICLE",
+        "ICO",
+        "ANNOUNCMENT",
+        "AD",
+        "IMAGE",
+        "VIDEO"
+      ]
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "body": {
+      "type": "string",
+      "required": true
+    },
+    "createdAt": {
+      "type": "date"
+    },
+    "updatedAt": {
+      "type": "date"
+    },
+    "image": {
+      "type": "string",
+      "required": false
+    },
+    "tags": {
+      "type": "array",
+      "required": false
+    },
+    "link": {
+      "type": {
+        "target": {
+          "type": "string",
+          "enum": [
+            "web",
+            "internal",
+            "app"
+          ]
+        },
+        "uri": "string",
+        "params": {
+          "type": "object"
+        }
+      }
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
 }

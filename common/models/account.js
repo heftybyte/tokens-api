@@ -4,20 +4,42 @@ import {
   getContractAddress,
   getPriceForSymbol
 } from '../../lib/eth.js';
+let app = require('../../server/server');
 
 import web3 from '../../lib/web3'
 
 module.exports = function(Account) {
   Account.register = (data, cb) => {
-    Account.create(data, (err, instance) => {
-      if (err) {
-        const error = new Error(err.message);
-        error.status = 400;
-        cb(error);
-      } else {
-        cb(null, instance);
-      }
-    });
+	  let invite = app.default.models.Invite;
+	  invite.findOne({where: {invite_code: data.code}}, (err, code) => {
+			if(err){
+				console.log('An error is reported from Invite.findOne: %j', err)
+				const error = new Error(err.message);
+				error.status = 400;
+				return cb(error);
+			}
+
+			if(code){
+				delete data.code
+				Account.create(data, (err, instance) => {
+					if (err) {
+						const error = new Error(err.message);
+						error.status = 400;
+						return cb(error);
+					}
+					invite.destroyById(code.id, (err, info) => {
+						if(err){
+							console.log('An error is reported from Invite.destroyById: %j', err)
+						}
+					})
+					cb(null, instance);
+				});
+			} else {
+				const error = new Error("You need Invitation code to Register");
+				error.status = 401;
+				return cb(error);
+			}
+	  })
   };
 
   Account.login = function(credentials, include, fn) {
