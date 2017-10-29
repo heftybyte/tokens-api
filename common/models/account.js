@@ -145,22 +145,51 @@ module.exports = function(Account) {
   }
 
   Account.prototype.getPortfolio = async function (cb) {
-    let { err, account } = await getAccount(this.id)
+    let {err, account} = await getAccount(this.id);
     if (err) {
-      return cb(err)
+      return cb(err);
     }
 
-    const address = JSON.parse(account.addresses[0]) // TODO: fetch for multiple addresses
+    //get all balance requests as promises
+    const tokenBalancesPromises = account.addresses.map((address) => {
+      address = address.replace(/\W+/g, '');
+      return getAllTokenBalances(address);
+    });
 
-    const tokens = (await getAllTokenBalances(address)).map((token)=>({
-      ...token,
-      imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`
-    })).sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
-    const totalValue = tokens.reduce((acc, token)=>{
-      return acc + (token.price * token.balance);
-    }, 0);
+    // get actual token data in arrays
+    const balances = await Promise.all(tokenBalancesPromises)
+      .catch(e=> {
+        const error = new Error('An error occurred fetching your portfolio');
+        error.status = 400;
+        return cb(null, error);
+      });
+    // concat all arrays into one which might include duplicates
+    let tokens = balances.reduce((acc, curr) => acc.concat(curr), [])
 
-    return cb(null, { tokens, totalValue })
+    const aggregateTokenBalances = {}
+
+    // filter duplicates out
+    tokens.forEach(token => {
+      // use a lookup map to find duplicates
+      if (aggregateTokenBalances[token.symbol]) {
+        aggregateTokenBalances[token.symbol].balance += token.balance
+      } else {
+        aggregateTokenBalances[token.symbol] = token
+      }
+    });
+
+    const filteredTokens = Object.keys(aggregateTokenBalances).map((symbol)=>{
+      const token = aggregateTokenBalances[symbol]
+      return {
+        ...token,
+        imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`
+      }
+    })
+
+    // get the total value of all unique tokens
+    const totalValue = filteredTokens.reduce(
+      (acc, curr) => acc += (curr.price * curr.balance), 0);
+    return cb(null, {tokens: filteredTokens, totalValue});
   };
 
   Account.prototype.getTokenMeta = async function (sym, cb) {
