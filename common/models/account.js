@@ -273,7 +273,7 @@ module.exports = function(Account) {
   Account.remoteMethod('deleteAddress', {
     isStatic: false,
     http: {
-      path: '/addresses/:address',
+      path: '/address/:address',
       verb: 'delete',
     },
     accepts: {
