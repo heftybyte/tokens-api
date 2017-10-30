@@ -35,7 +35,7 @@ module.exports = function(Account) {
 					cb(null, instance);
 				});
 			} else {
-				const error = new Error("You need Invitation code to Register");
+				const error = new Error("You need a valid invitation code to register.\nTweet @tokens_express to get one.");
 				error.statusCode = 400;
 				return cb(error);
 			}
