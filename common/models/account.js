@@ -36,53 +36,10 @@ module.exports = function(Account) {
 				});
 			} else {
 				const error = new Error("You need Invitation code to Register");
-				error.status = 401;
+				error.statusCode = 400;
 				return cb(error);
 			}
 	  })
-  };
-
-  Account.login = function(credentials, include, fn) {
-    Account.findOne({where: credentials}, function(err, user) {
-      var defaultError = new Error('login failed');
-      defaultError.statusCode = 401;
-      defaultError.code = 'LOGIN_FAILED';
-
-      function tokenHandler(err, token) {
-        if (err) return fn(err);
-        if (Array.isArray(include) ? include.indexOf('user') !== -1 : include === 'user') {
-          token.__data.user = user;
-        }
-        fn(err, token);
-      }
-
-      if (err) {
-        console.log('An error is reported from User.findOne: %j', err);
-        fn(defaultError);
-      } else if (user) {
-        if (Account.settings.emailVerificationRequired && !user.emailVerified) {
-          // Fail to log in if email verification is not done yet
-          console.log('User email has not been verified');
-          err = new Error('login failed as the email has not been verified');
-          err.statusCode = 401;
-          err.code = 'LOGIN_FAILED_EMAIL_NOT_VERIFIED';
-          err.details = {
-            userId: user.id,
-          };
-          fn(err);
-        } else {
-          if (user.createAccessToken.length === 2) {
-            user.createAccessToken(credentials.ttl, tokenHandler);
-          } else {
-            user.createAccessToken(credentials.ttl, credentials, tokenHandler);
-          }
-        }
-      } else {
-        console.log('No matching record is found for user %s', credentials.id);
-        fn(defaultError);
-      }
-    });
-    return fn.promise;
   };
 
   Account.prototype.addAddress = async function (data, cb) {
@@ -92,13 +49,13 @@ module.exports = function(Account) {
       err = new Error('Invalid ethereum address')
       err.status = 400
       return cb(err)
-    } else if ( this.addresses.includes(JSON.stringify(address)) ) {
+    } else if ( this.addresses.includes(address) ) {
       err = new Error('This address has already been added to this user account')
       err.status = 422
       return cb(err)
     }
 
-    this.addresses.push(JSON.stringify(address))
+    this.addresses.push(address)
     const account = await this.save().catch(e=>err=e)
     if (err) {
       return cb(err);
@@ -112,7 +69,7 @@ module.exports = function(Account) {
       return cb(err)
     }
 
-    const addressIndex = account.addresses.indexOf(JSON.stringify(address))
+    const addressIndex = account.addresses.indexOf(address)
 
     if (addressIndex === -1) {
       err = new Error(`The address ${address} is not associated with the specified user account`)
@@ -184,7 +141,7 @@ module.exports = function(Account) {
         ...token,
         imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`
       }
-    })
+    }).sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
 
     // get the total value of all unique tokens
     const totalValue = filteredTokens.reduce(
