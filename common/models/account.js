@@ -4,63 +4,42 @@ import {
   getContractAddress,
   getPriceForSymbol
 } from '../../lib/eth.js';
+let app = require('../../server/server');
 
 import web3 from '../../lib/web3'
 
 module.exports = function(Account) {
   Account.register = (data, cb) => {
-    Account.create(data, (err, instance) => {
-      if (err) {
-        const error = new Error(err.message);
-        error.status = 400;
-        cb(error);
-      } else {
-        cb(null, instance);
-      }
-    });
-  };
+	  let invite = app.default.models.Invite;
+	  invite.findOne({where: {invite_code: data.code}}, (err, code) => {
+			if(err){
+				console.log('An error is reported from Invite.findOne: %j', err)
+				const error = new Error(err.message);
+				error.status = 400;
+				return cb(error);
+			}
 
-  Account.login = function(credentials, include, fn) {
-    Account.findOne({where: credentials}, function(err, user) {
-      var defaultError = new Error('login failed');
-      defaultError.statusCode = 401;
-      defaultError.code = 'LOGIN_FAILED';
-
-      function tokenHandler(err, token) {
-        if (err) return fn(err);
-        if (Array.isArray(include) ? include.indexOf('user') !== -1 : include === 'user') {
-          token.__data.user = user;
-        }
-        fn(err, token);
-      }
-
-      if (err) {
-        console.log('An error is reported from User.findOne: %j', err);
-        fn(defaultError);
-      } else if (user) {
-        if (Account.settings.emailVerificationRequired && !user.emailVerified) {
-          // Fail to log in if email verification is not done yet
-          console.log('User email has not been verified');
-          err = new Error('login failed as the email has not been verified');
-          err.statusCode = 401;
-          err.code = 'LOGIN_FAILED_EMAIL_NOT_VERIFIED';
-          err.details = {
-            userId: user.id,
-          };
-          fn(err);
-        } else {
-          if (user.createAccessToken.length === 2) {
-            user.createAccessToken(credentials.ttl, tokenHandler);
-          } else {
-            user.createAccessToken(credentials.ttl, credentials, tokenHandler);
-          }
-        }
-      } else {
-        console.log('No matching record is found for user %s', credentials.id);
-        fn(defaultError);
-      }
-    });
-    return fn.promise;
+			if(code){
+				delete data.code
+				Account.create(data, (err, instance) => {
+					if (err) {
+						const error = new Error(err.message);
+						error.status = 400;
+						return cb(error);
+					}
+					invite.destroyById(code.id, (err, info) => {
+						if(err){
+							console.log('An error is reported from Invite.destroyById: %j', err)
+						}
+					})
+					cb(null, instance);
+				});
+			} else {
+				const error = new Error("You need a valid invitation code to register.\nTweet @tokens_express to get one.");
+				error.statusCode = 400;
+				return cb(error);
+			}
+	  })
   };
 
   Account.prototype.addAddress = async function (data, cb) {
@@ -70,12 +49,37 @@ module.exports = function(Account) {
       err = new Error('Invalid ethereum address')
       err.status = 400
       return cb(err)
+    } else if ( this.addresses.includes(address) ) {
+      err = new Error('This address has already been added to this user account')
+      err.status = 422
+      return cb(err)
     }
-    this.addresses.push(JSON.stringify(address))
+
+    this.addresses.push(address)
     const account = await this.save().catch(e=>err=e)
     if (err) {
       return cb(err);
     }
+    return cb(null, account)
+  }
+
+  Account.prototype.deleteAddress = async function (address, cb) {
+    let { err, account } = await getAccount(this.id)
+    if (err) {
+      return cb(err)
+    }
+
+    const addressIndex = account.addresses.indexOf(address)
+
+    if (addressIndex === -1) {
+      err = new Error(`The address ${address} is not associated with the specified user account`)
+      err.status = 404
+      return cb(err)
+    }
+
+    account.addresses.splice(addressIndex, 1)
+    await account.save();
+
     return cb(null, account)
   }
 
@@ -98,22 +102,51 @@ module.exports = function(Account) {
   }
 
   Account.prototype.getPortfolio = async function (cb) {
-    let { err, account } = await getAccount(this.id)
+    let {err, account} = await getAccount(this.id);
     if (err) {
-      return cb(err)
+      return cb(err);
     }
 
-    const address = account.addresses[0].replace(/\W+/g, '') // TODO: fetch for multiple addresses
-    
-    const tokens = (await getAllTokenBalances(address)).map((token)=>({
-      ...token,
-      imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`
-    })).sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
-    const totalValue = tokens.reduce((acc, token)=>{
-      return acc + (token.price * token.balance);
-    }, 0);
-    
-    return cb(null, { tokens, totalValue })
+    //get all balance requests as promises
+    const tokenBalancesPromises = account.addresses.map((address) => {
+      address = address.replace(/\W+/g, '');
+      return getAllTokenBalances(address);
+    });
+
+    // get actual token data in arrays
+    const balances = await Promise.all(tokenBalancesPromises)
+      .catch(e=> {
+        const error = new Error('An error occurred fetching your portfolio');
+        error.status = 400;
+        return cb(null, error);
+      });
+    // concat all arrays into one which might include duplicates
+    let tokens = balances.reduce((acc, curr) => acc.concat(curr), [])
+
+    const aggregateTokenBalances = {}
+
+    // filter duplicates out
+    tokens.forEach(token => {
+      // use a lookup map to find duplicates
+      if (aggregateTokenBalances[token.symbol]) {
+        aggregateTokenBalances[token.symbol].balance += token.balance
+      } else {
+        aggregateTokenBalances[token.symbol] = token
+      }
+    });
+
+    const filteredTokens = Object.keys(aggregateTokenBalances).map((symbol)=>{
+      const token = aggregateTokenBalances[symbol]
+      return {
+        ...token,
+        imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`
+      }
+    }).sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
+
+    // get the total value of all unique tokens
+    const totalValue = filteredTokens.reduce(
+      (acc, curr) => acc += (curr.price * curr.balance), 0);
+    return cb(null, {tokens: filteredTokens, totalValue});
   };
 
   Account.prototype.getTokenMeta = async function (sym, cb) {
@@ -123,7 +156,7 @@ module.exports = function(Account) {
     }
 
     const symbol = sym.toUpperCase()
-    const address = account.addresses[0].replace(/\W+/g, '')
+    const address = JSON.parse(account.addresses[0])
     const { price, marketCap, volume24Hr } = await getPriceForSymbol(symbol, 'USD');
     const quantity = await getTokenBalance(getContractAddress(symbol), address)
     const totalValue = quantity * price
@@ -192,6 +225,26 @@ module.exports = function(Account) {
       "type": "account"
     },
     description: 'Add an ethereum address to a user\'s account',
+  });
+
+  Account.remoteMethod('deleteAddress', {
+    isStatic: false,
+    http: {
+      path: '/address/:address',
+      verb: 'delete',
+    },
+    accepts: {
+      arg: 'address',
+      type: 'string',
+      http: {
+        source: 'path'
+      }
+    },
+    returns: {
+      "root": true,
+      "type": "account"
+    },
+    description: 'Delete an ethereum address from a user\'s account'
   });
 
   Account.remoteMethod('getPortfolio', {

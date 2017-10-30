@@ -48,5 +48,9 @@
   "Token": {
     "dataSource": "arangodbDs",
     "public": true
+  },
+  "Invite": {
+    "dataSource": "arangodbDs",
+    "public": true
   }
 }

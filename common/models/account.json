@@ -75,6 +75,12 @@
     },
     {
       "principalType": "ROLE",
+      "principalId": "$owner",
+      "permission": "ALLOW",
+      "property": "deleteAddress"
+    },
+    {
+      "principalType": "ROLE",
       "principalId": "$everyone",
       "permission": "ALLOW",
       "property": "register"
