@@ -2,7 +2,8 @@ import {
   getAllTokenBalances,
   getTokenBalance,
   getContractAddress,
-  getPriceForSymbol
+  getPriceForSymbol,
+	getEthAddressBalance
 } from '../../lib/eth.js';
 let app = require('../../server/server');
 
@@ -146,7 +147,31 @@ module.exports = function(Account) {
     // get the total value of all unique tokens
     const totalValue = filteredTokens.reduce(
       (acc, curr) => acc += (curr.price * curr.balance), 0);
-    return cb(null, {tokens: filteredTokens, totalValue});
+
+    //get all address eth balance
+	  const addressBalancesPromises = account.addresses.map((address) => {
+		  address = address.replace(/\W+/g, '');
+		  return getEthAddressBalance(address);
+	  });
+
+
+	  const ethBalances = await Promise.all(addressBalancesPromises)
+		  .catch(e=> {
+			  const error = new Error('An error occurred fetching your portfolio');
+			  error.status = 400;
+			  return cb(null, error);
+		  })
+
+	  let totalEthBalance = 0;
+	  ethBalances.forEach(balance => {
+		  totalEthBalance += parseFloat(balance.addressBalance)
+	  })
+	  const price = await getPriceForSymbol('ETH', 'USD');
+		delete price.marketCap
+	  delete price.volume24Hr
+	  const eth = {balance: totalEthBalance, ...price};
+
+    return cb(null, {tokens: filteredTokens, totalValue, eth});
   };
 
   Account.prototype.getTokenMeta = async function (sym, cb) {
