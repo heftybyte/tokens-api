@@ -17,6 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "async": "^2.5.0",
     "babel-polyfill": "^6.26.0",
     "bignumber.js": "^4.0.4",
     "bluebird": "^3.5.0",

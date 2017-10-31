@@ -6,6 +6,7 @@ import {
 	getEthAddressBalance
 } from '../../lib/eth.js';
 let app = require('../../server/server');
+import parallel from 'async/parallel';
 
 import web3 from '../../lib/web3'
 
@@ -108,71 +109,106 @@ module.exports = function(Account) {
       return cb(err);
     }
 
-    //get all balance requests as promises
-    const tokenBalancesPromises = account.addresses.map((address) => {
-      address = address.replace(/\W+/g, '');
-      return getAllTokenBalances(address);
-    });
-
-    // get actual token data in arrays
-    const balances = await Promise.all(tokenBalancesPromises)
-      .catch(e=> {
-        const error = new Error('An error occurred fetching your portfolio');
-        error.status = 400;
-        return cb(null, error);
-      });
-    // concat all arrays into one which might include duplicates
-    let tokens = balances.reduce((acc, curr) => acc.concat(curr), [])
-
-    const aggregateTokenBalances = {}
-
-    // filter duplicates out
-    tokens.forEach(token => {
-      // use a lookup map to find duplicates
-      if (aggregateTokenBalances[token.symbol]) {
-        aggregateTokenBalances[token.symbol].balance += token.balance
-      } else {
-        aggregateTokenBalances[token.symbol] = token
-      }
-    });
-
-    const filteredTokens = Object.keys(aggregateTokenBalances).map((symbol)=>{
-      const token = aggregateTokenBalances[symbol]
-      return {
-        ...token,
-        imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`
-      }
-    }).sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
-
-    // get the total value of all unique tokens
-    const totalValue = filteredTokens.reduce(
-      (acc, curr) => acc += (curr.price * curr.balance), 0);
-
-    //get all address eth balance
-	  const addressBalancesPromises = account.addresses.map((address) => {
-		  address = address.replace(/\W+/g, '');
-		  return getEthAddressBalance(address);
-	  });
-
-
-	  const ethBalances = await Promise.all(addressBalancesPromises)
-		  .catch(e=> {
+	  parallel({
+		  tokensBal: (done) => {
+		  	Account.getTokensBalances(account.addresses, done)
+		  },
+		  ethBal: (done) => {
+		  	Account.getAddressBalance(account.addresses, done)
+		  }
+	  }, (err, result) => {
+		  if (err) {
 			  const error = new Error('An error occurred fetching your portfolio');
 			  error.status = 400;
-			  return cb(null, error);
-		  })
+			  return cb(error);
+		  }
 
-	  let totalEthBalance = 0;
-	  ethBalances.forEach(balance => {
-		  totalEthBalance += parseFloat(balance.addressBalance)
+		  try {
+		  	let eth = result.ethBal
+			  let res = {
+				  //tokens: result.tokensBal.filteredTokens,
+				  //totalValue: result.tokensBal.totalValue,
+				  //eth: result.ethBal
+			  }
+
+			  return cb(null, {eth})
+		  } catch (e) {
+			  const error = new Error('An error occurred fetching your portfolio');
+			  error.status = 400;
+			  return cb(error);
+		  }
 	  })
-	  const price = await getPriceForSymbol('ETH', 'USD');
-		delete price.marketCap
-	  delete price.volume24Hr
-	  const eth = {balance: totalEthBalance, ...price};
 
-    return cb(null, {tokens: filteredTokens, totalValue, eth});
+    //return cb(null, {tokens: filteredTokens, totalValue, eth});
   };
+
+	Account.getTokensBalances = async function(addresses, done){
+		//get all balance requests as promises
+		const tokenBalancesPromises = addresses.map((address) => {
+			address = address.replace(/\W+/g, '');
+			return getAllTokenBalances(address);
+		});
+
+		// get actual token data in arrays
+		const balances = await Promise.all(tokenBalancesPromises)
+			.catch(e=> {
+				return done(e, null)
+			});
+		// concat all arrays into one which might include duplicates
+		let tokens = balances.reduce((acc, curr) => acc.concat(curr), [])
+
+		const aggregateTokenBalances = {}
+
+		// filter duplicates out
+		tokens.forEach(token => {
+			// use a lookup map to find duplicates
+			if (aggregateTokenBalances[token.symbol]) {
+				aggregateTokenBalances[token.symbol].balance += token.balance
+			} else {
+				aggregateTokenBalances[token.symbol] = token
+			}
+		});
+
+		const filteredTokens = Object.keys(aggregateTokenBalances).map((symbol)=>{
+			const token = aggregateTokenBalances[symbol]
+			return {
+				...token,
+				imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`
+			}
+		}).sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
+
+		// get the total value of all unique tokens
+		const totalValue = filteredTokens.reduce(
+			(acc, curr) => acc += (curr.price * curr.balance), 0);
+
+		done(null, {filteredTokens, totalValue})
+	}
+
+  Account.getAddressBalance = async function(addresses, done){
+		//get all address eth balance
+	  // account.addresses
+		const addressBalancesPromises = addresses.map((address) => {
+			address = address.replace(/\W+/g, '');
+			return getEthAddressBalance(address);
+		});
+
+
+		const ethBalances = await Promise.all(addressBalancesPromises)
+			.catch(e => {
+				return done(e, null)
+			})
+
+		let totalEthBalance = 0;
+		ethBalances.forEach(balance => {
+			totalEthBalance += parseFloat(balance.addressBalance)
+		})
+		const price = await getPriceForSymbol('ETH', 'USD');
+		delete price.marketCap
+		delete price.volume24Hr
+		const eth = {balance: totalEthBalance, ...price};
+
+		done(null, eth)
+	}
 
   Account.prototype.getTokenMeta = async function (sym, cb) {
     let { err, account } = await getAccount(this.id)
