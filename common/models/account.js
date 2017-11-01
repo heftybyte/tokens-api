@@ -20,7 +20,7 @@ module.exports = function(Account) {
 				return cb(error);
 			}
 
-			if(code){
+			if (code){
 				delete data.code
 				Account.create(data, (err, instance) => {
 					if (err) {
@@ -90,9 +90,6 @@ module.exports = function(Account) {
 
     if (!err && !account) {
       err = new Error("Account not found")
-      err.status = 404
-    } else if (!err && account && !account.addresses.length) {
-      err = new Error('No addresses associated with this account')
       err.status = 404
     }
 
@@ -188,6 +185,8 @@ module.exports = function(Account) {
 
     return cb(null, {price, quantity, totalValue, marketCap, volume24Hr});
   };
+
+  Account.validatesLengthOf('password', {min: 5, message: {min: 'Password should be at least 5 characters'}});
 
   Account.remoteMethod('getTokenMeta', {
     isStatic: false,
