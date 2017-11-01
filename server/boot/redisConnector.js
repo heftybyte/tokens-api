@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
-const redis = require('redis')
-const bluebird = require('bluebird')
+const redis = require('redis');
+const bluebird = require('bluebird');
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
 
@@ -8,7 +8,7 @@ let client = redis.createClient({
   port: process.env.REDIS_PORT || '6379',
   host: process.env.REDIS_HOST || 'localhost',
   retry_strategy(options) {
-    console.log('redis retry <<<<<<', options.attempt);
+    console.log('redis retry <<<<<< ', options.attempt);
     if (options.error && options.error.code === 'ECONNREFUSED') {
       console.log('redis refused <<<<<<');
       return new Error('The server refused the connection');
@@ -26,7 +26,7 @@ let client = redis.createClient({
 });
 
 client.on('connect', () => {
-	console.log('redis client connected');
-})
+  console.log('redis client connected');
+});
 
 module.exports = client;

@@ -44,12 +44,15 @@
     "dataSource": "arangodbDs",
     "public": true
   },
-  "feed": {},
-  "Token": {
+  "feed": {
     "dataSource": "arangodbDs",
     "public": true
   },
-  "Invite": {
+  "token": {
+    "dataSource": "arangodbDs",
+    "public": true
+  },
+  "invite": {
     "dataSource": "arangodbDs",
     "public": true
   }
