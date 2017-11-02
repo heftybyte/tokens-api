@@ -170,7 +170,6 @@ module.exports = function(Account) {
     if (totalEthBalance) {
       promises.push(getPriceForSymbol('ETH', 'USD'))
     }
-    console.log('totalEthBalance', totalEthBalance)
     const responses = await Promise.all(promises).catch(e=>err=e)
 
     if (err) {
@@ -196,7 +195,6 @@ module.exports = function(Account) {
       totalValue += totalEthBalance * eth.price
     }
 
-    console.log({tokens: filteredTokens, totalValue, top})
     return cb(null, {tokens: filteredTokens, totalValue, top});
   };
 
