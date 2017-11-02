@@ -3,44 +3,48 @@ import {
   getTokenBalance,
   getContractAddress,
   getPriceForSymbol,
-	getEthAddressBalance
+  getEthAddressBalance,
+  getTopNTokens
 } from '../../lib/eth.js';
 let app = require('../../server/server');
 
 import web3 from '../../lib/web3'
 
 module.exports = function(Account) {
-  Account.register = (data, cb) => {
-	  let invite = app.default.models.Invite;
-	  invite.findOne({where: {invite_code: data.code}}, (err, code) => {
-			if(err){
-				console.log('An error is reported from Invite.findOne: %j', err)
-				const error = new Error(err.message);
-				error.status = 400;
-				return cb(error);
-			}
+  Account.register = async (data, cb) => {
+    let err = null, Invite = app.default.models.Invite;
 
-			if (code){
-				delete data.code
-				Account.create(data, (err, instance) => {
-					if (err) {
-						const error = new Error(err.message);
-						error.status = 400;
-						return cb(error);
-					}
-					invite.destroyById(code.id, (err, info) => {
-						if(err){
-							console.log('An error is reported from Invite.destroyById: %j', err)
-						}
-					})
-					cb(null, instance);
-				});
-			} else {
-				const error = new Error("You need a valid invitation code to register.\nTweet @tokens_express to get one.");
-				error.statusCode = 400;
-				return cb(error);
-			}
-	  })
+    const invite = await Invite.findOne({where: {invite_code: data.code}}).catch(e=>err=e)
+    if (err){
+      console.log('An error is reported from Invite.findOne: %j', err)
+      err = new Error(err.message);
+      err.status = 400;
+      return cb(err);
+    }
+
+    if (!invite) {
+      err = new Error("You need a valid invitation code to register.\nTweet @tokens_express to get one.");
+      err.statusCode = 400;
+      return cb(err);
+    } else if (!invite.claimed) {
+      delete data.code
+      const instance = await Account.create(data).catch(e=>err=e)
+      if (err) {
+        err = new Error(err.message);
+        err.status = 400;
+        return cb(err);
+      }
+      invite.claimed = true
+      await invite.save().catch(e=>err=e)
+      if (err) {
+        console.log('unable to update claimed invite: %j', err)
+      }
+      return cb(null, instance);
+    } else {
+      err = new Error("This invite has already been claimed.\nTweet @tokens_express to get a new one.");
+      err.statusCode = 400;
+      return cb(err);
+    }
   };
 
   Account.prototype.addAddress = async function (data, cb) {
@@ -142,33 +146,58 @@ module.exports = function(Account) {
     }).sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
 
     // get the total value of all unique tokens
-    const totalValue = filteredTokens.reduce(
+    let totalValue = filteredTokens.reduce(
       (acc, curr) => acc += (curr.price * curr.balance), 0);
 
     //get all address eth balance
-	  const addressBalancesPromises = account.addresses.map((address) => {
-		  address = address.replace(/\W+/g, '');
-		  return getEthAddressBalance(address);
-	  });
+    const addressBalancesPromises = account.addresses.map((address) => {
+      address = address.replace(/\W+/g, '');
+      return getEthAddressBalance(address);
+    });
 
+    const ethBalances = await Promise.all(addressBalancesPromises)
+      .catch(e=>err=e)
 
-	  const ethBalances = await Promise.all(addressBalancesPromises)
-		  .catch(e=> {
-			  const error = new Error('An error occurred fetching your portfolio');
-			  error.status = 400;
-			  return cb(null, error);
-		  })
+    if (err) {
+      return cb(err);
+    }
 
-	  let totalEthBalance = 0;
-	  ethBalances.forEach(balance => {
-		  totalEthBalance += parseFloat(balance.addressBalance)
-	  })
-	  const price = await getPriceForSymbol('ETH', 'USD');
-		delete price.marketCap
-	  delete price.volume24Hr
-	  const eth = {balance: totalEthBalance, ...price};
+    const promises = [getTopNTokens(10)]
 
-    return cb(null, {tokens: filteredTokens, totalValue, eth});
+    let totalEthBalance = ethBalances.reduce((acc, balance) => {
+      return acc + Number(balance.addressBalance)
+    }, 0)
+    if (totalEthBalance) {
+      promises.push(getPriceForSymbol('ETH', 'USD'))
+    }
+    console.log('totalEthBalance', totalEthBalance)
+    const responses = await Promise.all(promises).catch(e=>err=e)
+
+    if (err) {
+      console.log('getPortfolio error', err)
+      return cb(err)
+    }
+
+    const top = (responses[0] || []).map((token)=>({
+      ...token,
+      imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`      
+    }))
+    const eth = responses[1]
+
+    if (eth) {
+      delete eth.marketCap
+      delete eth.volume24Hr
+      filteredTokens.unshift({
+        balance: totalEthBalance,
+        imageUrl: '/img/tokens/eth.png',
+        symbol: 'ETH',
+        ...eth,
+      })
+      totalValue += totalEthBalance * eth.price
+    }
+
+    console.log({tokens: filteredTokens, totalValue, top})
+    return cb(null, {tokens: filteredTokens, totalValue, top});
   };
 
   Account.prototype.getTokenMeta = async function (sym, cb) {
