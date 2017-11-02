@@ -50,5 +50,8 @@
   },
   "final:after": {
     "strong-error-handler": {}
+  },
+  "final": {
+    "./middleware/sentry": {}
   }
 }

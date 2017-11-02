@@ -180,7 +180,7 @@ module.exports = function(Account) {
 
     const top = (responses[0] || []).map((token)=>({
       ...token,
-      imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`      
+      imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`
     }))
     const eth = responses[1]
 
