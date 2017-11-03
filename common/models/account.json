@@ -32,6 +32,10 @@
       "type": "string",
       "required": false
     },
+    "notification_token": {
+      "type": "string",
+      "required": false
+    },
     "password": {
       "type": "string",
       "required": false
@@ -84,6 +88,13 @@
       "principalId": "$everyone",
       "permission": "ALLOW",
       "property": "register"
+    },
+    {
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "addNotificationToken"
     }
   ],
   "methods": {}
