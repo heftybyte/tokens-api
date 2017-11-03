@@ -213,6 +213,20 @@ module.exports = function(Account) {
     return cb(null, {price, quantity, totalValue, marketCap, volume24Hr});
   };
 
+	Account.addNotificationToken = async function (req, data, cb) {
+		const { token } = data
+		let {err, account} = await getAccount(req.accessToken.userId);
+		if (err) {
+			return cb(err);
+		}
+
+		let newAccount = await account.updateAttribute('notification_token', token).catch(e=>{err=e})
+		if (err) {
+			return cb(err);
+		}
+		return cb(null, newAccount)
+	}
+
   Account.validatesLengthOf('password', {min: 5, message: {min: 'Password should be at least 5 characters'}});
 
   Account.remoteMethod('getTokenMeta', {
@@ -234,6 +248,21 @@ module.exports = function(Account) {
     },
     description: 'Shows metadata information details for a token'
   });
+
+	Account.remoteMethod('addNotificationToken', {
+		http: {
+			path: '/push-token',
+			verb: 'post'
+		},
+		accepts:[
+			{arg: 'req', type: 'object', 'http': {source: 'req'}},
+			{arg: 'data', type: 'object', http: { source: 'body'}, description: 'token'}
+		],
+		returns: {
+			root: true,
+		},
+		description: 'Update User Notification token'
+	});
 
   Account.remoteMethod('register', {
     http: {
