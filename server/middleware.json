@@ -46,12 +46,9 @@
     }
   },
   "final": {
-    "loopback#urlNotFound": {}
+    "./middleware/sentry": {}
   },
   "final:after": {
     "strong-error-handler": {}
-  },
-  "final": {
-    "./middleware/sentry": {}
   }
 }

@@ -1,0 +1,28 @@
+{
+  "name": "address",
+  "base": "Model",
+  "idInjection": false,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "required": true
+    },
+    "ether": {
+      "type": "number",
+      "default": 0
+    },
+    "tokens": {
+      "type": [
+        "object"
+      ],
+      "default": []
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

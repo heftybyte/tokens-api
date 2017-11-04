@@ -51,5 +51,9 @@
   "Invite": {
     "dataSource": "arangodbDs",
     "public": true
+  },
+  "address": {
+    "dataSource": "arangodbDs",
+    "public": false
   }
 }
