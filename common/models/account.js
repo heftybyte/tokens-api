@@ -4,8 +4,10 @@ import {
   getContractAddress,
   getPriceForSymbol,
   getEthAddressBalance,
-  getTopNTokens
+  getTopNTokens,
+  getTokenPrices
 } from '../../lib/eth.js';
+import { all } from '../../lib/async-promise';
 let app = require('../../server/server');
 
 import web3 from '../../lib/web3'
@@ -143,11 +145,24 @@ module.exports = function(Account) {
         ...token,
         imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`
       }
-    }).sort((a, b)=>a.symbol > b.symbol ? 1 : -1).filter(obj => obj.balance > 0)
+    }).sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
 
     // get the total value of all unique tokens
     let totalValue = filteredTokens.reduce(
       (acc, curr) => acc += (curr.price * curr.balance), 0);
+  
+    //get all address eth balance
+    const addressBalancesPromises = account.addresses.map((address) => {
+      address = address.replace(/\W+/g, '');
+      return getEthAddressBalance(address);
+    });
+
+    const ethBalances = await Promise.all(addressBalancesPromises)
+      .catch(e=>err=e)
+
+    if (err) {
+      return cb(err);
+    }
 
     const promises = [getTopNTokens(10)]
 
@@ -193,12 +208,26 @@ module.exports = function(Account) {
     if (err) {
       return cb(err);
     }
-
-    const {tokens} = account
+    const {tokens: currentTokens} = account
+    const symbols = currentTokens.map((token)=>token.symbol)
+    let { top, prices } = await all({
+      top: getTopNTokens(10),
+      prices: getTokenPrices(symbols)
+    })
+    top = (top || []).map((token)=>({
+      ...token,
+      imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`
+    }))
+    const tokens = currentTokens.map((token, i)=>({
+      symbol: token.symbol,
+      balance: token.balance,
+      imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`,
+      ...prices[i]
+    }))
     const totalValue = tokens.reduce(
       (acc, curr) => acc += (curr.price * curr.balance), 0);
 
-    return cb(null, {tokens, totalValue});
+    return cb(null, {tokens, totalValue, top});
   };
 
   Account.prototype.getTokenMeta = async function (sym, cb) {
