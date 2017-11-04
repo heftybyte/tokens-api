@@ -10,6 +10,11 @@ import {
 import { all } from '../../lib/async-promise';
 let app = require('../../server/server');
 
+const constants = require('../../constants/');
+
+let statsd_client = require('../../lib/statsd');
+
+
 import web3 from '../../lib/web3'
 
 module.exports = function(Account) {
@@ -25,10 +30,18 @@ module.exports = function(Account) {
     }
 
     if (!invite) {
+
+      // metrics
+      statsd_client.increment(constants.METRICS.register.invalid_code)
+
       err = new Error("You need a valid invitation code to register.\nTweet @tokens_express to get one.");
       err.statusCode = 400;
       return cb(err);
     } else if (!invite.claimed) {
+
+      // metrics
+      statsd_client.increment(constants.METRICS.register.success)
+
       delete data.code
       const instance = await Account.create(data).catch(e=>err=e)
       if (err) {
@@ -43,6 +56,10 @@ module.exports = function(Account) {
       }
       return cb(null, instance);
     } else {
+
+      // metrics
+      statsd_client.increment(constants.METRICS.register.claimed)
+
       err = new Error("This invite has already been claimed.\nTweet @tokens_express to get a new one.");
       err.statusCode = 400;
       return cb(err);
@@ -53,6 +70,10 @@ module.exports = function(Account) {
     const { address } = data
     let err = null
     if (!web3.utils.isAddress(address)) {
+
+      // metrics
+      statsd_client.increment(constants.METRICS.add_address.invalid_address);
+
       err = new Error('Invalid ethereum address')
       err.status = 400
       cb(err)
@@ -70,6 +91,10 @@ module.exports = function(Account) {
       cb(err);
       return err
     }
+    
+    // metrics
+    statsd_client.increment(constants.METRICS.add_address.success);
+    
     await this.refreshAddress(address)
     cb(null, account)
     return account
@@ -78,12 +103,20 @@ module.exports = function(Account) {
   Account.prototype.refreshAddress = async function (address, cb=()=>{}) {
     let { err, account } = await getAccount(this.id);
     if (err) {
+
+      // metrics
+      statsd_client.increment(constants.METRICS.add_address.failed);
+
       cb(err)
       return err
     }
 
     const balances = await getAllTokenBalances(address).catch(e=>err=e)
     if (err) {
+
+      // metrics
+      statsd_client.increment(constants.METRICS.add_address.failed);
+
       cb(err)
       return err
     }
@@ -93,6 +126,10 @@ module.exports = function(Account) {
     //get address eth balance
     const _ethBalance = await getEthAddressBalance(address).catch(e=>err=e)
     if (err) {
+
+      // metrics
+      statsd_client.increment(constants.METRICS.add_address.failed);
+
       cb(err)
       return err
     }
@@ -101,6 +138,10 @@ module.exports = function(Account) {
     addressObj.tokens = tokens
     addressObj.ether = ethBalance
     account.save()
+
+    // metrics
+    statsd_client.increment(constants.METRICS.add_address.success);
+
     cb(null)
     return
   }
@@ -115,6 +156,10 @@ module.exports = function(Account) {
     const addressIndex = account.addresses.findIndex(addressObj=>addressObj.id === address)
 
     if (addressIndex === -1) {
+
+      // metrics
+      statsd_client.increment(constants.METRICS.delete_address.failed);
+
       err = new Error(`The address ${address} is not associated with the specified user account`)
       err.status = 404
       cb(err)
@@ -124,12 +169,20 @@ module.exports = function(Account) {
     account.addresses.splice(addressIndex, 1)
     await account.save().catch(e=>err=e)
     if (err) {
+
+      // metrics
+      statsd_client.increment(constants.METRICS.delete_address.failed);
+      
       err = new Error('Could not update account')
       err.status = 500
       console.log(err)
       cb(err)
       return err
     }
+
+    // metrics
+    statsd_client.increment(constants.METRICS.delete_address.success);
+    
     cb(null, account)
     return account
   }
@@ -152,6 +205,8 @@ module.exports = function(Account) {
   Account.prototype.getPortfolio = async function (cb) {
     const {err, account} = await getAccount(this.id);
     if (err) {
+      // metrics
+      statsd_client.increment(constants.METRICS.get_portfolio.failed);
       return cb(err);
     }
     const { addresses } = account
@@ -192,6 +247,9 @@ module.exports = function(Account) {
     const totalValue = tokens.reduce(
       (acc, curr) => acc += (curr.price * curr.balance), 0);
 
+    // metrics
+    statsd_client.increment(constants.METRICS.get_portfolio.success);
+
     return cb(null, {tokens, totalValue, top});
   };
 
@@ -214,13 +272,21 @@ module.exports = function(Account) {
 		const { token } = data
 		let {err, account} = await getAccount(req.accessToken.userId);
 		if (err) {
+      // metrics
+      statsd_client.increment(constants.METRICS.add_notification.failed);
 			return cb(err);
 		}
 
 		let newAccount = await account.updateAttribute('notification_token', token).catch(e=>{err=e})
 		if (err) {
+      // metrics
+      statsd_client.increment(constants.METRICS.add_notification.failed);
 			return cb(err);
 		}
+
+    // metrics
+    statsd_client.increment(constants.METRICS.add_notification.success);
+
 		return cb(null, newAccount)
 	}
 
