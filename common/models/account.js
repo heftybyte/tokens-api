@@ -55,39 +55,83 @@ module.exports = function(Account) {
     if (!web3.utils.isAddress(address)) {
       err = new Error('Invalid ethereum address')
       err.status = 400
-      return cb(err)
-    } else if ( this.addresses.includes(address) ) {
+      cb(err)
+      return err
+    } else if ( this.addresses.find((addressObj)=>addressObj.id === address) ) {
       err = new Error('This address has already been added to this user account')
       err.status = 422
-      return cb(err)
+      cb(err)
+      return err
     }
 
-    this.addresses.push(address)
+    this.addresses.push({ id: address })
     const account = await this.save().catch(e=>err=e)
     if (err) {
-      return cb(err);
+      cb(err);
+      return err
     }
-    return cb(null, account)
+    await this.refreshAddress(address)
+    cb(null, account)
+    return account
+  }
+
+  Account.prototype.refreshAddress = async function (address, cb=()=>{}) {
+    let { err, account } = await getAccount(this.id);
+    if (err) {
+      cb(err)
+      return err
+    }
+
+    const balances = await getAllTokenBalances(address).catch(e=>err=e)
+    if (err) {
+      cb(err)
+      return err
+    }
+
+    const tokens = balances.sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
+  
+    //get address eth balance
+    const _ethBalance = await getEthAddressBalance(address).catch(e=>err=e)
+    if (err) {
+      cb(err)
+      return err
+    }
+    const ethBalance = _ethBalance.addressBalance
+    const addressObj = account.addresses.find((addressObj)=>addressObj.id === address)
+    addressObj.tokens = tokens
+    addressObj.ether = ethBalance
+    account.save()
+    cb(null)
+    return
   }
 
   Account.prototype.deleteAddress = async function (address, cb) {
     let { err, account } = await getAccount(this.id)
     if (err) {
-      return cb(err)
+      cb(err)
+      return err
     }
 
-    const addressIndex = account.addresses.indexOf(address)
+    const addressIndex = account.addresses.findIndex(addressObj=>addressObj.id === address)
 
     if (addressIndex === -1) {
       err = new Error(`The address ${address} is not associated with the specified user account`)
       err.status = 404
-      return cb(err)
+      cb(err)
+      return err
     }
 
     account.addresses.splice(addressIndex, 1)
-    await account.save();
-
-    return cb(null, account)
+    await account.save().catch(e=>err=e)
+    if (err) {
+      err = new Error('Could not update account')
+      err.status = 500
+      console.log(err)
+      cb(err)
+      return err
+    }
+    cb(null, account)
+    return account
   }
 
   const getAccount = async (id) => {
@@ -105,111 +149,32 @@ module.exports = function(Account) {
     }
   }
 
-  Account.prototype.updateBalances = async function (cb) {
-    let {err, account} = await getAccount(this.id);
-    if (err) {
-      return cb(err);
-    }
-
-    //get all balance requests as promises
-    const tokenBalancesPromises = account.addresses.map((address) => {
-      address = address.replace(/\W+/g, '');
-      return getAllTokenBalances(address);
-    });
-
-    // get actual token data in arrays
-    const balances = await Promise.all(tokenBalancesPromises)
-      .catch(e=> {
-        const error = new Error('An error occurred fetching your portfolio');
-        error.status = 400;
-        return cb(null, error);
-      });
-    // concat all arrays into one which might include duplicates
-    let tokens = balances.reduce((acc, curr) => acc.concat(curr), [])
-
-    const aggregateTokenBalances = {}
-
-    // filter duplicates out
-    tokens.forEach(token => {
-      // use a lookup map to find duplicates
-      if (aggregateTokenBalances[token.symbol]) {
-        aggregateTokenBalances[token.symbol].balance += token.balance
-      } else {
-        aggregateTokenBalances[token.symbol] = token
-      }
-    });
-
-    const filteredTokens = Object.keys(aggregateTokenBalances).map((symbol)=>{
-      const token = aggregateTokenBalances[symbol]
-      return {
-        ...token,
-        imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`
-      }
-    }).sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
-
-    // get the total value of all unique tokens
-    let totalValue = filteredTokens.reduce(
-      (acc, curr) => acc += (curr.price * curr.balance), 0);
-  
-    //get all address eth balance
-    const addressBalancesPromises = account.addresses.map((address) => {
-      address = address.replace(/\W+/g, '');
-      return getEthAddressBalance(address);
-    });
-
-    const ethBalances = await Promise.all(addressBalancesPromises)
-      .catch(e=>err=e)
-
-    if (err) {
-      return cb(err);
-    }
-
-    const promises = [getTopNTokens(10)]
-
-    let totalEthBalance = ethBalances.reduce((acc, balance) => {
-      return acc + Number(balance.addressBalance)
-    }, 0)
-    if (totalEthBalance) {
-      promises.push(getPriceForSymbol('ETH', 'USD'))
-    }
-    const responses = await Promise.all(promises).catch(e=>err=e)
-
-    if (err) {
-      console.log('getPortfolio error', err)
-      return cb(err)
-    }
-
-    const top = (responses[0] || []).map((token)=>({
-      ...token,
-      imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`
-    }))
-    const eth = responses[1]
-
-    if (eth) {
-      delete eth.marketCap
-      delete eth.volume24Hr
-      filteredTokens.unshift({
-        balance: totalEthBalance,
-        imageUrl: '/img/tokens/eth.png',
-        symbol: 'ETH',
-        ...eth,
-      })
-      totalValue += totalEthBalance * eth.price
-    }
-
-    account.tokens = [...filteredTokens]
-    account.save()
-
-    return cb(null, {tokens: filteredTokens, totalValue, top});
-  }
-
   Account.prototype.getPortfolio = async function (cb) {
     const {err, account} = await getAccount(this.id);
     if (err) {
       return cb(err);
     }
-    const {tokens: currentTokens} = account
-    const symbols = currentTokens.map((token)=>token.symbol)
+    const { addresses } = account
+    let uniqueTokens = {}
+    let totalEther = 0
+    addresses.forEach((addressObj)=>{
+      totalEther += addressObj.ether || 0
+      addressObj.tokens.forEach((token)=>{
+        if (!uniqueTokens[token.symbol]) {
+          uniqueTokens[token.symbol] = token
+        } else {
+          uniqueTokens[token.symbol].balance += token.balance
+        }
+      })
+    })
+    const symbols = Object.keys(uniqueTokens)
+      .sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
+    if (totalEther) {
+      uniqueTokens['ETH'] = { balance: totalEther, symbol: 'ETH' }
+      symbols.unshift('ETH')
+    }
+    const currentTokens = symbols.map((symbol)=>uniqueTokens[symbol])
+    
     let { top, prices } = await all({
       top: getTopNTokens(10),
       prices: getTokenPrices(symbols)
@@ -339,6 +304,26 @@ module.exports = function(Account) {
     description: 'Add an ethereum address to a user\'s account',
   });
 
+  Account.remoteMethod('refreshAddress', {
+    isStatic: false,
+    http: {
+      path: '/address/:address/refresh',
+      verb: 'post',
+    },
+    accepts: {
+      arg: 'address',
+      type: 'string',
+      http: {
+        source: 'path'
+      }
+    },
+    returns: {
+      root: true,
+    },
+    description: ['Updates the total balance for the specified Ethereum Address ',
+      'as well as tokens with non-zero balances'],
+  });
+
   Account.remoteMethod('deleteAddress', {
     isStatic: false,
     http: {
@@ -357,19 +342,6 @@ module.exports = function(Account) {
       "type": "account"
     },
     description: 'Delete an ethereum address from a user\'s account'
-  });
-
-  Account.remoteMethod('updateBalances', {
-    isStatic: false,
-    http: {
-      path: '/update-balances',
-      verb: 'get',
-    },
-    returns: {
-      root: true,
-    },
-    description: ['Gets the total balance for the specified Ethereum Address ',
-      'as well as tokens with non-zero balances'],
   });
 
   Account.remoteMethod('getPortfolio', {

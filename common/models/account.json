@@ -7,21 +7,6 @@
     "validateUpsert": true
   },
   "properties": {
-    "addresses": {
-      "type": [
-        "string"
-      ],
-      "default": []
-    },
-    "tokens": {
-      "type": [
-        {
-          "balance": "number",
-          "address": "string"
-        }
-      ],
-      "default": []
-    },
     "watchList": {
       "type": [
         "string"
@@ -39,13 +24,20 @@
     "password": {
       "type": "string",
       "required": false
-    },
-    "accessKey": {
-      "type": "string"
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "_addresses": {
+      "type": "embedsMany",
+      "model": "address",
+      "property": "addresses",
+      "default": [],
+      "options": {
+        "forceId": false
+      }
+    }
+  },
   "acls": [
     {
       "principalType": "ROLE",
@@ -63,13 +55,13 @@
       "principalType": "ROLE",
       "principalId": "$everyone",
       "permission": "DENY",
-      "property": "updateBalances"
+      "property": "refreshAddress"
     },
     {
       "principalType": "ROLE",
       "principalId": "$owner",
       "permission": "ALLOW",
-      "property": "updateBalances"
+      "property": "refreshAddress"
     },
     {
       "principalType": "ROLE",
