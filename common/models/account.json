@@ -63,6 +63,18 @@
       "principalType": "ROLE",
       "principalId": "$everyone",
       "permission": "DENY",
+      "property": "updateBalances"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$owner",
+      "permission": "ALLOW",
+      "property": "updateBalances"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "DENY",
       "property": "tokensMetadata"
     },
     {

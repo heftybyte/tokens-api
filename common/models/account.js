@@ -4,8 +4,10 @@ import {
   getContractAddress,
   getPriceForSymbol,
   getEthAddressBalance,
-  getTopNTokens
+  getTopNTokens,
+  getTokenPrices
 } from '../../lib/eth.js';
+import { all } from '../../lib/async-promise';
 let app = require('../../server/server');
 
 import web3 from '../../lib/web3'
@@ -103,7 +105,7 @@ module.exports = function(Account) {
     }
   }
 
-  Account.prototype.getPortfolio = async function (cb) {
+  Account.prototype.updateBalances = async function (cb) {
     let {err, account} = await getAccount(this.id);
     if (err) {
       return cb(err);
@@ -148,7 +150,7 @@ module.exports = function(Account) {
     // get the total value of all unique tokens
     let totalValue = filteredTokens.reduce(
       (acc, curr) => acc += (curr.price * curr.balance), 0);
-
+  
     //get all address eth balance
     const addressBalancesPromises = account.addresses.map((address) => {
       address = address.replace(/\W+/g, '');
@@ -195,7 +197,37 @@ module.exports = function(Account) {
       totalValue += totalEthBalance * eth.price
     }
 
+    account.tokens = [...filteredTokens]
+    account.save()
+
     return cb(null, {tokens: filteredTokens, totalValue, top});
+  }
+
+  Account.prototype.getPortfolio = async function (cb) {
+    const {err, account} = await getAccount(this.id);
+    if (err) {
+      return cb(err);
+    }
+    const {tokens: currentTokens} = account
+    const symbols = currentTokens.map((token)=>token.symbol)
+    let { top, prices } = await all({
+      top: getTopNTokens(10),
+      prices: getTokenPrices(symbols)
+    })
+    top = (top || []).map((token)=>({
+      ...token,
+      imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`
+    }))
+    const tokens = currentTokens.map((token, i)=>({
+      symbol: token.symbol,
+      balance: token.balance,
+      imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`,
+      ...prices[i]
+    }))
+    const totalValue = tokens.reduce(
+      (acc, curr) => acc += (curr.price * curr.balance), 0);
+
+    return cb(null, {tokens, totalValue, top});
   };
 
   Account.prototype.getTokenMeta = async function (sym, cb) {
@@ -325,6 +357,19 @@ module.exports = function(Account) {
       "type": "account"
     },
     description: 'Delete an ethereum address from a user\'s account'
+  });
+
+  Account.remoteMethod('updateBalances', {
+    isStatic: false,
+    http: {
+      path: '/update-balances',
+      verb: 'get',
+    },
+    returns: {
+      root: true,
+    },
+    description: ['Gets the total balance for the specified Ethereum Address ',
+      'as well as tokens with non-zero balances'],
   });
 
   Account.remoteMethod('getPortfolio', {
