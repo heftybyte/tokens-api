@@ -82,14 +82,12 @@ module.exports = function(Account) {
       return err
     }
 
-    const balances = await getAllTokenBalances(address).catch(e=>err=e)
+    const tokens = await getAllTokenBalances(address).catch(e=>err=e)
     if (err) {
       cb(err)
       return err
     }
 
-    const tokens = balances.sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
-  
     //get address eth balance
     const _ethBalance = await getEthAddressBalance(address).catch(e=>err=e)
     if (err) {
@@ -167,7 +165,7 @@ module.exports = function(Account) {
         }
       })
     })
-    const symbols = Object.keys(uniqueTokens)
+    const symbols = Object.keys(uniqueTokens).sort((a, b)=>a > b ? 1 : -1)
       .sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
     if (totalEther) {
       uniqueTokens['ETH'] = { balance: totalEther, symbol: 'ETH' }
