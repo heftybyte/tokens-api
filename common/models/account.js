@@ -10,14 +10,26 @@ import {
 import { all } from '../../lib/async-promise';
 let app = require('../../server/server');
 
+const constants = require('../../constants/');
+
+import { measureMetric } from '../../lib/statsd';
+
 import web3 from '../../lib/web3'
 
 module.exports = function(Account) {
   Account.register = async (data, cb) => {
+
+    //metric timing
+    const start_time = new Date().getTime();
+    
     let err = null, Invite = app.default.models.Invite;
 
     const invite = await Invite.findOne({where: {invite_code: data.code}}).catch(e=>err=e)
     if (err){
+
+      // metrics
+      measureMetric(constants.METRICS.register.failed, start_time);
+
       console.log('An error is reported from Invite.findOne: %j', err)
       err = new Error(err.message);
       err.status = 400;
@@ -25,10 +37,18 @@ module.exports = function(Account) {
     }
 
     if (!invite) {
+
+      // metrics
+      measureMetric(constants.METRICS.register.invalid_code, start_time);
+
       err = new Error("You need a valid invitation code to register.\nTweet @tokens_express to get one.");
       err.statusCode = 400;
       return cb(err);
     } else if (!invite.claimed) {
+
+      // metrics
+      measureMetric(constants.METRICS.register.success, start_time);
+
       delete data.code
       const instance = await Account.create(data).catch(e=>err=e)
       if (err) {
@@ -43,6 +63,10 @@ module.exports = function(Account) {
       }
       return cb(null, instance);
     } else {
+
+      // metrics
+      measureMetric(constants.METRICS.register.claimed, start_time);
+
       err = new Error("This invite has already been claimed.\nTweet @tokens_express to get a new one.");
       err.statusCode = 400;
       return cb(err);
@@ -50,9 +74,17 @@ module.exports = function(Account) {
   };
 
   Account.prototype.addAddress = async function (data, cb) {
+
+    //metric timing
+    const start_time = new Date().getTime();
+
     const { address } = data
     let err = null
     if (!web3.utils.isAddress(address)) {
+
+      // metrics
+      measureMetric(constants.METRICS.add_address.invalid_address, start_time);
+
       err = new Error('Invalid ethereum address')
       err.status = 400
       cb(err)
@@ -70,20 +102,35 @@ module.exports = function(Account) {
       cb(err);
       return err
     }
+    
+    // metrics
+    measureMetric(constants.METRICS.add_address.success, start_time);
+
     await this.refreshAddress(address)
     cb(null, account)
     return account
   }
 
   Account.prototype.refreshAddress = async function (address, cb=()=>{}) {
+    //metric timing
+    const start_time = new Date().getTime();
+
     let { err, account } = await getAccount(this.id);
     if (err) {
+
+      // metrics
+      measureMetric(constants.METRICS.refresh_address.success, start_time);
+
       cb(err)
       return err
     }
 
     const tokens = await getAllTokenBalances(address).catch(e=>err=e)
     if (err) {
+
+      // metrics
+      measureMetric(constants.METRICS.refresh_address.failed, start_time);
+
       cb(err)
       return err
     }
@@ -91,6 +138,10 @@ module.exports = function(Account) {
     //get address eth balance
     const _ethBalance = await getEthAddressBalance(address).catch(e=>err=e)
     if (err) {
+
+      // metrics
+      measureMetric(constants.METRICS.refresh_address.failed, start_time);
+
       cb(err)
       return err
     }
@@ -99,11 +150,19 @@ module.exports = function(Account) {
     addressObj.tokens = tokens.filter(token=>token.balance)
     addressObj.ether = ethBalance
     account.save()
+
+    // metrics
+    measureMetric(constants.METRICS.refresh_address.success, start_time);
+
     cb(null)
     return
   }
 
   Account.prototype.deleteAddress = async function (address, cb) {
+
+    //metric timing
+    const start_time = new Date().getTime();
+
     let { err, account } = await getAccount(this.id)
     if (err) {
       cb(err)
@@ -113,6 +172,10 @@ module.exports = function(Account) {
     const addressIndex = account.addresses.findIndex(addressObj=>addressObj.id === address)
 
     if (addressIndex === -1) {
+
+      // metrics
+      measureMetric(constants.METRICS.delete_address.failed, start_time);
+
       err = new Error(`The address ${address} is not associated with the specified user account`)
       err.status = 404
       cb(err)
@@ -122,12 +185,20 @@ module.exports = function(Account) {
     account.addresses.splice(addressIndex, 1)
     await account.save().catch(e=>err=e)
     if (err) {
+
+      // metrics
+      measureMetric(constants.METRICS.delete_address.failed, start_time);
+      
       err = new Error('Could not update account')
       err.status = 500
       console.log(err)
       cb(err)
       return err
     }
+
+    // metrics'
+    measureMetric(constants.METRICS.delete_address.success, start_time);
+    
     cb(null, account)
     return account
   }
@@ -148,8 +219,15 @@ module.exports = function(Account) {
   }
 
   Account.prototype.getPortfolio = async function (cb) {
+
+    const start_time = new Date().getTime();
+
     const {err, account} = await getAccount(this.id);
     if (err) {
+
+      // metrics
+      measureMetric(constants.METRICS.get_portfolio.failed, start_time);
+
       return cb(err);
     }
     const { addresses } = account
@@ -190,6 +268,9 @@ module.exports = function(Account) {
     const totalValue = tokens.reduce(
       (acc, curr) => acc += (curr.price * curr.balance), 0);
 
+    // metrics
+    measureMetric(constants.METRICS.get_portfolio.failed, start_time);
+
     return cb(null, {tokens, totalValue, top});
   };
 
@@ -209,16 +290,29 @@ module.exports = function(Account) {
   };
 
 	Account.addNotificationToken = async function (req, data, cb) {
+    const start_time = new Date().getTime();
+
 		const { token } = data
 		let {err, account} = await getAccount(req.accessToken.userId);
 		if (err) {
+
+      // metrics
+      measureMetric(constants.METRICS.add_notification.failed, start_time);
+
 			return cb(err);
 		}
 
 		let newAccount = await account.updateAttribute('notification_token', token).catch(e=>{err=e})
 		if (err) {
+      // metrics
+      measureMetric(constants.METRICS.add_notification.failed, start_time);
+      
 			return cb(err);
 		}
+
+    // metrics
+    measureMetric(constants.METRICS.add_notification.success, start_time);
+
 		return cb(null, newAccount)
 	}
 
