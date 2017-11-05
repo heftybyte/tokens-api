@@ -165,8 +165,8 @@ module.exports = function(Account) {
         }
       })
     })
-    const symbols = Object.keys(uniqueTokens).sort((a, b)=>a > b ? 1 : -1)
-      .sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
+    const symbols = Object.keys(uniqueTokens)
+      .sort((a, b)=>a > b ? 1 : -1)
     if (totalEther) {
       uniqueTokens['ETH'] = { balance: totalEther, symbol: 'ETH' }
       symbols.unshift('ETH')
@@ -174,7 +174,7 @@ module.exports = function(Account) {
     const currentTokens = symbols.map((symbol)=>uniqueTokens[symbol])
     
     let { top, prices } = await all({
-      top: getTopNTokens(10),
+      top: getTopNTokens(100),
       prices: getTokenPrices(symbols)
     })
     top = (top || []).map((token)=>({
