@@ -5,29 +5,30 @@ module.exports =  {
 
 	METRICS: {
 		'register': {
-			'success': "register.success",
-			'invalid_code': "register.invalid_code",
-			'claimed': 'register.already_claimed_code'
+			'success': '.account.register.success',
+			'invalid_code': '.account.register.invalid_code',
+			'claimed': '.account.register.already_claimed_code',
+			'failed': '.account.register.failed',
 		},
 		'add_address': {
-			'success': "add_address.success",
-			'invalid_address': 'add_address.invalid_address',
+			'success': ".account.add_address.success",
+			'invalid_address': '.account.add_address.invalid_address',
 		},
 		'refresh_address': {
-			'success': 'refresh_address.success',
-			'failed': 'refresh_address.failed',
+			'success': '.account.refresh_address.success',
+			'failed': '.account.refresh_address.failed',
 		},
 		'delete_address': {
-			'success': 'delete_address.success',
-			'failed': 'delete_address.failed',
+			'success': '.account.delete_address.success',
+			'failed': '.account.delete_address.failed',
 		},
 		'get_portfolio': {
-			'success': 'get_portfolio.success',
-			'failed': 'get_portfolio.failed',
+			'success': '.account.get_portfolio.success',
+			'failed': '.account.get_portfolio.failed',
 		},
 		'add_notification': {
-			'success': 'add_notification.success',
-			'failed': 'add_notification.failed',
+			'success': '.account.add_notification.success',
+			'failed': '.account.add_notification.failed',
 		}
 	}
 }

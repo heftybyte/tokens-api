@@ -23,6 +23,7 @@ module.exports = function(Account) {
 
     const invite = await Invite.findOne({where: {invite_code: data.code}}).catch(e=>err=e)
     if (err){
+      statsd_client.increment(constants.METRICS.register.failed)
       console.log('An error is reported from Invite.findOne: %j', err)
       err = new Error(err.message);
       err.status = 400;
