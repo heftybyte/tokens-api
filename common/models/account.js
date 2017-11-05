@@ -96,7 +96,7 @@ module.exports = function(Account) {
     }
     const ethBalance = _ethBalance.addressBalance
     const addressObj = account.addresses.find((addressObj)=>addressObj.id === address)
-    addressObj.tokens = tokens
+    addressObj.tokens = tokens.filter(token=>token.balance)
     addressObj.ether = ethBalance
     account.save()
     cb(null)
