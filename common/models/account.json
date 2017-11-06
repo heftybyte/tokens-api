@@ -7,21 +7,6 @@
     "validateUpsert": true
   },
   "properties": {
-    "addresses": {
-      "type": [
-        "string"
-      ],
-      "default": []
-    },
-    "tokens": {
-      "type": [
-        {
-          "balance": "number",
-          "address": "string"
-        }
-      ],
-      "default": []
-    },
     "watchList": {
       "type": [
         "string"
@@ -32,16 +17,27 @@
       "type": "string",
       "required": false
     },
-    "password": {
+    "notification_token": {
       "type": "string",
       "required": false
     },
-    "accessKey": {
-      "type": "string"
+    "password": {
+      "type": "string",
+      "required": false
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "_addresses": {
+      "type": "embedsMany",
+      "model": "address",
+      "property": "addresses",
+      "default": [],
+      "options": {
+        "forceId": false
+      }
+    }
+  },
   "acls": [
     {
       "principalType": "ROLE",
@@ -54,6 +50,18 @@
       "principalId": "$owner",
       "permission": "ALLOW",
       "property": "getPortfolio"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "DENY",
+      "property": "refreshAddress"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$owner",
+      "permission": "ALLOW",
+      "property": "refreshAddress"
     },
     {
       "principalType": "ROLE",
@@ -84,6 +92,13 @@
       "principalId": "$everyone",
       "permission": "ALLOW",
       "property": "register"
+    },
+    {
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "addNotificationToken"
     }
   ],
   "methods": {}
