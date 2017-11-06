@@ -227,7 +227,54 @@ module.exports = function(Account) {
 		return cb(null, newAccount)
 	}
 
+	Account.logout = function(accessToken, fn) {
+		fn = fn || utils.createPromiseCallback();
+		let tokenId = accessToken && accessToken.id
+		console.log(tokenId)
+		let err;
+		if (!tokenId) {
+			err = new Error('accessToken is required to logout');
+			err.status = 401;
+			process.nextTick(fn, err);
+			return fn.promise;
+		}
+
+		getAccount(accessToken.userId).then(account=>{
+			account.updateAttribute('notification_token', null).catch(e=>{err=e})
+		}).catch(e=>{err=e});
+
+		this.relations.accessTokens.modelTo.destroyById(tokenId, function(err, info) {
+			if (err) {
+				fn(err);
+			} else if ('count' in info && info.count === 0) {
+				err = new Error('Could not find accessToken');
+				err.status = 401;
+				fn(err);
+			} else {
+				fn();
+			}
+		});
+		return fn.promise;
+	};
+
   Account.validatesLengthOf('password', {min: 5, message: {min: 'Password should be at least 5 characters'}});
+
+	Account.remoteMethod('logout', {
+			description: 'Logout a user with access token.',
+			accepts: [
+				{arg: 'access_token', type: 'object', http: function(ctx) {
+					let req = ctx && ctx.req;
+					let accessToken = req && req.accessToken;
+					//var tokenID = accessToken ? accessToken.id : undefined;
+
+					return accessToken;
+				}, description: 'Do not supply this argument, it is automatically extracted ' +
+				'from request headers.',
+				},
+			],
+			http: {verb: 'all'},
+		}
+	);
 
   Account.remoteMethod('getTokenMeta', {
     isStatic: false,
