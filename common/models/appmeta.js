@@ -1,18 +1,17 @@
 module.exports = function(AppMeta) {
-  AppMeta.appmeta = function(cb){
-
-    var response = 'Sorry, we are closed. Open daily from 6am to 8pm.';
-    cb(null, response);
+  AppMeta.version = function(cb) {
+    let version = '1.0.0';
+    cb(null, {version});
   };
+
   AppMeta.remoteMethod(
-    'appmeta', {
+    'version', {
       http: {
-        path: '/',
+        path: '/version',
         verb: 'get',
       },
       returns: {
-        arg: 'version',
-        type: 'string',
+	      root: true,
       },
     }
   );
