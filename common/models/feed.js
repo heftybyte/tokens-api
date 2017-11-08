@@ -1,4 +1,5 @@
 const constants = require('../../constants')
+const FeedActivity = require('./feed-activity');
 
 module.exports = function(Feed) {
 	Feed.getLatest = async(createdAt, cb) => {
@@ -19,6 +20,18 @@ module.exports = function(Feed) {
 		}
 
 		cb(null ,recentFeed);
+	}
+
+	Feed.feedActivity = async(data, cb) => {
+		let err = null;
+		const feedActivity = await FeedActivity.create(data).catch(e => err = e);
+		if (err){
+      console.log('An error is reported from Invite.findOne: %j', err)
+      err = new Error(err.message);
+      err.status = 400;
+      return cb(err);
+    }
+    return cb(null, true);
 	}
 
 	Feed.observe('before save', function updateTimestamp(ctx, next) {
@@ -50,5 +63,26 @@ module.exports = function(Feed) {
 			type: "feed"
 		},
 		description : "Fetch user lastest feed",
+	});
+
+	Feed.remoteMethod('feedActivity', {
+		http: {
+			path: constants.ENDPOINT.FEED_ACTIVITY,
+			verb: 'post'
+		},
+		accepts: {
+			arg: 'data',
+			type: 'object',
+			http: {
+				source: 'body'
+      },
+      documented: false,
+			description: 'New feed activity'
+		},
+		returns: {
+			arg: 'status',
+			type: 'boolean'
+		},
+		description: 'Save a new feed activity'
 	});
 }

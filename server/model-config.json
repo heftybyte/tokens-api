@@ -55,5 +55,9 @@
   "address": {
     "dataSource": "arangodbDs",
     "public": false
+  },
+  "FeedActivity": {
+    "dataSource": "arangodbDs",
+    "public": true
   }
 }
