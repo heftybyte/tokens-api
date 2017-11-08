@@ -55,5 +55,9 @@
   "address": {
     "dataSource": "arangodbDs",
     "public": false
+  },
+  "appmeta": {
+    "dataSource": "arangodbDs",
+    "public": true
   }
 }
