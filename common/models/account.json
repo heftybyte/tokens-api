@@ -24,6 +24,10 @@
     "password": {
       "type": "string",
       "required": false
+    },
+    "created_at": {
+      "type": "date",
+      "defaultFn": "now"
     }
   },
   "validations": [],

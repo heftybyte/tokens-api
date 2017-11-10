@@ -13,11 +13,12 @@
     "serve": "./node_modules/.bin/pm2 start dist/server/server.js -i 4",
     "automigrate": "babel-node server/migrations/automigrate.js",
     "autoupdate": "babel-node server/migrations/autoupdate.js",
-    "seed-tokens": "babel-node server/seed/tokens.js"
+    "cryptoscrape": "node scraper.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "async": "^2.6.0",
     "babel-polyfill": "^6.26.0",
     "bignumber.js": "^4.0.4",
     "bluebird": "^3.5.0",
@@ -32,10 +33,13 @@
     "hash-obj": "^1.0.0",
     "helmet": "^1.3.0",
     "human-standard-token-abi": "^1.0.2",
+    "influx": "^5.0.7",
+    "lodash": "^4.17.4",
     "loopback": "^3.0.0",
     "loopback-boot": "^2.6.5",
     "loopback-component-explorer": "^5.0.0",
     "loopback-connector-arangodb": "^2.0.0",
+    "loopback-connector-influxdb": "^0.4.0",
     "loopback-connector-mysql": "^2.4.1",
     "node-fetch": "^1.7.3",
     "object-hash": "^1.2.0",
