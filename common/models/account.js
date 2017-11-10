@@ -21,7 +21,7 @@ module.exports = function(Account) {
 
     //metric timing
     const start_time = new Date().getTime();
-    
+
     let err = null, Invite = app.default.models.Invite;
 
     const invite = await Invite.findOne({where: {invite_code: data.code}}).catch(e=>err=e)
@@ -102,7 +102,7 @@ module.exports = function(Account) {
       cb(err);
       return err
     }
-    
+
     // metrics
     measureMetric(constants.METRICS.add_address.success, start_time);
 
@@ -188,7 +188,7 @@ module.exports = function(Account) {
 
       // metrics
       measureMetric(constants.METRICS.delete_address.failed, start_time);
-      
+
       err = new Error('Could not update account')
       err.status = 500
       console.log(err)
@@ -198,7 +198,7 @@ module.exports = function(Account) {
 
     // metrics'
     measureMetric(constants.METRICS.delete_address.success, start_time);
-    
+
     cb(null, account)
     return account
   }
@@ -250,7 +250,7 @@ module.exports = function(Account) {
       symbols.unshift('ETH')
     }
     const currentTokens = symbols.map((symbol)=>uniqueTokens[symbol])
-    
+
     let { top, prices } = await all({
       top: getTopNTokens(100),
       prices: getTokenPrices(symbols)
@@ -281,10 +281,21 @@ module.exports = function(Account) {
     }
 
     const symbol = sym.toUpperCase()
-    const address = JSON.parse(account.addresses[0])
+    const balances = []
     const { price, marketCap, volume24Hr } = await getPriceForSymbol(symbol, 'USD');
-    const quantity = await getTokenBalance(getContractAddress(symbol), address)
-    const totalValue = quantity * price
+    let quantity = 0
+    let totalValue = 0
+    account.addresses.forEach(addressObj => {
+      const matchingSymbol = addressObj.tokens.filter(obj => obj.symbol === symbol)[0]
+
+      if (matchingSymbol) {
+        balances.push(matchingSymbol.balance)
+        return
+      }
+    })
+
+    quantity += balances.reduce((init, nxt) => init + nxt, quantity)
+    totalValue += quantity * price
 
     return cb(null, {price, quantity, totalValue, marketCap, volume24Hr});
   };
@@ -306,7 +317,7 @@ module.exports = function(Account) {
 		if (err) {
       // metrics
       measureMetric(constants.METRICS.add_notification.failed, start_time);
-      
+
 			return cb(err);
 		}
 

@@ -71,13 +71,13 @@
       "principalType": "ROLE",
       "principalId": "$everyone",
       "permission": "DENY",
-      "property": "tokensMetadata"
+      "property": "getTokenMeta"
     },
     {
       "principalType": "ROLE",
       "principalId": "$owner",
       "permission": "ALLOW",
-      "property": "tokensMetadata"
+      "property": "getTokenMeta"
     },
     {
       "principalType": "ROLE",
