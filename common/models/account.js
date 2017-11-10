@@ -227,7 +227,7 @@ module.exports = function(Account) {
 		return cb(null, newAccount)
 	}
 
-	Account.logout = async function(accessToken, fn) {
+	Account.logout = function(accessToken, fn) {
 		fn = fn || utils.createPromiseCallback();
 		let tokenId = accessToken && accessToken.id
 
