@@ -48,7 +48,11 @@
     "dataSource": "arangodbDs",
     "public": true
   },
-  "Invite": {
+  "token": {
+    "dataSource": "arangodbDs",
+    "public": true
+  },
+  "invite": {
     "dataSource": "arangodbDs",
     "public": true
   },

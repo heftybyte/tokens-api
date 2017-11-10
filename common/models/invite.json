@@ -1,6 +1,6 @@
 {
-  "name": "Invite",
-  "plural": "Invite",
+  "name": "invite",
+  "plural": "invite",
   "base": "PersistedModel",
   "strict": true,
   "idInjection": true,
