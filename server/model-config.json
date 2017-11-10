@@ -56,6 +56,10 @@
     "dataSource": "arangodbDs",
     "public": false
   },
+  "FeedActivity": {
+    "dataSource": "arangodbDs",
+    "public": true
+  },
   "appmeta": {
     "dataSource": "arangodbDs",
     "public": true

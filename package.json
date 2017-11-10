@@ -13,6 +13,7 @@
     "serve": "./node_modules/.bin/pm2 start dist/server/server.js -i 4",
     "automigrate": "babel-node server/migrations/automigrate.js",
     "autoupdate": "babel-node server/migrations/autoupdate.js",
+    "create-dev-account": "babel-node server/create-dev-login.js",
     "cryptoscrape": "node scraper.js"
   },
   "author": "",

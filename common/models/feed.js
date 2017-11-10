@@ -21,6 +21,13 @@ module.exports = function(Feed) {
 		cb(null ,recentFeed);
 	}
 
+	Feed.feedActivity = async(data, cb) => {
+    const  { FeedActivity } =  Feed.app.models;
+    // alternatively we can use findOrCreate if it should be unique;
+    const feedActivity = await FeedActivity.create(data);
+    return cb(null);
+	}
+
 	Feed.observe('before save', function updateTimestamp(ctx, next) {
 		if (ctx.isNewInstance) {
 			ctx.instance.createdAt = Date.now();
@@ -50,5 +57,26 @@ module.exports = function(Feed) {
 			type: "feed"
 		},
 		description : "Fetch user lastest feed",
+	});
+
+	Feed.remoteMethod('feedActivity', {
+		http: {
+			path: constants.ENDPOINT.FEED_ACTIVITY,
+			verb: 'post'
+		},
+		accepts: {
+			arg: 'data',
+			type: 'object',
+			http: {
+				source: 'body'
+      },
+      documented: false,
+			description: 'New feed activity'
+		},
+		returns: {
+			arg: 'status',
+			type: 'boolean'
+		},
+		description: 'Save a new feed activity'
 	});
 }
