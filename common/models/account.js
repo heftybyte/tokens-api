@@ -316,10 +316,10 @@ module.exports = function(Account) {
 		return cb(null, newAccount)
 	}
 
-	Account.logout = function(accessToken, fn) {
+	Account.logout = async function(accessToken, fn) {
 		fn = fn || utils.createPromiseCallback();
 		let tokenId = accessToken && accessToken.id
-		console.log(tokenId)
+
 		let err;
 		if (!tokenId) {
 			err = new Error('accessToken is required to logout');
