@@ -227,37 +227,36 @@ module.exports = function(Account) {
 		return cb(null, newAccount)
 	}
 
-	Account.logout = function(accessToken, fn) {
+	Account.logout = async function(accessToken, fn) {
 		fn = fn || utils.createPromiseCallback();
 		let tokenId = accessToken && accessToken.id
-
-		let err;
 		if (!tokenId) {
-			err = new Error('accessToken is required to logout');
+			const err = new Error('accessToken is required to logout');
 			err.status = 401;
 			process.nextTick(fn, err);
 			return fn.promise;
 		}
-
-		getAccount(accessToken.userId).then(account=>{
-			account.updateAttribute('notification_token', null).catch(e=>{err=e})
-		}).catch(e=>{err=e});
-
+		let {account, err} = await getAccount(accessToken.userId)
+		if(err){
+			return fn(err);
+		}
+		account.updateAttribute('notification_token', null).catch(e=>{err=e})
 		if(err){
 			return fn(err);
 		}
 
-		this.relations.accessTokens.modelTo.destroyById(tokenId, function(err, info) {
-			if (err) {
-				fn(err);
-			} else if ('count' in info && info.count === 0) {
-				err = new Error('Could not find accessToken');
-				err.status = 401;
-				fn(err);
-			} else {
-				fn();
-			}
-		});
+		const info = this.relations.accessTokens.modelTo.destroyById(tokenId).catch(e=>{err=e})
+
+		if (err) {
+			fn(err);
+		} else if ('count' in info && info.count === 0) {
+			err = new Error('Could not find accessToken');
+			err.status = 401;
+			fn(err);
+		} else {
+			fn();
+		}
+
 		return fn.promise;
 	};
 
