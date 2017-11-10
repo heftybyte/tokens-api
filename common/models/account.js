@@ -332,6 +332,10 @@ module.exports = function(Account) {
 			account.updateAttribute('notification_token', null).catch(e=>{err=e})
 		}).catch(e=>{err=e});
 
+		if(err){
+			return fn(err);
+		}
+
 		this.relations.accessTokens.modelTo.destroyById(tokenId, function(err, info) {
 			if (err) {
 				fn(err);
