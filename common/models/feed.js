@@ -1,5 +1,4 @@
 const constants = require('../../constants')
-const FeedActivity = require('./feed-activity');
 
 module.exports = function(Feed) {
 	Feed.getLatest = async(createdAt, cb) => {
@@ -23,15 +22,10 @@ module.exports = function(Feed) {
 	}
 
 	Feed.feedActivity = async(data, cb) => {
-		let err = null;
-		const feedActivity = await FeedActivity.create(data).catch(e => err = e);
-		if (err){
-      console.log('An error is reported from Invite.findOne: %j', err)
-      err = new Error(err.message);
-      err.status = 400;
-      return cb(err);
-    }
-    return cb(null, true);
+    const  { FeedActivity } =  Feed.app.models;
+    // alternatively we can use findOrCreate if it should be unique;
+    const feedActivity = await FeedActivity.create(data);
+    return cb(null);
 	}
 
 	Feed.observe('before save', function updateTimestamp(ctx, next) {
