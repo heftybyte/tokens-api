@@ -52,7 +52,7 @@
     "dataSource": "arangodbDs",
     "public": true
   },
-  "invite": {
+  "Invite": {
     "dataSource": "arangodbDs",
     "public": true
   },
