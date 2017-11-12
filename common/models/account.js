@@ -292,18 +292,28 @@ module.exports = function(Account) {
     let quantity = 0
     let totalValue = 0
     account.addresses.forEach(addressObj => {
-      const matchingSymbol = addressObj.tokens.filter(obj => obj.symbol === symbol)[0]
+      const token = addressObj.tokens.filter(obj => obj.symbol === symbol)[0]
 
-      if (matchingSymbol) {
-        balances.push(matchingSymbol.balance)
+      if (token) {
+        balances.push(token.balance)
         return
+      } else if (symbol === 'ETH') {
+        quantity += addressObj.ether
       }
     })
 
     quantity += balances.reduce((init, nxt) => init + nxt, quantity)
     totalValue += quantity * price
-
-    return cb(null, {price, quantity, totalValue, marketCap, volume24Hr});
+    const imageUrl = `/img/tokens/${symbol.toLowerCase()}.png`
+    return cb(null, {
+      price,
+      quantity,
+      totalValue,
+      marketCap,
+      volume24Hr,
+      imageUrl,
+      symbol
+    });
   };
 
 	Account.addNotificationToken = async function (req, data, cb) {
