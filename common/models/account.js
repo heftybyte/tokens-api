@@ -244,7 +244,6 @@ module.exports = function(Account) {
       })
     })
     const symbols = Object.keys(uniqueTokens)
-      .sort((a, b)=>a > b ? 1 : -1)
     if (totalEther) {
       uniqueTokens['ETH'] = { balance: totalEther, symbol: 'ETH' }
       symbols.unshift('ETH')
@@ -263,16 +262,23 @@ module.exports = function(Account) {
       symbol: token.symbol,
       balance: token.balance,
       imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`,
-      ...prices[i]
-    }))
+      ...prices[i],
+      priceChange: getPriceChange({...prices[i], balance: token.balance})
+    })).sort((a,b)=>Math.abs(a.priceChange) > Math.abs(b.priceChange) ? -1 : 1)
     const totalValue = tokens.reduce(
       (acc, curr) => acc += (curr.price * curr.balance), 0);
-
     // metrics
     measureMetric(constants.METRICS.get_portfolio.failed, start_time);
 
     return cb(null, {tokens, totalValue, top});
   };
+
+  const getPriceChange = ({price, balance, change}) => {
+    const totalValue = price * balance
+    const prevTotalValue = totalValue / ((100+change)/100)
+    const priceChange = totalValue - prevTotalValue
+    return priceChange || 0
+  }
 
   Account.prototype.getTokenMeta = async function (sym, cb) {
     let { err, account } = await getAccount(this.id)
