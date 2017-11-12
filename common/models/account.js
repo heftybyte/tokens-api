@@ -11,7 +11,7 @@ import { all } from '../../lib/async-promise';
 let app = require('../../server/server');
 
 const constants = require('../../constants/');
-
+const TOP_N = 20
 import { measureMetric } from '../../lib/statsd';
 
 import web3 from '../../lib/web3'
@@ -251,7 +251,7 @@ module.exports = function(Account) {
     const currentTokens = symbols.map((symbol)=>uniqueTokens[symbol])
 
     let { top, prices } = await all({
-      top: getTopNTokens(100),
+      top: getTopNTokens(TOP_N),
       prices: getTokenPrices(symbols)
     })
     top = (top || []).map((token)=>({
@@ -267,10 +267,13 @@ module.exports = function(Account) {
     })).sort((a,b)=>Math.abs(a.priceChange) > Math.abs(b.priceChange) ? -1 : 1)
     const totalValue = tokens.reduce(
       (acc, curr) => acc += (curr.price * curr.balance), 0);
+    const totalPriceChange = tokens.reduce(
+      (acc, curr) => acc + (curr.priceChange), 0)
+    const totalPriceChangePct = (1-totalValue/(totalValue+totalPriceChange))*100
     // metrics
     measureMetric(constants.METRICS.get_portfolio.failed, start_time);
 
-    return cb(null, {tokens, totalValue, top});
+    return cb(null, {tokens, totalValue, totalPriceChange, totalPriceChangePct, top});
   };
 
   const getPriceChange = ({price, balance, change}) => {
@@ -288,7 +291,7 @@ module.exports = function(Account) {
 
     const symbol = sym.toUpperCase()
     const balances = []
-    const { price, marketCap, volume24Hr } = await getPriceForSymbol(symbol, 'USD');
+    const { price, marketCap, volume24Hr, change } = await getPriceForSymbol(symbol, 'USD');
     let quantity = 0
     let totalValue = 0
     account.addresses.forEach(addressObj => {
@@ -305,6 +308,8 @@ module.exports = function(Account) {
     quantity += balances.reduce((init, nxt) => init + nxt, quantity)
     totalValue += quantity * price
     const imageUrl = `/img/tokens/${symbol.toLowerCase()}.png`
+    const totalPriceChange = getPriceChange(price, quantity, change)
+
     return cb(null, {
       price,
       quantity,
@@ -312,6 +317,8 @@ module.exports = function(Account) {
       marketCap,
       volume24Hr,
       imageUrl,
+      change,
+      priceChange: totalPriceChange,
       symbol
     });
   };
