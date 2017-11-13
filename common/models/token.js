@@ -4,14 +4,19 @@ const redisClient = require('../../server/boot/redisConnector');
 module.exports = function(Token) {
   Token.validatesUniquenessOf('symbol');
 
-  Token.getTokens = async(checksum, cb) => {
-    return cb(null, await fetchTokens(checksum));
+  Token.getTokens = async(givenChecksum, cb) => {
+    let err = null
+    const { tokens, checksum } = await fetchTokens(givenChecksum).catch(e=>err=e)
+    if (err) {
+      return cb(err)
+    }
+    return cb(null, {tokens, checksum});
   };
 
   const fetchFromDB = async() => {
     const tokens = await Token.find();
     if (!tokens) {
-      return new Error('no tokens found');
+      throw new Error('no tokens found');
     }
     const tokensJSON = tokens.map((token)=>token.toJSON());
     const checksum = Hash(tokensJSON);
