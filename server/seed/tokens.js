@@ -17,9 +17,6 @@ const savePromises = tokens.sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
 
 Promise.all(savePromises)
   .then((tokens) => {
-    // very weird error when I try to hash the object directly
-    // says cannot read property statusCode of undefined.
-    // there's no statusCode property
     const tokensJSON = tokens.map((token)=>token.toJSON());
     const checksum = Hash(tokensJSON);
     console.log(checksum, 'tokens hash');
