@@ -6,11 +6,11 @@ module.exports = function(Token) {
 
   Token.getTokens = async(givenChecksum, cb) => {
     let err = null
-    const { tokens, checksum } = await fetchTokens(givenChecksum).catch(e=>err=e)
+    const { tokens, checksum, didNotChange } = await fetchTokens(givenChecksum).catch(e=>err=e)
     if (err) {
       return cb(err)
     }
-    return cb(null, {tokens, checksum});
+    return cb(null, {tokens, checksum, didNotChange});
   };
 
   const fetchFromDB = async() => {
@@ -22,7 +22,7 @@ module.exports = function(Token) {
     const checksum = Hash(tokensJSON);
     // store in redis for next time
     redisClient.set('tokenChecksum', checksum);
-    redisClient.set('tokens', tokenString);
+    redisClient.set('tokens', JSON.stringify(tokensJSON));
     return {tokens, checksum};
   };
 

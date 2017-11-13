@@ -21,7 +21,7 @@ Promise.all(savePromises)
     const checksum = Hash(tokensJSON);
     console.log(checksum, 'tokens hash');
     console.log('Seeded tokens collection.');
-    storeInRedis(redisClient, tokens, checksum);
+    storeInRedis(redisClient, tokensJSON, checksum);
     console.log('Cached tokens in redis.');
   });
 
