@@ -10,8 +10,11 @@ module.exports = function(Token) {
 
   const fetchFromDB = async() => {
     const tokens = await Token.find();
-    const tokenString = JSON.stringify(tokens);
-    const checksum = Hash(tokenString);
+    if (!tokens) {
+      return new Error('no tokens found');
+    }
+    const tokensJSON = tokens.map((token)=>token.toJSON());
+    const checksum = Hash(tokensJSON);
     // store in redis for next time
     redisClient.set('tokenChecksum', checksum);
     redisClient.set('tokens', tokenString);

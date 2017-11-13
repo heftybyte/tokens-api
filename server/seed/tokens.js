@@ -20,7 +20,8 @@ Promise.all(savePromises)
     // very weird error when I try to hash the object directly
     // says cannot read property statusCode of undefined.
     // there's no statusCode property
-    const checksum = Hash(JSON.stringify(tokens));
+    const tokensJSON = tokens.map((token)=>token.toJSON());
+    const checksum = Hash(tokensJSON);
     console.log(checksum, 'tokens hash');
     console.log('Seeded tokens collection.');
     storeInRedis(redisClient, tokens, checksum);
