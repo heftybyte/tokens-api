@@ -14,7 +14,8 @@
     "automigrate": "babel-node server/migrations/automigrate.js",
     "autoupdate": "babel-node server/migrations/autoupdate.js",
     "create-dev-account": "babel-node server/create-dev-login.js",
-    "cryptoscrape": "node scraper.js"
+    "cryptoscrape": "node scraper.js",
+    "seed-tokens": "babel-node server/seed/tokens.js"
   },
   "author": "",
   "license": "ISC",

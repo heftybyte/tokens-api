@@ -1,8 +1,9 @@
 const Hash = require('object-hash');
 const redisClient = require('../../server/boot/redisConnector');
-const TOKEN_CACHE_TTL = 30;
 
 module.exports = function(Token) {
+  Token.validatesUniquenessOf('symbol');
+
   Token.getTokens = async(checksum, cb) => {
     return cb(null, await fetchTokens(checksum));
   };
@@ -12,8 +13,8 @@ module.exports = function(Token) {
     const tokenString = JSON.stringify(tokens);
     const checksum = Hash(tokenString);
     // store in redis for next time
-    redisClient.set('tokenChecksum', checksum, 'EX', TOKEN_CACHE_TTL);
-    redisClient.set('tokens', tokenString, 'EX', TOKEN_CACHE_TTL);
+    redisClient.set('tokenChecksum', checksum);
+    redisClient.set('tokens', tokenString);
     return {tokens, checksum};
   };
 

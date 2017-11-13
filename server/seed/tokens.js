@@ -3,20 +3,17 @@ import Hash from 'object-hash';
 import tokenData from '../../data/tokens.json';
 import redisClient from '../../server/boot/redisConnector';
 
-const TOKEN_CACHE_TTL = 30;
-
 const Token = server.models.Token;
 
 const tokens = Object.keys(tokenData)
   .map(symbol => ({
     symbol,
-    address: tokenData[symbol].address,
-    decimals: tokenData[symbol].decimals,
+    ...tokenData[symbol],
     imageUrl: `/img/tokens/${symbol.toLowerCase()}.png`,
   }));
 
 const savePromises = tokens.sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
-  .map(token => Token.create(token));
+  .map(token => Token.upsertWithWhere({ symbol: token.symbol }, token));
 
 Promise.all(savePromises)
   .then((tokens) => {
@@ -32,7 +29,7 @@ Promise.all(savePromises)
 
 const storeInRedis = (redisClient, tokens, checksum) => {
   if (!redisClient) return;
-  redisClient.set('tokenChecksum', checksum, 'EX', TOKEN_CACHE_TTL);
-  redisClient.set('tokens', JSON.stringify(tokens), 'EX', TOKEN_CACHE_TTL);
+  redisClient.set('tokenChecksum', checksum);
+  redisClient.set('tokens', JSON.stringify(tokens));
   redisClient.quit();
 };
