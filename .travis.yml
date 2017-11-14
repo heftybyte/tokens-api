@@ -12,7 +12,7 @@ deploy:
     secret_access_key: $secret_access_key
     region: "us-west-2"
     app: "Tokens"
-    env: "Tokens-env"
+    env: "Tokens-env-prod"
     bucket_name: "elasticbeanstalk-us-west-2-606460127508"
     skip_cleanup: true
     zip_file: "dist.zip"
