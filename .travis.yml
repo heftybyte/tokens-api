@@ -4,6 +4,7 @@ node_js:
 install:
   - npm install
   - npm run build
+  - cp -r .ebextensions dist/.ebextensions/
   - cd dist/ && zip -r dist.zip .
   - ls
 deploy:
