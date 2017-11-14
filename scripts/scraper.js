@@ -78,7 +78,7 @@ const saveCoinsById = (data) => {
   return writeFile('/data/coins-by-id.json', JSON.stringify(res, null, 4));
 };
 
-request('https://api.coinmarketcap.com/v1/ticker/', (err, res, body) => {
+request('https://api.coinmarketcap.com/v1/ticker/?limit=0', (err, res, body) => {
   if (err) {
     console.log(err)
   }
