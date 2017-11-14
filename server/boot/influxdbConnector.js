@@ -1,5 +1,5 @@
 const Influx = require('influx');
-
+return;
 const influx = new Influx.InfluxDB({
   host: process.env.INFLUXDB_HOST || 'localhost',
   database: process.env.INFLUXDB_DB || 'tokens',
