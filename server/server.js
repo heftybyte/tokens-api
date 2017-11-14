@@ -1,9 +1,12 @@
-require("babel-polyfill");
+require('babel-polyfill');
 require('dotenv').load();
+import bodyParser from 'body-parser';
 import loopback from 'loopback';
 import boot from 'loopback-boot';
 
 const app = loopback();
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json());
 
 app.start = () =>
     // start the web server

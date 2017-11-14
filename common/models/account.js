@@ -15,6 +15,7 @@ const TOP_N = 20
 import { measureMetric } from '../../lib/statsd';
 
 import web3 from '../../lib/web3'
+const { serverLogger } = require('../../lib/logger');
 
 module.exports = function(Account) {
   Account.register = async (data, cb) => {
@@ -33,6 +34,7 @@ module.exports = function(Account) {
       console.log('An error is reported from Invite.findOne: %j', err)
       err = new Error(err.message);
       err.status = 400;
+      serverLogger.error(err)
       return cb(err);
     }
 
@@ -43,6 +45,7 @@ module.exports = function(Account) {
 
       err = new Error("You need a valid invitation code to register.\nTweet @tokens_express to get one.");
       err.statusCode = 400;
+      serverLogger.error(err)
       return cb(err);
     } else if (!invite.claimed) {
 
@@ -60,6 +63,7 @@ module.exports = function(Account) {
       await invite.save().catch(e=>err=e)
       if (err) {
         console.log('unable to update claimed invite: %j', err)
+        serverLogger.error(err)
       }
       return cb(null, instance);
     } else {
@@ -69,6 +73,7 @@ module.exports = function(Account) {
 
       err = new Error("This invite has already been claimed.\nTweet @tokens_express to get a new one.");
       err.statusCode = 400;
+      serverLogger.error(err)
       return cb(err);
     }
   };
