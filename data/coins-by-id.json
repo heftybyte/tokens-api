@@ -3,7 +3,7 @@
         "id": "bitcoin",
         "name": "Bitcoin",
         "symbol": "BTC",
-        "market_cap_usd": "110391589425",
+        "market_cap_usd": "110269660452",
         "available_supply": "16679750.0",
         "total_supply": "16679750.0",
         "max_supply": "21000000.0"
@@ -12,7 +12,7 @@
         "id": "ethereum",
         "name": "Ethereum",
         "symbol": "ETH",
-        "market_cap_usd": "32155707944.0",
+        "market_cap_usd": "32057011487.0",
         "available_supply": "95728863.0",
         "total_supply": "95728863.0",
         "max_supply": null
@@ -21,7 +21,7 @@
         "id": "bitcoin-cash",
         "name": "Bitcoin Cash",
         "symbol": "BCH",
-        "market_cap_usd": "21392743145.0",
+        "market_cap_usd": "21473227001.0",
         "available_supply": "16802475.0",
         "total_supply": "16802475.0",
         "max_supply": "21000000.0"
@@ -30,7 +30,7 @@
         "id": "ripple",
         "name": "Ripple",
         "symbol": "XRP",
-        "market_cap_usd": "8043946598.0",
+        "market_cap_usd": "8026798043.0",
         "available_supply": "38622870411.0",
         "total_supply": "99993173757.0",
         "max_supply": "100000000000"
@@ -39,7 +39,7 @@
         "id": "litecoin",
         "name": "Litecoin",
         "symbol": "LTC",
-        "market_cap_usd": "3395584628.0",
+        "market_cap_usd": "3381642773.0",
         "available_supply": "53829557.0",
         "total_supply": "53829557.0",
         "max_supply": "84000000.0"
@@ -48,7 +48,7 @@
         "id": "dash",
         "name": "Dash",
         "symbol": "DASH",
-        "market_cap_usd": "3275335641.0",
+        "market_cap_usd": "3275720078.0",
         "available_supply": "7688744.0",
         "total_supply": "7688744.0",
         "max_supply": "18900000.0"
@@ -57,7 +57,7 @@
         "id": "neo",
         "name": "NEO",
         "symbol": "NEO",
-        "market_cap_usd": "1924630500.0",
+        "market_cap_usd": "1916161000.0",
         "available_supply": "65000000.0",
         "total_supply": "100000000.0",
         "max_supply": null
@@ -66,7 +66,7 @@
         "id": "monero",
         "name": "Monero",
         "symbol": "XMR",
-        "market_cap_usd": "1845392382.0",
+        "market_cap_usd": "1840387449.0",
         "available_supply": "15352554.0",
         "total_supply": "15352554.0",
         "max_supply": null
@@ -75,7 +75,7 @@
         "id": "ethereum-classic",
         "name": "Ethereum Classic",
         "symbol": "ETC",
-        "market_cap_usd": "1759877895.0",
+        "market_cap_usd": "1765130214.0",
         "available_supply": "97445634.0",
         "total_supply": "97445634.0",
         "max_supply": null
@@ -84,7 +84,7 @@
         "id": "nem",
         "name": "NEM",
         "symbol": "XEM",
-        "market_cap_usd": "1743318000.0",
+        "market_cap_usd": "1741950000.0",
         "available_supply": "8999999999.0",
         "total_supply": "8999999999.0",
         "max_supply": null
@@ -93,7 +93,7 @@
         "id": "iota",
         "name": "IOTA",
         "symbol": "MIOTA",
-        "market_cap_usd": "1691235776.0",
+        "market_cap_usd": "1674275082.0",
         "available_supply": "2779530283.0",
         "total_supply": "2779530283.0",
         "max_supply": "2779530283.0"
@@ -102,7 +102,7 @@
         "id": "qtum",
         "name": "Qtum",
         "symbol": "QTUM",
-        "market_cap_usd": "856998873.0",
+        "market_cap_usd": "853698842.0",
         "available_supply": "73661404.0",
         "total_supply": "100161404.0",
         "max_supply": null
@@ -111,7 +111,7 @@
         "id": "lisk",
         "name": "Lisk",
         "symbol": "LSK",
-        "market_cap_usd": "796850202.0",
+        "market_cap_usd": "796886963.0",
         "available_supply": "114878015.0",
         "total_supply": "114878015.0",
         "max_supply": null
@@ -120,7 +120,7 @@
         "id": "omisego",
         "name": "OmiseGO",
         "symbol": "OMG",
-        "market_cap_usd": "794913519.0",
+        "market_cap_usd": "795275770.0",
         "available_supply": "102042552.0",
         "total_supply": "140245398.0",
         "max_supply": null
@@ -129,7 +129,7 @@
         "id": "eos",
         "name": "EOS",
         "symbol": "EOS",
-        "market_cap_usd": "758417925.0",
+        "market_cap_usd": "751551524.0",
         "available_supply": "473218562.0",
         "total_supply": "1000000000.0",
         "max_supply": null
@@ -138,7 +138,7 @@
         "id": "zcash",
         "name": "Zcash",
         "symbol": "ZEC",
-        "market_cap_usd": "718003943.0",
+        "market_cap_usd": "716654227.0",
         "available_supply": "2620806.0",
         "total_supply": "2620806.0",
         "max_supply": null
@@ -147,7 +147,7 @@
         "id": "cardano",
         "name": "Cardano",
         "symbol": "ADA",
-        "market_cap_usd": "685236918.0",
+        "market_cap_usd": "681049696.0",
         "available_supply": "25927070538.0",
         "total_supply": "31112483745.0",
         "max_supply": "45000000000.0"
@@ -156,7 +156,7 @@
         "id": "hshare",
         "name": "Hshare",
         "symbol": "HSR",
-        "market_cap_usd": "650617864.0",
+        "market_cap_usd": "637989224.0",
         "available_supply": "42250382.0",
         "total_supply": "42250382.0",
         "max_supply": "84000000.0"
@@ -165,7 +165,7 @@
         "id": "tether",
         "name": "Tether",
         "symbol": "USDT",
-        "market_cap_usd": "597308992.0",
+        "market_cap_usd": "598407926.0",
         "available_supply": "594018132.0",
         "total_supply": "594999472.0",
         "max_supply": null
@@ -174,7 +174,7 @@
         "id": "stellar",
         "name": "Stellar Lumens",
         "symbol": "XLM",
-        "market_cap_usd": "585725172.0",
+        "market_cap_usd": "586158132.0",
         "available_supply": "16588504729.0",
         "total_supply": "103432382849",
         "max_supply": null
@@ -183,7 +183,7 @@
         "id": "bitconnect",
         "name": "BitConnect",
         "symbol": "BCC",
-        "market_cap_usd": "545288293.0",
+        "market_cap_usd": "539744221.0",
         "available_supply": "2138092.0",
         "total_supply": "8392580.0",
         "max_supply": "28000000.0"
@@ -192,7 +192,7 @@
         "id": "waves",
         "name": "Waves",
         "symbol": "WAVES",
-        "market_cap_usd": "500264000.0",
+        "market_cap_usd": "498958000.0",
         "available_supply": "100000000.0",
         "total_supply": "100000000.0",
         "max_supply": null
@@ -201,7 +201,7 @@
         "id": "populous",
         "name": "Populous",
         "symbol": "PPT",
-        "market_cap_usd": "365511813.0",
+        "market_cap_usd": "361527671.0",
         "available_supply": "41252246.0",
         "total_supply": "53252246.0",
         "max_supply": "53252246.0"
@@ -210,7 +210,7 @@
         "id": "stratis",
         "name": "Stratis",
         "symbol": "STRAT",
-        "market_cap_usd": "362854317.0",
+        "market_cap_usd": "357127333.0",
         "available_supply": "98622084.0",
         "total_supply": "98622084.0",
         "max_supply": null
@@ -219,7 +219,7 @@
         "id": "ark",
         "name": "Ark",
         "symbol": "ARK",
-        "market_cap_usd": "319259276.0",
+        "market_cap_usd": "319561059.0",
         "available_supply": "97981284.0",
         "total_supply": "129231284.0",
         "max_supply": null
@@ -228,7 +228,7 @@
         "id": "steem",
         "name": "Steem",
         "symbol": "STEEM",
-        "market_cap_usd": "234871628.0",
+        "market_cap_usd": "234996297.0",
         "available_supply": "246382624.0",
         "total_supply": "263356718.0",
         "max_supply": null
@@ -237,7 +237,7 @@
         "id": "ardor",
         "name": "Ardor",
         "symbol": "ARDR",
-        "market_cap_usd": "222334331.0",
+        "market_cap_usd": "222475190.0",
         "available_supply": "998999495.0",
         "total_supply": "998999495.0",
         "max_supply": "998999495.0"
@@ -246,7 +246,7 @@
         "id": "komodo",
         "name": "Komodo",
         "symbol": "KMD",
-        "market_cap_usd": "219116362.0",
+        "market_cap_usd": "218040283.0",
         "available_supply": "100945510.0",
         "total_supply": "100945510.0",
         "max_supply": null
@@ -255,34 +255,34 @@
         "id": "bitshares",
         "name": "BitShares",
         "symbol": "BTS",
-        "market_cap_usd": "218776620.0",
+        "market_cap_usd": "217681443.0",
         "available_supply": "2601990000.0",
         "total_supply": "2601990000.0",
         "max_supply": "3600570502.0"
-    },
-    "augur": {
-        "id": "augur",
-        "name": "Augur",
-        "symbol": "REP",
-        "market_cap_usd": "208296000.0",
-        "available_supply": "11000000.0",
-        "total_supply": "11000000.0",
-        "max_supply": null
     },
     "decred": {
         "id": "decred",
         "name": "Decred",
         "symbol": "DCR",
-        "market_cap_usd": "207496301.0",
+        "market_cap_usd": "208532550.0",
         "available_supply": "6160817.0",
         "total_supply": "6580817.0",
+        "max_supply": null
+    },
+    "augur": {
+        "id": "augur",
+        "name": "Augur",
+        "symbol": "REP",
+        "market_cap_usd": "207548000.0",
+        "available_supply": "11000000.0",
+        "total_supply": "11000000.0",
         "max_supply": null
     },
     "bytecoin-bcn": {
         "id": "bytecoin-bcn",
         "name": "Bytecoin",
         "symbol": "BCN",
-        "market_cap_usd": "206499245.0",
+        "market_cap_usd": "203164031.0",
         "available_supply": "183253534612",
         "total_supply": "183253534612",
         "max_supply": "184470000000"
@@ -291,7 +291,7 @@
         "id": "electroneum",
         "name": "Electroneum",
         "symbol": "ETN",
-        "market_cap_usd": "198761068.0",
+        "market_cap_usd": "198386702.0",
         "available_supply": "5192322540.0",
         "total_supply": "5192322540.0",
         "max_supply": "21000000000.0"
@@ -300,7 +300,7 @@
         "id": "salt",
         "name": "SALT",
         "symbol": "SALT",
-        "market_cap_usd": "189040686.0",
+        "market_cap_usd": "189109813.0",
         "available_supply": "49025964.0",
         "total_supply": "120000000.0",
         "max_supply": null
@@ -309,34 +309,34 @@
         "id": "maidsafecoin",
         "name": "MaidSafeCoin",
         "symbol": "MAID",
-        "market_cap_usd": "184305138.0",
+        "market_cap_usd": "185301658.0",
         "available_supply": "452552412.0",
         "total_supply": "452552412.0",
+        "max_supply": null
+    },
+    "tenx": {
+        "id": "tenx",
+        "name": "TenX",
+        "symbol": "PAY",
+        "market_cap_usd": "177496162.0",
+        "available_supply": "104661310.0",
+        "total_supply": "205218256.0",
         "max_supply": null
     },
     "vertcoin": {
         "id": "vertcoin",
         "name": "Vertcoin",
         "symbol": "VTC",
-        "market_cap_usd": "177307884.0",
+        "market_cap_usd": "177331379.0",
         "available_supply": "41220300.0",
         "total_supply": "41220300.0",
         "max_supply": "84000000.0"
-    },
-    "tenx": {
-        "id": "tenx",
-        "name": "TenX",
-        "symbol": "PAY",
-        "market_cap_usd": "176775046.0",
-        "available_supply": "104661310.0",
-        "total_supply": "205218256.0",
-        "max_supply": null
     },
     "gas": {
         "id": "gas",
         "name": "Gas",
         "symbol": "GAS",
-        "market_cap_usd": "175113874.0",
+        "market_cap_usd": "174207746.0",
         "available_supply": "8597035.0",
         "total_supply": "11822072.0",
         "max_supply": "100000000.0"
@@ -345,7 +345,7 @@
         "id": "golem-network-tokens",
         "name": "Golem",
         "symbol": "GNT",
-        "market_cap_usd": "174592678.0",
+        "market_cap_usd": "174201153.0",
         "available_supply": "833032000.0",
         "total_supply": "1000000000.0",
         "max_supply": null
@@ -354,7 +354,7 @@
         "id": "pivx",
         "name": "PIVX",
         "symbol": "PIVX",
-        "market_cap_usd": "171197919.0",
+        "market_cap_usd": "170965909.0",
         "available_supply": "54719422.0",
         "total_supply": "54719422.0",
         "max_supply": null
@@ -363,34 +363,34 @@
         "id": "tron",
         "name": "TRON",
         "symbol": "TRX",
-        "market_cap_usd": "165184493.0",
+        "market_cap_usd": "164092033.0",
         "available_supply": "65613192465.0",
         "total_supply": "100000000000",
-        "max_supply": null
-    },
-    "veritaseum": {
-        "id": "veritaseum",
-        "name": "Veritaseum",
-        "symbol": "VERI",
-        "market_cap_usd": "160245607.0",
-        "available_supply": "2026045.0",
-        "total_supply": "100000000.0",
         "max_supply": null
     },
     "monacoin": {
         "id": "monacoin",
         "name": "MonaCoin",
         "symbol": "MONA",
-        "market_cap_usd": "159857894.0",
+        "market_cap_usd": "159818611.0",
         "available_supply": "55329275.0",
         "total_supply": "55329275.0",
+        "max_supply": null
+    },
+    "veritaseum": {
+        "id": "veritaseum",
+        "name": "Veritaseum",
+        "symbol": "VERI",
+        "market_cap_usd": "158959068.0",
+        "available_supply": "2026045.0",
+        "total_supply": "100000000.0",
         "max_supply": null
     },
     "binance-coin": {
         "id": "binance-coin",
         "name": "Binance Coin",
         "symbol": "BNB",
-        "market_cap_usd": "157811484.0",
+        "market_cap_usd": "157410477.0",
         "available_supply": "99014000.0",
         "total_supply": "199013968.0",
         "max_supply": null
@@ -399,7 +399,7 @@
         "id": "factom",
         "name": "Factom",
         "symbol": "FCT",
-        "market_cap_usd": "154891498.0",
+        "market_cap_usd": "155225561.0",
         "available_supply": "8745102.0",
         "total_supply": "8745102.0",
         "max_supply": null
@@ -408,7 +408,7 @@
         "id": "byteball",
         "name": "Byteball Bytes",
         "symbol": "GBYTE",
-        "market_cap_usd": "154211942.0",
+        "market_cap_usd": "153655115.0",
         "available_supply": "645222.0",
         "total_supply": "1000000.0",
         "max_supply": null
@@ -417,7 +417,7 @@
         "id": "digixdao",
         "name": "DigixDAO",
         "symbol": "DGD",
-        "market_cap_usd": "150726000.0",
+        "market_cap_usd": "149300600.0",
         "available_supply": "2000000.0",
         "total_supply": "2000000.0",
         "max_supply": null
@@ -426,7 +426,7 @@
         "id": "basic-attention-token",
         "name": "Basic Attention Token",
         "symbol": "BAT",
-        "market_cap_usd": "147440000.0",
+        "market_cap_usd": "145978000.0",
         "available_supply": "1000000000.0",
         "total_supply": "1500000000.0",
         "max_supply": null
@@ -435,7 +435,7 @@
         "id": "kyber-network",
         "name": "Kyber Network",
         "symbol": "KNC",
-        "market_cap_usd": "145472275.0",
+        "market_cap_usd": "144989397.0",
         "available_supply": "134132697.0",
         "total_supply": "215625349.0",
         "max_supply": null
@@ -444,7 +444,7 @@
         "id": "bitcoindark",
         "name": "BitcoinDark",
         "symbol": "BTCD",
-        "market_cap_usd": "141470669.0",
+        "market_cap_usd": "141290228.0",
         "available_supply": "1288862.0",
         "total_supply": "1288862.0",
         "max_supply": null
@@ -453,7 +453,7 @@
         "id": "dogecoin",
         "name": "Dogecoin",
         "symbol": "DOGE",
-        "market_cap_usd": "133030727.0",
+        "market_cap_usd": "132749803.0",
         "available_supply": "111922200445",
         "total_supply": "111922200445",
         "max_supply": null
@@ -462,7 +462,7 @@
         "id": "walton",
         "name": "Walton",
         "symbol": "WTC",
-        "market_cap_usd": "128590126.0",
+        "market_cap_usd": "128089175.0",
         "available_supply": "24898178.0",
         "total_supply": "70000000.0",
         "max_supply": "100000000.0"
@@ -471,7 +471,7 @@
         "id": "siacoin",
         "name": "Siacoin",
         "symbol": "SC",
-        "market_cap_usd": "128427620.0",
+        "market_cap_usd": "127970143.0",
         "available_supply": "30868907445.0",
         "total_supply": "30868907445.0",
         "max_supply": null
@@ -480,34 +480,34 @@
         "id": "syscoin",
         "name": "Syscoin",
         "symbol": "SYS",
-        "market_cap_usd": "120244545.0",
+        "market_cap_usd": "119079972.0",
         "available_supply": "528870584.0",
         "total_supply": "528870584.0",
         "max_supply": "888000000.0"
-    },
-    "raiden-network-token": {
-        "id": "raiden-network-token",
-        "name": "Raiden Network Token",
-        "symbol": "RDN",
-        "market_cap_usd": "116967500.0",
-        "available_supply": "50000000.0",
-        "total_supply": "100000000.0",
-        "max_supply": null
     },
     "gamecredits": {
         "id": "gamecredits",
         "name": "GameCredits",
         "symbol": "GAME",
-        "market_cap_usd": "116832637.0",
+        "market_cap_usd": "116650511.0",
         "available_supply": "64355352.0",
         "total_supply": "64355352.0",
+        "max_supply": null
+    },
+    "raiden-network-token": {
+        "id": "raiden-network-token",
+        "name": "Raiden Network Token",
+        "symbol": "RDN",
+        "market_cap_usd": "115188000.0",
+        "available_supply": "50000000.0",
+        "total_supply": "100000000.0",
         "max_supply": null
     },
     "bytom": {
         "id": "bytom",
         "name": "Bytom",
         "symbol": "BTM",
-        "market_cap_usd": "110515377.0",
+        "market_cap_usd": "108717063.0",
         "available_supply": "987000000.0",
         "total_supply": "1407000000.0",
         "max_supply": null
@@ -516,7 +516,7 @@
         "id": "metaverse",
         "name": "Metaverse ETP",
         "symbol": "ETP",
-        "market_cap_usd": "108890896.0",
+        "market_cap_usd": "107958007.0",
         "available_supply": "36369948.0",
         "total_supply": "55769948.0",
         "max_supply": "100000000.0"
@@ -525,7 +525,7 @@
         "id": "blocknet",
         "name": "Blocknet",
         "symbol": "BLOCK",
-        "market_cap_usd": "106508166.0",
+        "market_cap_usd": "106123247.0",
         "available_supply": "4884755.0",
         "total_supply": "4884755.0",
         "max_supply": null
@@ -534,7 +534,7 @@
         "id": "iconomi",
         "name": "Iconomi",
         "symbol": "ICN",
-        "market_cap_usd": "102025568.0",
+        "market_cap_usd": "102021577.0",
         "available_supply": "99788314.0",
         "total_supply": "99788314.0",
         "max_supply": null
@@ -543,7 +543,7 @@
         "id": "0x",
         "name": "0x",
         "symbol": "ZRX",
-        "market_cap_usd": "99651500.0",
+        "market_cap_usd": "99962500.0",
         "available_supply": "500000000.0",
         "total_supply": "1000000000.0",
         "max_supply": null
@@ -552,7 +552,7 @@
         "id": "civic",
         "name": "Civic",
         "symbol": "CVC",
-        "market_cap_usd": "98603358.0",
+        "market_cap_usd": "97480672.0",
         "available_supply": "342700000.0",
         "total_supply": "1000000000.0",
         "max_supply": null
@@ -561,7 +561,7 @@
         "id": "status",
         "name": "Status",
         "symbol": "SNT",
-        "market_cap_usd": "97604927.0",
+        "market_cap_usd": "96961847.0",
         "available_supply": "3470483788.0",
         "total_supply": "6804870174.0",
         "max_supply": null
@@ -570,7 +570,7 @@
         "id": "lykke",
         "name": "Lykke",
         "symbol": "LKK",
-        "market_cap_usd": "94081549.0",
+        "market_cap_usd": "93815519.0",
         "available_supply": "262357186.0",
         "total_supply": "1285690000.0",
         "max_supply": null
@@ -579,7 +579,7 @@
         "id": "aeternity",
         "name": "Aeternity",
         "symbol": "AE",
-        "market_cap_usd": "92047048.0",
+        "market_cap_usd": "91794920.0",
         "available_supply": "233020472.0",
         "total_supply": "273685830.0",
         "max_supply": null
@@ -588,34 +588,34 @@
         "id": "power-ledger",
         "name": "Power Ledger",
         "symbol": "POWR",
-        "market_cap_usd": "89837072.0",
+        "market_cap_usd": "90327774.0",
         "available_supply": "348757230.0",
         "total_supply": "1000000000.0",
+        "max_supply": null
+    },
+    "metal": {
+        "id": "metal",
+        "name": "Metal",
+        "symbol": "MTL",
+        "market_cap_usd": "88957316.0",
+        "available_supply": "19300994.0",
+        "total_supply": "66588888.0",
         "max_supply": null
     },
     "gxshares": {
         "id": "gxshares",
         "name": "GXShares",
         "symbol": "GXS",
-        "market_cap_usd": "89184385.0",
+        "market_cap_usd": "88861926.0",
         "available_supply": "40510000.0",
         "total_supply": "100000000.0",
         "max_supply": "100000000.0"
-    },
-    "metal": {
-        "id": "metal",
-        "name": "Metal",
-        "symbol": "MTL",
-        "market_cap_usd": "89164030.0",
-        "available_supply": "19300994.0",
-        "total_supply": "66588888.0",
-        "max_supply": null
     },
     "verge": {
         "id": "verge",
         "name": "Verge",
         "symbol": "XVG",
-        "market_cap_usd": "88678423.0",
+        "market_cap_usd": "88373811.0",
         "available_supply": "14267509742.0",
         "total_supply": "14267509742.0",
         "max_supply": "16555000000.0"
@@ -624,7 +624,7 @@
         "id": "bitquence",
         "name": "Bitquence",
         "symbol": "BQX",
-        "market_cap_usd": "86481855.0",
+        "market_cap_usd": "86533958.0",
         "available_supply": "72366119.0",
         "total_supply": "222295208.0",
         "max_supply": null
@@ -633,7 +633,7 @@
         "id": "digibyte",
         "name": "DigiByte",
         "symbol": "DGB",
-        "market_cap_usd": "86266302.0",
+        "market_cap_usd": "85983274.0",
         "available_supply": "9406022591.0",
         "total_supply": "9406022591.0",
         "max_supply": null
@@ -642,34 +642,34 @@
         "id": "singulardtv",
         "name": "SingularDTV",
         "symbol": "SNGLS",
-        "market_cap_usd": "84858000.0",
+        "market_cap_usd": "84609600.0",
         "available_supply": "600000000.0",
         "total_supply": "1000000000.0",
-        "max_supply": null
-    },
-    "bancor": {
-        "id": "bancor",
-        "name": "Bancor",
-        "symbol": "BNT",
-        "market_cap_usd": "82274353.0",
-        "available_supply": "40772871.0",
-        "total_supply": "79384422.0",
         "max_supply": null
     },
     "attention-token-of-media": {
         "id": "attention-token-of-media",
         "name": "ATMChain",
         "symbol": "ATM",
-        "market_cap_usd": "82081840.0",
+        "market_cap_usd": "82865872.0",
         "available_supply": "2913534434.0",
         "total_supply": "10000000000.0",
+        "max_supply": null
+    },
+    "bancor": {
+        "id": "bancor",
+        "name": "Bancor",
+        "symbol": "BNT",
+        "market_cap_usd": "81992612.0",
+        "available_supply": "40772871.0",
+        "total_supply": "79384422.0",
         "max_supply": null
     },
     "pura": {
         "id": "pura",
         "name": "Pura",
         "symbol": "PURA",
-        "market_cap_usd": "79400405.0",
+        "market_cap_usd": "80198956.0",
         "available_supply": "171768285.0",
         "total_supply": "178550779.0",
         "max_supply": "350000000.0"
@@ -678,7 +678,7 @@
         "id": "zcoin",
         "name": "ZCoin",
         "symbol": "XZC",
-        "market_cap_usd": "78182401.0",
+        "market_cap_usd": "76830787.0",
         "available_supply": "3433978.0",
         "total_supply": "3433978.0",
         "max_supply": null
@@ -687,7 +687,7 @@
         "id": "open-trading-network",
         "name": "Open Trading Network",
         "symbol": "OTN",
-        "market_cap_usd": "72765924.0",
+        "market_cap_usd": "72695373.0",
         "available_supply": "1375262.0",
         "total_supply": "80375262.0",
         "max_supply": "100000000.0"
@@ -696,7 +696,7 @@
         "id": "gnosis-gno",
         "name": "Gnosis",
         "symbol": "GNO",
-        "market_cap_usd": "69245422.0",
+        "market_cap_usd": "68659547.0",
         "available_supply": "1104590.0",
         "total_supply": "10000000.0",
         "max_supply": null
@@ -705,7 +705,7 @@
         "id": "b3coin",
         "name": "B3Coin",
         "symbol": "B3",
-        "market_cap_usd": "68321795.0",
+        "market_cap_usd": "68083726.0",
         "available_supply": "69185927104.0",
         "total_supply": "69192689768.0",
         "max_supply": "2000000000.0"
@@ -714,7 +714,7 @@
         "id": "nxt",
         "name": "Nxt",
         "symbol": "NXT",
-        "market_cap_usd": "66683446.0",
+        "market_cap_usd": "66853176.0",
         "available_supply": "998999942.0",
         "total_supply": "998999942.0",
         "max_supply": "1000000000.0"
@@ -723,7 +723,7 @@
         "id": "vechain",
         "name": "VeChain",
         "symbol": "VEN",
-        "market_cap_usd": "66185883.0",
+        "market_cap_usd": "65891259.0",
         "available_supply": "277162633.0",
         "total_supply": "867162633.0",
         "max_supply": null
@@ -732,34 +732,34 @@
         "id": "ripio-credit-network",
         "name": "Ripio Credit Network",
         "symbol": "RCN",
-        "market_cap_usd": "64612753.0",
+        "market_cap_usd": "64514269.0",
         "available_supply": "485142647.0",
         "total_supply": "999942647.0",
-        "max_supply": null
-    },
-    "particl": {
-        "id": "particl",
-        "name": "Particl",
-        "symbol": "PART",
-        "market_cap_usd": "64569240.0",
-        "available_supply": "7771861.0",
-        "total_supply": "8767861.0",
         "max_supply": null
     },
     "chainlink": {
         "id": "chainlink",
         "name": "ChainLink",
         "symbol": "LINK",
-        "market_cap_usd": "64145200.0",
+        "market_cap_usd": "64436050.0",
         "available_supply": "350000000.0",
         "total_supply": "1000000000.0",
+        "max_supply": null
+    },
+    "particl": {
+        "id": "particl",
+        "name": "Particl",
+        "symbol": "PART",
+        "market_cap_usd": "64337561.0",
+        "available_supply": "7771861.0",
+        "total_supply": "8767861.0",
         "max_supply": null
     },
     "storj": {
         "id": "storj",
         "name": "Storj",
         "symbol": "STORJ",
-        "market_cap_usd": "63036336.0",
+        "market_cap_usd": "61485232.0",
         "available_supply": "103482792.0",
         "total_supply": "424999998.0",
         "max_supply": null
@@ -768,7 +768,7 @@
         "id": "monaco",
         "name": "Monaco",
         "symbol": "MCO",
-        "market_cap_usd": "60107670.0",
+        "market_cap_usd": "59998823.0",
         "available_supply": "9814875.0",
         "total_supply": "31587682.0",
         "max_supply": null
@@ -777,7 +777,7 @@
         "id": "funfair",
         "name": "FunFair",
         "symbol": "FUN",
-        "market_cap_usd": "59197600.0",
+        "market_cap_usd": "58988400.0",
         "available_supply": "4000000000.0",
         "total_supply": "10999873621.0",
         "max_supply": null
@@ -786,7 +786,7 @@
         "id": "adx-net",
         "name": "AdEx",
         "symbol": "ADX",
-        "market_cap_usd": "57731070.0",
+        "market_cap_usd": "57735648.0",
         "available_supply": "57229170.0",
         "total_supply": "100000000.0",
         "max_supply": "100000000.0"
@@ -795,7 +795,7 @@
         "id": "bitdeal",
         "name": "Bitdeal",
         "symbol": "BDL",
-        "market_cap_usd": "56022994.0",
+        "market_cap_usd": "56059164.0",
         "available_supply": "175583793.0",
         "total_supply": "219401212.0",
         "max_supply": "300000000.0"
@@ -804,7 +804,7 @@
         "id": "zencash",
         "name": "ZenCash",
         "symbol": "ZEN",
-        "market_cap_usd": "55131752.0",
+        "market_cap_usd": "54932844.0",
         "available_supply": "2455648.0",
         "total_supply": "2455648.0",
         "max_supply": "21000000.0"
@@ -813,25 +813,16 @@
         "id": "nexus",
         "name": "Nexus",
         "symbol": "NXS",
-        "market_cap_usd": "52733526.0",
+        "market_cap_usd": "52543002.0",
         "available_supply": "53759582.0",
         "total_supply": "53759582.0",
         "max_supply": null
-    },
-    "cryptonex": {
-        "id": "cryptonex",
-        "name": "Cryptonex",
-        "symbol": "CNX",
-        "market_cap_usd": "51262551.0",
-        "available_supply": "44961628.0",
-        "total_supply": "106399254.0",
-        "max_supply": "210000000.0"
     },
     "nav-coin": {
         "id": "nav-coin",
         "name": "NAV Coin",
         "symbol": "NAV",
-        "market_cap_usd": "51175894.0",
+        "market_cap_usd": "51256038.0",
         "available_supply": "62031085.0",
         "total_supply": "62031085.0",
         "max_supply": null
@@ -840,7 +831,7 @@
         "id": "edgeless",
         "name": "Edgeless",
         "symbol": "EDG",
-        "market_cap_usd": "50719128.0",
+        "market_cap_usd": "50616324.0",
         "available_supply": "82046288.0",
         "total_supply": "132046997.0",
         "max_supply": null
@@ -849,7 +840,7 @@
         "id": "zeusshield",
         "name": "Zeusshield",
         "symbol": "ZSC",
-        "market_cap_usd": "49677694.0",
+        "market_cap_usd": "49525891.0",
         "available_supply": "1153522016.0",
         "total_supply": "5642500000.0",
         "max_supply": null
@@ -858,7 +849,7 @@
         "id": "streamr-datacoin",
         "name": "Streamr DATAcoin",
         "symbol": "DATA",
-        "market_cap_usd": "49468236.0",
+        "market_cap_usd": "49393546.0",
         "available_supply": "677154514.0",
         "total_supply": "987154514.0",
         "max_supply": null
@@ -867,7 +858,7 @@
         "id": "kucoin-shares",
         "name": "KuCoin Shares",
         "symbol": "KCS",
-        "market_cap_usd": "49190392.0",
+        "market_cap_usd": "49053281.0",
         "available_supply": "91043076.0",
         "total_supply": "181043076.0",
         "max_supply": null
@@ -876,25 +867,34 @@
         "id": "faircoin",
         "name": "FairCoin",
         "symbol": "FAIR",
-        "market_cap_usd": "48685601.0",
+        "market_cap_usd": "48509476.0",
         "available_supply": "53193831.0",
         "total_supply": "53193831.0",
         "max_supply": null
     },
-    "wings": {
-        "id": "wings",
-        "name": "Wings",
-        "symbol": "WINGS",
-        "market_cap_usd": "47465038.0",
-        "available_supply": "89708333.0",
-        "total_supply": "100000000.0",
+    "cryptonex": {
+        "id": "cryptonex",
+        "name": "Cryptonex",
+        "symbol": "CNX",
+        "market_cap_usd": "47472285.0",
+        "available_supply": "44961628.0",
+        "total_supply": "106399254.0",
+        "max_supply": "210000000.0"
+    },
+    "ubiq": {
+        "id": "ubiq",
+        "name": "Ubiq",
+        "symbol": "UBQ",
+        "market_cap_usd": "47055887.0",
+        "available_supply": "38832038.0",
+        "total_supply": "38832038.0",
         "max_supply": null
     },
     "mobilego": {
         "id": "mobilego",
         "name": "MobileGo",
         "symbol": "MGO",
-        "market_cap_usd": "47124349.0",
+        "market_cap_usd": "47014850.0",
         "available_supply": "98028887.0",
         "total_supply": "100000000.0",
         "max_supply": null
