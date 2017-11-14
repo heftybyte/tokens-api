@@ -1,7 +1,7 @@
 import server from '../server';
 import Hash from 'object-hash';
-import tokenData from '../../data/tokens.json';
-import redisClient from '../../server/boot/redisConnector';
+import tokenData from '../data/tokens.json';
+import redisClient from '../server/boot/redisConnector';
 
 const Token = server.models.Token;
 

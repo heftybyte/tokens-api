@@ -1,6 +1,6 @@
-import server from './server';
+import server from '../server/server';
 import dotenv from 'dotenv';
-import redisClient from './boot/redisConnector';
+import redisClient from '../server/boot/redisConnector';
 
 dotenv.config();
 

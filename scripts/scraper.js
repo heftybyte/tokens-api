@@ -4,7 +4,7 @@ const cheerio = require('cheerio');
 const path = require('path');
 const fs = require('fs');
 
-const basePath = path.resolve(__dirname);
+const basePath =  path.resolve(__dirname) + '/..'
 const tokens = require(`${basePath}/data/tokens.json`);
 
 const imageUrl = (url) => {
