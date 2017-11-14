@@ -5,8 +5,9 @@ install:
   - npm install
   - npm run build
   - cp -r .ebextensions dist/.ebextensions/
+  - cp -r env/ dist/env
   - cd dist/ && zip -r dist.zip .
-  - ls
+  - ls -a
 deploy:
   - provider: elasticbeanstalk
     access_key_id: $access_key_id
