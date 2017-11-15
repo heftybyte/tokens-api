@@ -6,13 +6,14 @@ import {
   getEthAddressBalance,
   getTopNTokens,
   getTokenPrices,
-	getWatchListTokens
+	getWatchListToken,
+  TOKEN_CONTRACTS
 } from '../../lib/eth.js';
 import { all } from '../../lib/async-promise';
 let app = require('../../server/server');
 const _ = require('lodash')
 const constants = require('../../constants/');
-const TOP_N = 20
+const TOP_N = 100
 import { measureMetric } from '../../lib/statsd';
 
 import web3 from '../../lib/web3'
@@ -151,7 +152,7 @@ module.exports = function(Account) {
     }
 
     this.addresses.push({ id: address })
-    const account = await this.save().catch(e=>err=e)
+    let account = await this.save().catch(e=>err=e)
     if (err) {
       cb(err);
       return err
@@ -160,7 +161,7 @@ module.exports = function(Account) {
     // metrics
     measureMetric(constants.METRICS.add_address.success, start_time);
 
-    await this.refreshAddress(address)
+    account = await this.refreshAddress(address)
     cb(null, account)
     return account
   }
@@ -209,7 +210,7 @@ module.exports = function(Account) {
     measureMetric(constants.METRICS.refresh_address.success, start_time);
 
     cb(null)
-    return
+    return account
   }
 
   Account.prototype.deleteAddress = async function (address, cb) {
@@ -361,8 +362,8 @@ module.exports = function(Account) {
 
     const symbol = sym.toUpperCase()
     const balances = []
-    const { price, marketCap, volume24Hr, change } = await getPriceForSymbol(symbol, 'USD');
-    let quantity = 0
+    const { price, marketCap, volume24Hr, change, supply } = await getPriceForSymbol(symbol, 'USD');
+    let balance = 0
     let totalValue = 0
     account.addresses.forEach(addressObj => {
       const token = addressObj.tokens.filter(obj => obj.symbol === symbol)[0]
@@ -371,25 +372,30 @@ module.exports = function(Account) {
         balances.push(token.balance)
         return
       } else if (symbol === 'ETH') {
-        quantity += addressObj.ether
+        balance += addressObj.ether
       }
     })
 
-    quantity += balances.reduce((init, nxt) => init + nxt, quantity)
-    totalValue += quantity * price
+    balance += balances.reduce((init, nxt) => init + nxt, balance)
+    totalValue += balance * price
     const imageUrl = `/img/tokens/${symbol.toLowerCase()}.png`
-    const totalPriceChange = getPriceChange(price, quantity, change)
-
+    const totalPriceChange = getPriceChange({price, balance, change})
+    const { website, reddit, twitter, name } = TOKEN_CONTRACTS[symbol] || {}
     return cb(null, {
       price,
-      quantity,
+      balance,
       totalValue,
       marketCap,
       volume24Hr,
       imageUrl,
       change,
+      supply,
       priceChange: totalPriceChange,
-      symbol
+      symbol,
+      name,
+      website,
+      reddit,
+      twitter
     });
   };
 
