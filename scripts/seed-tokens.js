@@ -1,4 +1,4 @@
-import server from '../server';
+import server from '../server/server';
 import Hash from 'object-hash';
 import tokenData from '../data/tokens.json';
 import redisClient from '../server/boot/redisConnector';
@@ -9,7 +9,7 @@ const tokens = Object.keys(tokenData)
   .map(symbol => ({
     symbol,
     ...tokenData[symbol],
-    imageUrl: `/img/tokens/${symbol.toLowerCase()}.png`,
+    image: `${symbol.toLowerCase()}.png`
   }));
 
 const savePromises = tokens.sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
