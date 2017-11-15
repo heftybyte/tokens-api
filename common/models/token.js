@@ -33,8 +33,21 @@ module.exports = function(Token) {
     // if checksums match return didNotChange
     if (checksum && checksum === redisChecksum) return {didNotChange: true};
     // else return from redis
-    const tokens = await redisClient.getAsync('tokens');
-    return {tokens: JSON.parse(tokens), checksum: redisChecksum};
+    let err
+    const _tokens = await redisClient.getAsync('tokens').catch(e=>err=e);
+    if (err) {
+      console.log(err)
+      return {}
+    }
+    const tokens = (JSON.parse(_tokens || null) || []).map(token=>{
+      const image = token.image
+      delete token.image
+      return {
+        ...token,
+        imageUrl: `/img/tokens/${image}`
+      }
+    })
+    return {tokens: tokens, checksum: redisChecksum};
   };
 
   // marking checksum as required because for some weird reason it doesn't
