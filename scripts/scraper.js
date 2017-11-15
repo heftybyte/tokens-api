@@ -47,8 +47,8 @@ const saveSocialStats = (coin, coins) => {
     const website = $('.list-unstyled li span[title=Website] + a').prop('href');
     const twitter = $('.twitter-timeline').prop('href');
     const reddit = getRedditAcct(body);
-
-    Object.assign(tokens[sym], {website, twitter, reddit});
+    const name = coins[coin].name
+    Object.assign(tokens[sym], {website, twitter, reddit, name});
 
     fs.writeFile(basePath + `/data/tokens.json`, JSON.stringify(tokens, null, 4), (err) => {
       if (err) throw err;

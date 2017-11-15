@@ -310,8 +310,7 @@ module.exports = function(Account) {
     totalValue += balance * price
     const imageUrl = `/img/tokens/${symbol.toLowerCase()}.png`
     const totalPriceChange = getPriceChange({price, balance, change})
-    const { website, reddit, twitter } = TOKEN_CONTRACTS[symbol] || {}
-    console.log({totalPriceChange})
+    const { website, reddit, twitter, name } = TOKEN_CONTRACTS[symbol] || {}
     return cb(null, {
       price,
       balance,
@@ -323,6 +322,7 @@ module.exports = function(Account) {
       supply,
       priceChange: totalPriceChange,
       symbol,
+      name,
       website,
       reddit,
       twitter
