@@ -45,10 +45,10 @@ const saveSocialStats = (coin, coins) => {
     const $ = cheerio.load(body);
     const sym = coins[coin].symbol;
     const website = $('.list-unstyled li span[title=Website] + a').prop('href');
-    const twitterAccount = $('.twitter-timeline').prop('href');
-    const redditAccount = getRedditAcct(body);
+    const twitter = $('.twitter-timeline').prop('href');
+    const reddit = getRedditAcct(body);
 
-    Object.assign(tokens[sym], {website, twitterAccount, redditAccount});
+    Object.assign(tokens[sym], {website, twitter, reddit});
 
     fs.writeFile(basePath + `/data/tokens.json`, JSON.stringify(tokens, null, 4), (err) => {
       if (err) throw err;
