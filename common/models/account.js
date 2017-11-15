@@ -5,7 +5,8 @@ import {
   getPriceForSymbol,
   getEthAddressBalance,
   getTopNTokens,
-  getTokenPrices
+  getTokenPrices,
+  TOKEN_CONTRACTS
 } from '../../lib/eth.js';
 import { all } from '../../lib/async-promise';
 let app = require('../../server/server');
@@ -309,7 +310,7 @@ module.exports = function(Account) {
     totalValue += quantity * price
     const imageUrl = `/img/tokens/${symbol.toLowerCase()}.png`
     const totalPriceChange = getPriceChange(price, quantity, change)
-
+    const { website, reddit, twitter } = TOKEN_CONTRACTS[symbol] || {}
     return cb(null, {
       price,
       quantity,
@@ -319,7 +320,10 @@ module.exports = function(Account) {
       imageUrl,
       change,
       priceChange: totalPriceChange,
-      symbol
+      symbol,
+      website,
+      reddit,
+      twitter
     });
   };
 
