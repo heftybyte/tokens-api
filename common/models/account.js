@@ -12,7 +12,7 @@ import { all } from '../../lib/async-promise';
 let app = require('../../server/server');
 
 const constants = require('../../constants/');
-const TOP_N = 20
+const TOP_N = 100
 import { measureMetric } from '../../lib/statsd';
 
 import web3 from '../../lib/web3'
