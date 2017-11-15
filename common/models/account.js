@@ -319,7 +319,6 @@ module.exports = function(Account) {
       symbols.unshift('ETH')
     }
     const currentTokens = symbols.map((symbol)=>uniqueTokens[symbol])
-		console.log(account.watchList)
     let { top, prices, watchList } = await all({
       top: getTopNTokens(TOP_N),
       prices: getTokenPrices(symbols),
