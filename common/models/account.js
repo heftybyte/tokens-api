@@ -257,7 +257,8 @@ module.exports = function(Account) {
     })
     top = (top || []).map((token)=>({
       ...token,
-      imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`
+      imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`,
+       ...TOKEN_CONTRACTS[token.symbol]
     }))
     const tokens = currentTokens.map((token, i)=>({
       symbol: token.symbol,
