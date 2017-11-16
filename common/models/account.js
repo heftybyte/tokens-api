@@ -334,17 +334,30 @@ module.exports = function(Account) {
       balance: token.balance,
       ...TOKEN_CONTRACTS[token.symbol],
       ...prices[i],
-      priceChange: getPriceChange({...prices[i], balance: token.balance})
+      priceChange: getPriceChange({...prices[i], balance: token.balance}),
+      priceChange7d: getPriceChange({price: prices[i].price, change: prices[i].change7d, balance: token.balance})
     })).sort((a,b)=>Math.abs(a.priceChange) > Math.abs(b.priceChange) ? -1 : 1)
     const totalValue = tokens.reduce(
       (acc, curr) => acc += (curr.price * curr.balance), 0);
     const totalPriceChange = tokens.reduce(
       (acc, curr) => acc + (curr.priceChange), 0)
+    const totalPriceChange7d = tokens.reduce(
+      (acc, curr) => acc + (curr.priceChange7d), 0)
     const totalPriceChangePct = (1-totalValue/(totalValue+totalPriceChange))*100
+    const totalPriceChangePct7d = (1-totalValue/(totalValue+totalPriceChange7d))*100
     // metrics
     measureMetric(constants.METRICS.get_portfolio.failed, start_time);
 
-    return cb(null, {watchList, tokens, totalValue, totalPriceChange, totalPriceChangePct, top});
+    return cb(null, {
+      watchList,
+      tokens,
+      totalValue,
+      totalPriceChange,
+      totalPriceChangePct,
+      totalPriceChange7d,
+      totalPriceChangePct7d,
+      top
+    });
   };
 
   const getPriceChange = ({price, balance, change}) => {
@@ -362,7 +375,7 @@ module.exports = function(Account) {
 
     const symbol = sym.toUpperCase()
     const balances = []
-    const { price, marketCap, volume24Hr, change, supply } = await getPriceForSymbol(symbol, 'USD');
+    const { price, marketCap, volume24Hr, change, change7d, supply } = await getPriceForSymbol(symbol, 'USD');
     let balance = 0
     let totalValue = 0
     account.addresses.forEach(addressObj => {
@@ -378,7 +391,8 @@ module.exports = function(Account) {
 
     balance += balances.reduce((init, nxt) => init + nxt, balance)
     totalValue += balance * price
-    const totalPriceChange = getPriceChange({price, balance, change})
+    const priceChange = getPriceChange({price, balance, change})
+    const priceChange7d = getPriceChange({ price, change: change7d, balance })
     const { website, reddit, twitter, name } = TOKEN_CONTRACTS[symbol] || {}
     return cb(null, {
       price,
@@ -388,7 +402,8 @@ module.exports = function(Account) {
       volume24Hr,
       change,
       supply,
-      priceChange: totalPriceChange,
+      priceChange,
+      priceChange7d,
       symbol,
       name,
       website,

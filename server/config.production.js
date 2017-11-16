@@ -1,5 +1,8 @@
 module.exports = {
   "restApiRoot": "/api",
+  "swagger": {
+    "protocol": "https"
+  },
   "host": "0.0.0.0",
   "port": 8081,
   "remoting": {
