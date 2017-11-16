@@ -83,7 +83,7 @@
       "principalType": "ROLE",
       "principalId": "$owner",
       "permission": "ALLOW",
-      "property": "addWatchList"
+      "property": "addToWatchList"
     },
     {
       "principalType": "ROLE",

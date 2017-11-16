@@ -6,7 +6,7 @@ import {
   getEthAddressBalance,
   getTopNTokens,
   getTokenPrices,
-	getWatchListTokens,
+	getTokensBySymbol,
   TOKEN_CONTRACTS
 } from '../../lib/eth.js';
 import { all } from '../../lib/async-promise';
@@ -75,7 +75,7 @@ module.exports = function(Account) {
     }
   };
 
-	Account.prototype.addWatchList = async function (data, cb) {
+	Account.prototype.addToWatchList = async function (data, cb) {
 		const { symbol } = data
 
 		let { err, token } = await getTokenBySymbol(symbol);
@@ -323,7 +323,7 @@ module.exports = function(Account) {
     let { top, prices, watchList } = await all({
       top: getTopNTokens(TOP_N),
       prices: getTokenPrices(symbols),
-	    watchList: getWatchListTokens(account.watchList)
+	    watchList: getTokensBySymbol(account.watchList)
     })
     top = (top || []).map((token)=>({
       ...token,
@@ -556,7 +556,7 @@ module.exports = function(Account) {
     description: 'Add an ethereum address to a user\'s account',
   });
 
-	Account.remoteMethod('addWatchList', {
+	Account.remoteMethod('addToWatchList', {
 		isStatic: false,
 		http: {
 			path: '/watch-list',
