@@ -6,7 +6,7 @@ import {
   getEthAddressBalance,
   getTopNTokens,
   getTokenPrices,
-	getWatchListToken,
+	getWatchListTokens,
   TOKEN_CONTRACTS
 } from '../../lib/eth.js';
 import { all } from '../../lib/async-promise';
