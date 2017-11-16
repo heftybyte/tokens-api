@@ -41,8 +41,6 @@ module.exports = function(Token) {
       return {}
     }
     const tokens = (JSON.parse(_tokens || null) || []).map(token=>{
-      const image = token.image
-      delete token.image
       return {
         ...token,
         ...TOKEN_CONTRACTS[token.symbol]
