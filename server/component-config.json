@@ -1,6 +1,6 @@
 {
   "loopback-component-explorer": {
-    "mountPath": "/explorer",
+    "mountPath": "/hbyte-admin",
     "generateOperationScopedModels": true
   }
 }
