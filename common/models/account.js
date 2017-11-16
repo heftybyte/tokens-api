@@ -263,6 +263,7 @@ module.exports = function(Account) {
       symbol: token.symbol,
       balance: token.balance,
       imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`,
+      ...TOKEN_CONTRACTS[token.symbol],
       ...prices[i],
       priceChange: getPriceChange({...prices[i], balance: token.balance})
     })).sort((a,b)=>Math.abs(a.priceChange) > Math.abs(b.priceChange) ? -1 : 1)

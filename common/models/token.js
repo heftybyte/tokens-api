@@ -1,5 +1,6 @@
 const Hash = require('object-hash');
 const redisClient = require('../../server/boot/redisConnector');
+const TOKEN_CONTRACTS = require('../../data/tokens');
 
 module.exports = function(Token) {
   Token.validatesUniquenessOf('symbol');
@@ -44,6 +45,7 @@ module.exports = function(Token) {
       delete token.image
       return {
         ...token,
+        ...TOKEN_CONTRACTS[token.symbol],
         imageUrl: `/img/tokens/${image}`
       }
     })
