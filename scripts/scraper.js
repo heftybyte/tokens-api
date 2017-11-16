@@ -56,7 +56,8 @@ const saveSocialStats = (coin, coins) => {
     const twitter = $('.twitter-timeline').prop('href');
     const reddit = getRedditAcct(body);
     const name = coins[coin].name
-    Object.assign(tokens[sym], {website, twitter, reddit, name});
+    const id = coins[coin].id
+    Object.assign(tokens[sym], {website, twitter, reddit, name, id});
 
     saveTokensJsonFile();
   })
