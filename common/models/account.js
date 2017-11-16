@@ -6,11 +6,12 @@ import {
   getEthAddressBalance,
   getTopNTokens,
   getTokenPrices,
+	getTokensBySymbol,
   TOKEN_CONTRACTS
 } from '../../lib/eth.js';
 import { all } from '../../lib/async-promise';
 let app = require('../../server/server');
-
+const _ = require('lodash')
 const constants = require('../../constants/');
 const TOP_N = 100
 import { measureMetric } from '../../lib/statsd';
@@ -73,6 +74,59 @@ module.exports = function(Account) {
       return cb(err);
     }
   };
+
+	Account.prototype.addToWatchList = async function (data, cb) {
+		const { symbol } = data
+
+		let { err, token } = await getTokenBySymbol(symbol);
+		if (err) {
+			cb(err)
+			return err
+		}
+
+		if(_.includes(this.watchList, token.symbol)) {
+			err = new Error('This symbol  has already been added to this user account')
+			err.status = 422
+			cb(err)
+			return err
+		}
+
+
+		this.watchList.push(token.symbol)
+
+		const account = await this.updateAttribute('watchList', this.watchList).catch(e=>{err=e})
+
+		if (err) {
+			cb(err);
+			return err
+		}
+		return cb(null, account)
+	};
+
+	Account.prototype.removeFromWatchList = async function (symbol, cb) {
+		let watchList = this.watchList
+		let err
+
+		if(!_.includes(watchList, symbol)){
+			err = new Error('This symbol does not exist for user account')
+			err.status = 422
+			cb(err)
+			return err
+		}
+
+		watchList = _.remove(watchList, (n) => {
+			return n !== symbol;
+		});
+
+		const account = await this.updateAttribute('watchList', watchList).catch(e=>{err=e})
+
+		if (err) {
+			cb(err);
+			return err
+		}
+		return cb()
+
+	}
 
   Account.prototype.addAddress = async function (data, cb) {
 
@@ -219,6 +273,22 @@ module.exports = function(Account) {
     }
   }
 
+	const getTokenBySymbol = async (symbol) => {
+		let err = null
+		const Token = app.default.models.Token;
+		const token = await Token.findOne({where: {symbol}}).catch(e=>{err=e})
+
+		if (!err && !token) {
+			err = new Error("Token not found")
+			err.status = 404
+		}
+
+		return {
+			token,
+			err
+		}
+	}
+
   Account.prototype.getPortfolio = async function (cb) {
 
     const start_time = new Date().getTime();
@@ -250,10 +320,10 @@ module.exports = function(Account) {
       symbols.unshift('ETH')
     }
     const currentTokens = symbols.map((symbol)=>uniqueTokens[symbol])
-
-    let { top, prices } = await all({
+    let { top, prices, watchList } = await all({
       top: getTopNTokens(TOP_N),
-      prices: getTokenPrices(symbols)
+      prices: getTokenPrices(symbols),
+	    watchList: getTokensBySymbol(account.watchList)
     })
     top = (top || []).map((token)=>({
       ...token,
@@ -276,7 +346,7 @@ module.exports = function(Account) {
     // metrics
     measureMetric(constants.METRICS.get_portfolio.failed, start_time);
 
-    return cb(null, {tokens, totalValue, totalPriceChange, totalPriceChangePct, top});
+    return cb(null, {watchList, tokens, totalValue, totalPriceChange, totalPriceChangePct, top});
   };
 
   const getPriceChange = ({price, balance, change}) => {
@@ -487,6 +557,48 @@ module.exports = function(Account) {
     },
     description: 'Add an ethereum address to a user\'s account',
   });
+
+	Account.remoteMethod('addToWatchList', {
+		isStatic: false,
+		http: {
+			path: '/watch-list',
+			verb: 'post',
+		},
+		accepts: [
+			{
+				arg: 'watchlist',
+				type: 'object',
+				http: {
+					source: 'body',
+				},
+				description: 'Watch List Symbol',
+			}
+		],
+		returns: {
+			"root": true,
+			"type": "account"
+		},
+		description: 'Add watchlist to a user\'s account',
+	});
+
+	Account.remoteMethod('removeFromWatchList', {
+		isStatic: false,
+		http: {
+			path: '/watch-list/:symbol',
+			verb: 'delete',
+		},
+		accepts: [
+			{
+				arg: 'symbol',
+				type: 'string',
+				http: {
+					source: 'path'
+				},
+				description: 'symbol',
+			}
+		],
+		description: 'Delete a symbol from watchlist.',
+	});
 
   Account.remoteMethod('refreshAddress', {
     isStatic: false,
