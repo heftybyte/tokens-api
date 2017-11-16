@@ -45,8 +45,7 @@ module.exports = function(Token) {
       delete token.image
       return {
         ...token,
-        ...TOKEN_CONTRACTS[token.symbol],
-        imageUrl: `/img/tokens/${image}`
+        ...TOKEN_CONTRACTS[token.symbol]
       }
     })
     return {tokens: tokens, checksum: redisChecksum};

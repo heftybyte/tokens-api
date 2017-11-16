@@ -327,13 +327,11 @@ module.exports = function(Account) {
     })
     top = (top || []).map((token)=>({
       ...token,
-      imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`,
        ...TOKEN_CONTRACTS[token.symbol]
     }))
     const tokens = currentTokens.map((token, i)=>({
       symbol: token.symbol,
       balance: token.balance,
-      imageUrl: `/img/tokens/${token.symbol.toLowerCase()}.png`,
       ...TOKEN_CONTRACTS[token.symbol],
       ...prices[i],
       priceChange: getPriceChange({...prices[i], balance: token.balance})
@@ -380,7 +378,6 @@ module.exports = function(Account) {
 
     balance += balances.reduce((init, nxt) => init + nxt, balance)
     totalValue += balance * price
-    const imageUrl = `/img/tokens/${symbol.toLowerCase()}.png`
     const totalPriceChange = getPriceChange({price, balance, change})
     const { website, reddit, twitter, name } = TOKEN_CONTRACTS[symbol] || {}
     return cb(null, {
@@ -389,7 +386,6 @@ module.exports = function(Account) {
       totalValue,
       marketCap,
       volume24Hr,
-      imageUrl,
       change,
       supply,
       priceChange: totalPriceChange,
