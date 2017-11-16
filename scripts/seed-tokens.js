@@ -9,7 +9,7 @@ const tokens = Object.keys(tokenData)
   .map(symbol => ({
     symbol,
     ...tokenData[symbol],
-    image: `${symbol.toLowerCase()}.png`
+    id: tokenData[symbol].id || symbol
   }));
 
 const savePromises = tokens.sort((a, b)=>a.symbol > b.symbol ? 1 : -1)
@@ -23,7 +23,8 @@ Promise.all(savePromises)
     console.log('Seeded tokens collection.');
     storeInRedis(redisClient, tokensJSON, checksum);
     console.log('Cached tokens in redis.');
-  });
+  })
+  .catch(e=>console.log(e))
 
 const storeInRedis = (redisClient, tokens, checksum) => {
   if (!redisClient) return;

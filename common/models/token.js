@@ -3,8 +3,6 @@ const redisClient = require('../../server/boot/redisConnector');
 const TOKEN_CONTRACTS = require('../../data/tokens');
 
 module.exports = function(Token) {
-  Token.validatesUniquenessOf('symbol');
-
   Token.getTokens = async(givenChecksum, cb) => {
     let err = null
     const { tokens, checksum, didNotChange } = await fetchTokens(givenChecksum).catch(e=>err=e)
