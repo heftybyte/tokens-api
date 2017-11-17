@@ -6,6 +6,7 @@ const fs = require('fs');
 
 const basePath =  path.resolve(__dirname) + '/..'
 const tokens = require(`${basePath}/data/tokens.json`);
+const BLACKLIST = require(`${basePath}/data/token-id-blacklist.json`);
 
 const imageUrl = (url) => {
   return `https://files.coinmarketcap.com/static/img/coins/128x128/${url}.png`;
@@ -100,7 +101,9 @@ const downloadCoinsAndImages = () => {
             const urls = [];
 
             for (let coin in coinsById) {
-              if (coinsById.hasOwnProperty(coin) && Object.keys(tokens).includes(coinsById[coin].symbol)) {
+              if (coinsById.hasOwnProperty(coin) &&
+                tokens[coinsById[coin].symbol] &&
+                !BLACKLIST[coinsById[coin].id]) {
                 urls.push(coinsById[coin].id)
               }
             }
