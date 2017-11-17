@@ -18,6 +18,8 @@ import { measureMetric } from '../../lib/statsd';
 
 import web3 from '../../lib/web3'
 
+const INVITE_ENABLED = false
+
 module.exports = function(Account) {
   Account.register = async (data, cb) => {
 
@@ -26,7 +28,9 @@ module.exports = function(Account) {
 
     let err = null, Invite = app.default.models.Invite;
 
-    const invite = await Invite.findOne({where: {invite_code: data.code}}).catch(e=>err=e)
+    const invite = INVITE_ENABLED &&
+      await Invite.findOne({where: {invite_code: data.code}}).catch(e=>err=e)
+
     if (err){
 
       // metrics
@@ -38,7 +42,7 @@ module.exports = function(Account) {
       return cb(err);
     }
 
-    if (!invite) {
+    if (!invite && INVITE_ENABLED) {
 
       // metrics
       measureMetric(constants.METRICS.register.invalid_code, start_time);
@@ -46,7 +50,7 @@ module.exports = function(Account) {
       err = new Error("You need a valid invitation code to register.\nTweet @tokens_express to get one.");
       err.statusCode = 400;
       return cb(err);
-    } else if (!invite.claimed) {
+    } else if (!invite.claimed || !INVITE_ENABLED) {
 
       // metrics
       measureMetric(constants.METRICS.register.success, start_time);
@@ -58,10 +62,12 @@ module.exports = function(Account) {
         err.status = 400;
         return cb(err);
       }
-      invite.claimed = true
-      await invite.save().catch(e=>err=e)
-      if (err) {
-        console.log('unable to update claimed invite: %j', err)
+      if (INVITE_ENABLED) {
+        invite.claimed = true
+        await invite.save().catch(e=>err=e)
+        if (err) {
+          console.log('unable to update claimed invite: %j', err)
+        }
       }
       return cb(null, instance);
     } else {
