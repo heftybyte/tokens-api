@@ -1,7 +1,13 @@
 module.exports = function(AppMeta) {
-  AppMeta.version = function(cb) {
-    let version = '1.0.0';
-    cb(null, {version});
+  AppMeta.version = async function(cb) {
+    let err
+    const meta = await AppMeta.findOne().catch(e=>err=e)
+    if (err) {
+      cb(err)
+      return
+    }
+    const { version } = meta
+    cb(null, version);
   };
 
   AppMeta.remoteMethod(

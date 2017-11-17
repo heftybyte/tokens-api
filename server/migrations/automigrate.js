@@ -9,8 +9,9 @@ const model = process.argv[2];
 
 if (!model) {
 	console.log('\nYou must specify a specify model name. Be careful, this given model\'s collection will be overwritten.\n')
-	process.exit()
+	// process.exit()
 }
+
 const collections = model ?
 	[model] :
 	server.models().map((model)=>model.modelName);

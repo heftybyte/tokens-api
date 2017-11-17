@@ -1,9 +1,8 @@
 const Hash = require('object-hash');
 const redisClient = require('../../server/boot/redisConnector');
+const TOKEN_CONTRACTS = require('../../data/tokens');
 
 module.exports = function(Token) {
-  Token.validatesUniquenessOf('symbol');
-
   Token.getTokens = async(givenChecksum, cb) => {
     let err = null
     const { tokens, checksum, didNotChange } = await fetchTokens(givenChecksum).catch(e=>err=e)
@@ -40,11 +39,9 @@ module.exports = function(Token) {
       return {}
     }
     const tokens = (JSON.parse(_tokens || null) || []).map(token=>{
-      const image = token.image
-      delete token.image
       return {
         ...token,
-        imageUrl: `/img/tokens/${image}`
+        ...TOKEN_CONTRACTS[token.symbol]
       }
     })
     return {tokens: tokens, checksum: redisChecksum};

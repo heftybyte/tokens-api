@@ -21,6 +21,14 @@ const writeFile = (fileNamePath, data) => {
   })
 };
 
+const saveTokensJsonFile = () => {
+  fs.writeFile(basePath + `/data/tokens.json`, JSON.stringify(tokens, null, 2), (err) => {
+    if (err) throw err;
+
+    console.log('tokens.json file updated');
+  })
+};
+
 const downloadImage = (url) => {
   return new Promise((resolve, reject) => {
     request(imageUrl(url), {encoding: 'binary'}, (err, res, body) => {
@@ -35,7 +43,7 @@ const downloadImage = (url) => {
 };
 
 const getRedditAcct = (html) => {
-  const redditPath = html.split('https://www.reddit.com/r/')[1];
+  const redditPath = html.split('oScript.src = "https://www.reddit.com/r/')[1];
 
   return redditPath ? `https://www.reddit.com/r/${redditPath.split('.embed')[0]}` : null;
 };
@@ -48,13 +56,10 @@ const saveSocialStats = (coin, coins) => {
     const twitter = $('.twitter-timeline').prop('href');
     const reddit = getRedditAcct(body);
     const name = coins[coin].name
-    Object.assign(tokens[sym], {website, twitter, reddit, name});
+    const id = coins[coin].id
+    Object.assign(tokens[sym], {website, twitter, reddit, name, id});
 
-    fs.writeFile(basePath + `/data/tokens.json`, JSON.stringify(tokens, null, 4), (err) => {
-      if (err) throw err;
-
-      console.log('tokens.json file updated');
-    })
+    saveTokensJsonFile();
   })
 };
 
@@ -78,40 +83,82 @@ const saveCoinsById = (data) => {
   return writeFile('/data/coins-by-id.json', JSON.stringify(res, null, 4));
 };
 
-request('https://api.coinmarketcap.com/v1/ticker/?limit=0', (err, res, body) => {
-  if (err) {
-    console.log(err)
-  }
-  if (!err && body) {
-    writeFile('/data/ticker.json', body)
-      .then(body => {
-        console.log(`ticker.json created and saved at ${basePath}/data/ticker.json`);
+const downloadCoinsAndImages = () => {
+  request('https://api.coinmarketcap.com/v1/ticker/?limit=0', (err, res, body) => {
+    if (err) {
+      console.log(err)
+    }
+    if (!err && body) {
+      writeFile('/data/ticker.json', body)
+        .then(body => {
+          console.log(`ticker.json created and saved at ${basePath}/data/ticker.json`);
 
-        saveCoinsById(JSON.parse(body)).then(body => {
-          console.log(`coins-by-id.json created and saved at ${basePath}/data/coins-by-id.json`);
+          saveCoinsById(JSON.parse(body)).then(body => {
+            console.log(`coins-by-id.json created and saved at ${basePath}/data/coins-by-id.json`);
 
-          const coinsById = JSON.parse(body);
-          const urls = [];
+            const coinsById = JSON.parse(body);
+            const urls = [];
 
-          for (let coin in coinsById) {
-            if (coinsById.hasOwnProperty(coin) && Object.keys(tokens).includes(coinsById[coin].symbol)) {
-              urls.push(coinsById[coin].id)
+            for (let coin in coinsById) {
+              if (coinsById.hasOwnProperty(coin) && Object.keys(tokens).includes(coinsById[coin].symbol)) {
+                urls.push(coinsById[coin].id)
+              }
             }
-          }
 
-          async.each(urls, (url) => {
-            downloadImage(url)
-              .then(coin => saveSocialStats(coin, coinsById))
-              .catch(err => { throw err; });
-          }, (err) => { throw err; })
-        }).catch(ex => { throw ex; });
+            async.each(urls, (url) => {
+              downloadImage(url)
+                .then(coin => saveSocialStats(coin, coinsById))
+                .catch(err => { throw err; });
+            }, (err) => { throw err; })
+          }).catch(ex => { throw ex; });
 
-        console.log('All done')
-      })
-      .catch(err => {
-        throw err;
-      })
+          console.log('All done')
+        })
+        .catch(err => {
+          throw err;
+        })
+    }
+  });
+};
+
+const updateTokens = () => {
+  request('https://raw.githubusercontent.com/etherdelta/etherdelta.github.io/master/config/main.json', (err, res, body) => {
+    const etherdeltaTokens = JSON.parse(body).tokens;
+    const existingTokens = Object.keys(tokens);
+
+    etherdeltaTokens.forEach(({addr, name, decimals}) => {
+      if (existingTokens.includes(name)) return;
+
+      tokens[name] = {address: addr, decimals};
+    });
+
+    saveTokensJsonFile();
+  })
+};
+
+const showHelp = () => {
+  console.log(`Usage: npm run scrape -- --<task>
+  where task is one of downloadCoinsAndImages, help or updateTokens
+
+  npm run scrape -- --downloadCoinsAndImages  Fetch images and coin data from coinmarketcap
+  npm run scrape -- --updateTokens            Fetch and update token list using data from etherdelta github repo
+  npm run scrape -- --help                    Show this help message`)
+};
+
+const start = (arg) => {
+  switch (arg) {
+    case '--downloadCoinsAndImages':
+      downloadCoinsAndImages();
+      break;
+    case '--updateTokens':
+      updateTokens();
+      break
+    case '--help':
+      showHelp();
+      break;
+    default:
+      showHelp();
   }
-});
+};
 
-
+start(process.argv.slice(2)[0]);
