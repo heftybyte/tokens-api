@@ -124,7 +124,8 @@ module.exports = function(Account) {
 			cb(err);
 			return err
 		}
-		return cb()
+		return cb(null, account)
+
 
 	}
 
@@ -608,6 +609,10 @@ module.exports = function(Account) {
 				description: 'symbol',
 			}
 		],
+		returns: {
+			"root": true,
+			"type": "account"
+		},
 		description: 'Delete a symbol from watchlist.',
 	});
 
