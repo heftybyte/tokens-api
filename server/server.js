@@ -12,7 +12,7 @@ const app = loopback();
 
 app.start = function(httpOnly) {
   if (httpOnly === undefined) {
-    httpOnly = process.env.NODE_ENV !== 'production';
+    httpOnly = process.env.NODE_ENV !== 'production' || process.env.PLATFORM != "digitalocean";
   }
   var server = null;
   if (!httpOnly) {
