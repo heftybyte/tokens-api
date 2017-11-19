@@ -5,6 +5,7 @@ install:
   - npm install
   - npm run build
   - cp -r .ebextensions dist/.ebextensions/
+  - cp env/.env.example dist/.env
   - cp .npmrc dist/.npmrc
   - cd dist/ && zip -r dist.zip .
   - ls -a
