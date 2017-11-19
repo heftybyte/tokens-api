@@ -23,6 +23,7 @@ Promise.all(savePromises)
     console.log('Seeded tokens collection.');
     storeInRedis(redisClient, tokensJSON, checksum);
     console.log('Cached tokens in redis.');
+    // process.exit()
   })
   .catch(e=>console.log(e))
 
