@@ -1,9 +1,11 @@
-echo ">> Running npm install"
+echo "---- Running npm install ----"
 npm install
-echo "----- npm install done ---"
-echo ">> Running npm bild"
+echo "--- Running npm bild ----"
 npm run build
-echo "---- npm build done ----"
+echo "---- cd dist ----"
 cd dist/
+echo "--- npm auotupdate ---"
+node ./server/migrations/autoupdate.js
+echo "--- pm2 restart -----"
 pm2 startOrRestart deploy/ecosystem.config.js -i 4 --update-env
 
