@@ -1,5 +1,6 @@
 node_modules
 dist
+deploy/parity-server.pem
 package-lock.json
 .idea
 .env

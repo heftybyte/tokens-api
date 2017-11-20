@@ -9,17 +9,5 @@ install:
   - cp .npmrc dist/.npmrc
   - cd dist/ && zip -r dist.zip .
   - ls -a
-deploy:
-  - provider: elasticbeanstalk
-    access_key_id: $access_key_id
-    secret_access_key: $secret_access_key
-    region: "us-west-2"
-    app: "Tokens"
-    env: "Tokens-env-1"
-    bucket_name: "elasticbeanstalk-us-west-2-606460127508"
-    skip_cleanup: true
-    zip_file: "dist.zip"
-    on:
-      branch: master
 notifications:
     slack: heftybyte:MfzjodikjxZSS1Vbqyg8inIv
