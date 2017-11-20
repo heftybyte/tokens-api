@@ -18,8 +18,10 @@
       "required": false
     },
     "notification_token": {
-      "type": "string",
-      "required": false
+      "type": [
+        "string"
+      ],
+      "default": []
     },
     "password": {
       "type": "string",

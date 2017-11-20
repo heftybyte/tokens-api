@@ -421,29 +421,29 @@ module.exports = function(Account) {
 
 	Account.addNotificationToken = async function (req, data, cb) {
     const start_time = new Date().getTime();
-
 		const { token } = data
-		let {err, account} = await getAccount(req.accessToken.userId);
-		if (err) {
+		let {account, err} = await getAccount(req.accessToken.userId);
 
-      // metrics
-      measureMetric(constants.METRICS.add_notification.failed, start_time);
-
-			return cb(err);
-		}
-
-		let newAccount = await account.updateAttribute('notification_token', token).catch(e=>{err=e})
 		if (err) {
       // metrics
       measureMetric(constants.METRICS.add_notification.failed, start_time);
-
 			return cb(err);
 		}
 
-    // metrics
-    measureMetric(constants.METRICS.add_notification.success, start_time);
+		let notificationTokens = account.notification_token;
+		if(!_.includes(notificationTokens, token)){
+			notificationTokens.push(token)
+			const newAccount = await account.updateAttribute('notification_token', notificationTokens).catch(e=>{err=e})
 
-		return cb(null, newAccount)
+			if (err) {
+				// metrics
+				measureMetric(constants.METRICS.add_notification.failed, start_time);
+				return cb(err);
+			}
+
+			return cb(null, newAccount)
+		}
+		return cb(null, account)
 	}
 
 	Account.logout = async function(accessToken, fn) {
