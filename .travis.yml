@@ -8,6 +8,6 @@ deploy:
   provider: script
   script: pm2 deploy deploy/ecosystem.config.js production
   on:
-    branch: fix-platform-issue
+    branch: master
 notifications:
     slack: heftybyte:MfzjodikjxZSS1Vbqyg8inIv
