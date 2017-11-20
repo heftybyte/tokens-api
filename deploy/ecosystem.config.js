@@ -21,6 +21,7 @@ module.exports = {
       host : '54.186.146.236',
       ref  : 'origin/master',
       repo : 'git@github.com:heftybyte/tokens-api.git',
+      "ssh_options": ["StrictHostKeyChecking=no", "PasswordAuthentication=no"],
       path : '/var/www/tokens-express/',
       'post-deploy' : 'sh deploy/deploy.sh'
     },
@@ -37,3 +38,4 @@ module.exports = {
     }
   }
 };
+
