@@ -2,12 +2,7 @@ language: node_js
 node_js:
   - "8"
 install:
-  - npm install
-  - npm run build
-  - cp -r .ebextensions dist/.ebextensions/
-  - cp env/.env.example dist/.env
-  - cp .npmrc dist/.npmrc
-  - cd dist/ && zip -r dist.zip .
-  - ls -a
+  - npm install -g pm2
+  - pm2 deploy deploy/ecosystem.config.js production
 notifications:
     slack: heftybyte:MfzjodikjxZSS1Vbqyg8inIv
