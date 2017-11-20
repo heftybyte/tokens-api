@@ -17,8 +17,6 @@ module.exports = {
    */
   deploy : {
     production : {
-            key : '/Users/Samparsky/Sites/nodejs/tokens-api/deploy/parity-server.pem',
-
       user : 'ubuntu',
       host : '54.186.146.236',
       ref  : 'origin/master',
