@@ -3,6 +3,11 @@ node_js:
   - "8"
 install:
   - npm install -g pm2
-  - pm2 deploy deploy/ecosystem.config.js production
+  - 
+deploy:
+  provider: script
+  script: pm2 deploy deploy/ecosystem.config.js production
+  on:
+    branch: fix-platform-issue
 notifications:
     slack: heftybyte:MfzjodikjxZSS1Vbqyg8inIv
