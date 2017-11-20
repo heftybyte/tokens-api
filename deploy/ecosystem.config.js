@@ -8,14 +8,7 @@ module.exports = {
     {
       name      : 'Tokens Express',
       script    : 'server/server.js',
-      env: {
-        COMMON_VARIABLE: 'true'
-      },
-      env_production : {
-        NODE_ENV: 'production'
-      }
     },
-
   ],
 
   /**
@@ -30,7 +23,7 @@ module.exports = {
       ref  : 'origin/master',
       repo : 'git@github.com:heftybyte/tokens-api.git',
       path : '/var/www/tokens-express/',
-      'post-deploy' : 'npm install && npm run build'
+      'post-deploy' : 'sh deploy/deploy.sh'
     },
     dev : {
       user : 'node',
