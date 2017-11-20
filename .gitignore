@@ -1,5 +1,7 @@
 node_modules
 dist
+deploy/parity-server.pem
+deploy/ecosystem.config.js.dev
 package-lock.json
 .idea
 .env
