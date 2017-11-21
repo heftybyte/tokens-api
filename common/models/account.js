@@ -140,7 +140,9 @@ module.exports = function(Account) {
     //metric timing
     const start_time = new Date().getTime();
 
-    const { address } = data
+    let { address } = data;
+    address = address.toLowerCase();
+
     let err = null
     if (!web3.utils.isAddress(address)) {
 
@@ -151,7 +153,7 @@ module.exports = function(Account) {
       err.status = 400
       cb(err)
       return err
-    } else if ( this.addresses.find((addressObj)=>addressObj.id === address) ) {
+    } else if ( this.addresses.find((addressObj)=> addressObj.id.toLowerCase() === address) ) {
       err = new Error('This address has already been added to this user account')
       err.status = 422
       cb(err)
