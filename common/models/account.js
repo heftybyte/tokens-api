@@ -178,6 +178,7 @@ module.exports = function(Account) {
   Account.prototype.refreshAddress = async function (address, cb=()=>{}) {
     //metric timing
     const start_time = new Date().getTime();
+    address = address.toLowerCase();
 
     let { err, account } = await getAccount(this.id);
     if (err) {
@@ -210,7 +211,7 @@ module.exports = function(Account) {
       return err
     }
     const ethBalance = _ethBalance.addressBalance
-    const addressObj = account.addresses.find((addressObj)=>addressObj.id === address)
+    const addressObj = account.addresses.find((addressObj)=>addressObj.id.toLowerCase() === address)
     addressObj.tokens = tokens.filter(token=>token.balance)
     addressObj.ether = ethBalance
     account.save()
