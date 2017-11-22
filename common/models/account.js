@@ -223,6 +223,7 @@ module.exports = function(Account) {
   }
 
   Account.prototype.deleteAddress = async function (address, cb) {
+    address = address.toLowerCase();
 
     //metric timing
     const start_time = new Date().getTime();
@@ -233,7 +234,7 @@ module.exports = function(Account) {
       return err
     }
 
-    const addressIndex = account.addresses.findIndex(addressObj=>addressObj.id === address)
+    const addressIndex = account.addresses.findIndex(addressObj=>addressObj.id.toLowerCase() === address)
 
     if (addressIndex === -1) {
 
