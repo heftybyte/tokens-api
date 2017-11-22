@@ -146,6 +146,21 @@ const downloadCoinsAndImages = () => {
   });
 };
 
+const saveTokenDescription = (token) => {
+  return new Promise((resolve, reject) => {
+    request(`https://raw.githubusercontent.com/etherdelta/etherdelta.github.io/master/tokenGuides/${token}.ejs`, (err, res, body) => {
+      if (err) reject(err);
+
+      const $ = cheerio.load(body);
+      const description = $('p').first().text();
+
+      tokens[token].description = description
+
+      resolve(description);
+    })
+  });
+};
+
 const updateTokens = () => {
   request('https://raw.githubusercontent.com/etherdelta/etherdelta.github.io/master/config/main.json', (err, res, body) => {
     const etherdeltaTokens = JSON.parse(body).tokens;
@@ -157,7 +172,13 @@ const updateTokens = () => {
       tokens[name] = {address: addr, decimals};
     });
 
-    saveTokensJsonFile();
+    for (let key in tokens) {
+      queue.add(saveTokenDescription(key));
+    }
+
+    queue.start().then((res) => {
+      saveTokensJsonFile();
+    })
   })
 };
 
