@@ -3,10 +3,14 @@ const async = require('async');
 const cheerio = require('cheerio');
 const path = require('path');
 const fs = require('fs');
+const BlueBirdQueue = require('bluebird-queue');
+const limit = require('simple-rate-limiter');
 
 const basePath =  path.resolve(__dirname) + '/..'
 const tokens = require(`${basePath}/data/tokens.json`);
 const BLACKLIST = require(`${basePath}/data/token-id-blacklist.json`);
+
+const queue = new BlueBirdQueue({concurrency: 10});
 
 const imageUrl = (url) => {
   return `https://files.coinmarketcap.com/static/img/coins/128x128/${url}.png`;
@@ -22,10 +26,27 @@ const writeFile = (fileNamePath, data) => {
   })
 };
 
+const saveTokensReversed = (tokens) => {
+  const tokensReversed = {};
+
+  for (let key in tokens) {
+    if (tokens.hasOwnProperty(key) && key !== 'ETH') {
+      tokensReversed[tokens[key].address] = key
+    }
+  }
+
+  fs.writeFile(basePath + `/data/tokens-reversed.json`, JSON.stringify(tokensReversed, null, 2), (err) => {
+    if (err) throw err;
+
+    console.log('tokens-reversed.json file updated');
+  })
+};
+
 const saveTokensJsonFile = () => {
   fs.writeFile(basePath + `/data/tokens.json`, JSON.stringify(tokens, null, 2), (err) => {
     if (err) throw err;
 
+    saveTokensReversed(tokens);
     console.log('tokens.json file updated');
   })
 };
@@ -49,8 +70,10 @@ const getRedditAcct = (html) => {
   return redditPath ? `https://www.reddit.com/r/${redditPath.split('.embed')[0]}` : null;
 };
 
-const saveSocialStats = (coin, coins) => {
-  request(`https://coinmarketcap.com/currencies/${coin}/#social`, (err, res, body) => {
+const saveSocialStats = limit((coin, coins) => {
+  request(`http://coinmarketcap.com/currencies/${coin}/#social`, (err, res, body) => {
+    if (err) { throw err; }
+
     const $ = cheerio.load(body);
     const sym = coins[coin].symbol;
     const website = $('.list-unstyled li span[title=Website] + a').prop('href');
@@ -59,10 +82,8 @@ const saveSocialStats = (coin, coins) => {
     const name = coins[coin].name
     const id = coins[coin].id
     Object.assign(tokens[sym], {website, twitter, reddit, name, id});
-
-    saveTokensJsonFile();
-  })
-};
+  });
+}).to(10).per(1000);
 
 const saveCoinsById = (data) => {
   const res = {};
@@ -108,11 +129,12 @@ const downloadCoinsAndImages = () => {
               }
             }
 
-            async.each(urls, (url) => {
-              downloadImage(url)
-                .then(coin => saveSocialStats(coin, coinsById))
-                .catch(err => { throw err; });
-            }, (err) => { throw err; })
+            urls.forEach(url => {
+              saveSocialStats(url, coinsById)
+              queue.add(downloadImage(url))
+            })
+
+            queue.start().then(() => { saveTokensJsonFile(); })
           }).catch(ex => { throw ex; });
 
           console.log('All done')
@@ -121,6 +143,21 @@ const downloadCoinsAndImages = () => {
           throw err;
         })
     }
+  });
+};
+
+const saveTokenDescription = (token) => {
+  return new Promise((resolve, reject) => {
+    request(`https://raw.githubusercontent.com/etherdelta/etherdelta.github.io/master/tokenGuides/${token}.ejs`, (err, res, body) => {
+      if (err) reject(err);
+
+      const $ = cheerio.load(body);
+      const description = $('p').first().text();
+
+      tokens[token].description = description
+
+      resolve(description);
+    })
   });
 };
 
@@ -135,7 +172,13 @@ const updateTokens = () => {
       tokens[name] = {address: addr, decimals};
     });
 
-    saveTokensJsonFile();
+    for (let key in tokens) {
+      queue.add(saveTokenDescription(key));
+    }
+
+    queue.start().then((res) => {
+      saveTokensJsonFile();
+    })
   })
 };
 
