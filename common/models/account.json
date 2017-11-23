@@ -17,11 +17,15 @@
       "type": "string",
       "required": false
     },
-    "notification_token": {
+    "notification_tokens": {
       "type": [
         "string"
       ],
       "default": []
+    },
+    "notification_token": {
+      "type": "string",
+      "required": false
     },
     "password": {
       "type": "string",

@@ -430,10 +430,10 @@ module.exports = function(Account) {
 			return cb(err);
 		}
 
-		let notificationTokens = account.notification_token;
+		let notificationTokens = account.notification_tokens;
 		if(!_.includes(notificationTokens, token)){
 			notificationTokens.push(token)
-			const newAccount = await account.updateAttribute('notification_token', notificationTokens).catch(e=>{err=e})
+			const newAccount = await account.updateAttribute('notification_tokens', notificationTokens).catch(e=>{err=e})
 
 			if (err) {
 				// metrics
@@ -446,20 +446,36 @@ module.exports = function(Account) {
 		return cb(null, account)
 	}
 
-	Account.logout = async function(accessToken, fn) {
+	Account.logout = async function(accessToken, data, fn) {
 		fn = fn || utils.createPromiseCallback();
 		let tokenId = accessToken && accessToken.id
+		const { notification_token } = data
+
 		if (!tokenId) {
 			const err = new Error('accessToken is required to logout');
 			err.status = 401;
 			process.nextTick(fn, err);
 			return fn.promise;
 		}
+
+		if (!notification_token) {
+			const err = new Error('Notification Token is required to logout');
+			err.status = 401;
+			process.nextTick(fn, err);
+			return fn.promise;
+		}
+
 		let {account, err} = await getAccount(accessToken.userId)
+
 		if(err){
 			return fn(err);
 		}
-		account.updateAttribute('notification_token', null).catch(e=>{err=e})
+
+		let notificationTokens = account.notification_tokens;
+		notificationTokens = notificationTokens.filter((e) => e !== notification_token)
+
+		account.updateAttribute('notification_tokens', notificationTokens).catch(e=>{err=e})
+
 		if(err){
 			return fn(err);
 		}
@@ -493,6 +509,7 @@ module.exports = function(Account) {
 				}, description: 'Do not supply this argument, it is automatically extracted ' +
 				'from request headers.',
 				},
+				{arg: 'data', type: 'object', http: { source: 'body'}, description: 'Notification Token'}
 			],
 			http: {verb: 'all'},
 		}
