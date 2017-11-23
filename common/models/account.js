@@ -140,7 +140,9 @@ module.exports = function(Account) {
     //metric timing
     const start_time = new Date().getTime();
 
-    const { address } = data
+    let { address } = data;
+    address = address.toLowerCase();
+
     let err = null
     if (!web3.utils.isAddress(address)) {
 
@@ -151,7 +153,7 @@ module.exports = function(Account) {
       err.status = 400
       cb(err)
       return err
-    } else if ( this.addresses.find((addressObj)=>addressObj.id === address) ) {
+    } else if ( this.addresses.find((addressObj)=> addressObj.id.toLowerCase() === address) ) {
       err = new Error('This address has already been added to this user account')
       err.status = 422
       cb(err)
@@ -176,6 +178,7 @@ module.exports = function(Account) {
   Account.prototype.refreshAddress = async function (address, cb=()=>{}) {
     //metric timing
     const start_time = new Date().getTime();
+    address = address.toLowerCase();
 
     let { err, account } = await getAccount(this.id);
     if (err) {
@@ -208,7 +211,7 @@ module.exports = function(Account) {
       return err
     }
     const ethBalance = _ethBalance.addressBalance
-    const addressObj = account.addresses.find((addressObj)=>addressObj.id === address)
+    const addressObj = account.addresses.find((addressObj)=>addressObj.id.toLowerCase() === address)
     addressObj.tokens = tokens.filter(token=>token.balance)
     addressObj.ether = ethBalance
     account.save()
@@ -221,6 +224,7 @@ module.exports = function(Account) {
   }
 
   Account.prototype.deleteAddress = async function (address, cb) {
+    address = address.toLowerCase();
 
     //metric timing
     const start_time = new Date().getTime();
@@ -231,7 +235,7 @@ module.exports = function(Account) {
       return err
     }
 
-    const addressIndex = account.addresses.findIndex(addressObj=>addressObj.id === address)
+    const addressIndex = account.addresses.findIndex(addressObj=>addressObj.id.toLowerCase() === address)
 
     if (addressIndex === -1) {
 
