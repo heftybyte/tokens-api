@@ -1,4 +1,5 @@
-const {clientLogger}  = require('../../lib/logger');
+const { clientLogger }  = require('../../lib/logger');
+const { COIN_MARKETCAP, getAllPrices }  = require('../../lib/price');
 const _ = require('lodash');
 
 module.exports = app => {
@@ -23,6 +24,16 @@ module.exports = app => {
 	  clientLogger(message, level);
     return res.status(200).json({message: 'Log complete'});
   });
+
+  app.get('/fetch-prices', async (req, res)=>{
+    try {
+      await getAllPrices('USD', COIN_MARKETCAP)
+      res.send(200)
+    } catch(e) {
+      console.log('fetch prices', e)
+      res.send(400)
+    }
+  })
 
   app.use(router);
 };
