@@ -17,6 +17,12 @@
       "type": "string",
       "required": false
     },
+    "notification_tokens": {
+      "type": [
+        "string"
+      ],
+      "default": []
+    },
     "notification_token": {
       "type": "string",
       "required": false
