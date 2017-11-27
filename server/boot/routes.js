@@ -27,7 +27,7 @@ module.exports = app => {
 
   app.get('/fetch-prices', async (req, res)=>{
     try {
-      await getAllPrices('USD', COIN_MARKETCAP)
+      await getAllPrices('USD', COIN_MARKETCAP, false)
       res.send(200)
     } catch(e) {
       console.log('fetch prices', e)
