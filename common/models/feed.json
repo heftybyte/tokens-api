@@ -28,7 +28,8 @@
       "required": true
     },
     "createdAt": {
-      "type": "date"
+      "type": "date",
+      "defaultFn": "now"
     },
     "updatedAt": {
       "type": "date"
@@ -42,20 +43,30 @@
       "required": false
     },
     "link": {
-      "type": {
-        "target": {
-          "type": "string",
-          "enum": [
-            "web",
-            "internal",
-            "app"
-          ]
-        },
-        "uri": "string",
-        "params": {
-          "type": "object"
-        }
+      "target": {
+        "type": "string",
+        "enum": [
+          "web",
+          "internal",
+          "app"
+        ]
+      },
+      "uri": "string",
+      "params": {
+        "type": "object"
       }
+    },
+    "format": {
+      "type": "string",
+      "required": true,
+      "enum": [
+        "TEXT",
+        "TEXT_CENTER",
+        "VIDEO",
+        "IMAGE",
+        "IMAGE_LEFT",
+        "IMAGE_RIGHT"
+      ] 
     }
   },
   "validations": [],

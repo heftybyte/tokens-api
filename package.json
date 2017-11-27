@@ -15,6 +15,7 @@
     "autoupdate": "babel-node server/migrations/autoupdate.js",
     "create-dev-account": "babel-node ./scripts/create-dev-login.js",
     "scrape": "node ./scripts/scraper.js",
+    "seed-feed": "babel-node ./scripts/seed-feed.js",
     "seed-tokens": "babel-node ./scripts/seed-tokens.js"
   },
   "author": "",

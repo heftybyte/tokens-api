@@ -29,9 +29,7 @@ module.exports = function(Feed) {
 	}
 
 	Feed.observe('before save', function updateTimestamp(ctx, next) {
-		if (ctx.isNewInstance) {
-			ctx.instance.createdAt = Date.now();
-		} else if (ctx.data) {
+		if (!ctx.isNewInstance) {
 			ctx.data["updatedAt"] = Date.now();
 		}
 		next();
@@ -42,16 +40,14 @@ module.exports = function(Feed) {
 			path: constants.ENDPOINT.FEED_REQUEST,
 			verb: 'get'
 		},
-		accepts: [{
-			required: false,
-			arg: 'id',
+		accepts: {
+			arg: 'timestamp',
 			type: 'string',
 			http: {
-				source : 'path'
+				source : 'query'
 			},
-			description : "The id of the last lastest feed retreived",
-			optional: true
-		}],
+			description : "The timestamp of the lastest feed item retrieved",
+		},
 		returns: {
 			root: true,
 			type: "feed"
