@@ -1,6 +1,6 @@
 module.exports =  {
   ENDPOINT: {
-    FEED_REQUEST: '/latest/:id',
+    FEED_REQUEST: '/latest',
     FEED_ACTIVITY: '/:id/action',
   },
 
