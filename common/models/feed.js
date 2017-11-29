@@ -1,16 +1,14 @@
 const constants = require('../../constants')
 
 module.exports = function(Feed) {
-	Feed.getLatest = async(createdAt, cb) => {
+	Feed.getLatest = async(id, cb) => {
 
-		let query = {}
 		let err = null
 
-		if(createdAt){
-			query = {where: {createdAt: {gt: createdAt}}}
-		}
-		
-		query = { ...query , order: 'createdAt DESC', limit: 10};
+		id = Number.isNaN(Number(id)) ? 0 : Number(id)
+
+		let query = {where: {id: {gt: id}}}
+		query = { ...query , order: 'id DESC', limit: 10};
 
 		const recentFeed = await Feed.find(query).catch(e =>{err=e});
 		if(err){
@@ -22,10 +20,10 @@ module.exports = function(Feed) {
 	}
 
 	Feed.feedActivity = async(data, cb) => {
-    const  { FeedActivity } =  Feed.app.models;
-    // alternatively we can use findOrCreate if it should be unique;
-    const feedActivity = await FeedActivity.create(data);
-    return cb(null);
+	    const  { FeedActivity } =  Feed.app.models;
+	    // alternatively we can use findOrCreate if it should be unique;
+	    const feedActivity = await FeedActivity.create(data);
+	    return cb(null);
 	}
 
 	Feed.observe('before save', function updateTimestamp(ctx, next) {
@@ -41,12 +39,12 @@ module.exports = function(Feed) {
 			verb: 'get'
 		},
 		accepts: {
-			arg: 'timestamp',
+			arg: 'id',
 			type: 'string',
 			http: {
 				source : 'query'
 			},
-			description : "The timestamp of the lastest feed item retrieved",
+			description : "The id of the lastest feed item retrieved",
 		},
 		returns: {
 			root: true,
