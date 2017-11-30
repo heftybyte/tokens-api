@@ -1,5 +1,5 @@
 import server from '../server/server';
-import FeedData from '../MockData';
+import FeedData from '../data/news-feed';
 import redisClient from '../server/boot/redisConnector';
 
 const {Feed} = server.models;

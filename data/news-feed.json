@@ -1,0 +1,91 @@
+[
+  {
+    "id": 12,
+    "title": "CoinDesk",
+    "type": "ARTICLE",
+    "body": "New Code Released for Vlad Zamfir's Ethereum 'Casper' Upgrade",
+    "link": {
+      "target": "web",
+      "uri": "https://www.coindesk.com/ethereum-developer-vlad-zamfir-uploads-first-casper-protocol-code/",
+      "params": null
+    },
+    "image": "",
+    "format": "TEXT"
+  },
+  {
+    "id": 11,
+    "title": "Motherboard",
+    "type": "ARTICLE",
+    "body": "An Ethereum Startup Just Vanished After People Invested $374K",
+    "link": {
+      "target": "web",
+      "uri": "https://motherboard.vice.com/en_us/article/j5j34x/ethereum-startup-confido-vanished-after-people-invested-374k-ico",
+      "params": null
+    },
+    "image": "",
+    "format": "TEXT"
+  },
+  {
+    "id": 1,
+    "title": "indaHash ICO",
+    "type": "AD",
+    "body": "Our mission is to tokenize the entire influencer industry to solve major issues between brands, influencers and their audiences.",
+    "link": {
+      "target": "web",
+      "uri": "https://indahash.com/ico"
+    },
+    "image": "https://cdn.icodrops.com/wp-content/uploads/2017/10/indaHash-150x150.jpg",
+    "format": "IMAGE_RIGHT"
+  },
+  {
+    "id": 2,
+    "title": "Coindesk",
+    "type": "ARTICLE",
+    "body": "Parity Team Publishes Postmortem on $160 Million Ether Freeze",
+    "link": {
+      "target": "web",
+      "uri": "https://www.coindesk.com/parity-team-publishes-postmortem-160-million-ether-freeze/",
+      "params": null
+    },
+    "image": "",
+    "format": "TEXT"
+  },
+  {
+    "id": 3,
+    "title": "Forbes",
+    "type": "ARTICLE",
+    "body": "Crypto Craze: Ethereum May Not Be A Bubble Despite 3,700% Explosion",
+    "link": {
+      "target": "web",
+      "uri": "https://www.forbes.com/sites/trangho/2017/11/12/crypto-craze-ethereum-may-not-be-a-bubble-despite-3700-explosion/#11e3673f1027",
+      "params": null
+    },
+    "image": "",
+    "format": "TEXT"
+  },
+  {
+    "id": 4,
+    "title": "Fortune",
+    "type": "ARTICLE",
+    "body": "Why Fidelity Is Mining Bitcoin and Ethereum",
+    "link": {
+      "target": "web",
+      "uri": "http://fortune.com/2017/10/06/fidelity-bitcoin-ethereum/",
+      "params": null
+    },
+    "image": "",
+    "format": "TEXT"
+  },
+  {
+    "id": 5,
+    "title": "WaBi ICO",
+    "type": "AD",
+    "body": "Digital token backed by safe products. We place secure anti-counterfeiting labels on consumer products in China and internationally.",
+    "link": {
+      "target": "web",
+      "uri": "https://www.wacoin.io/"
+    },
+    "image": "https://cdn.icodrops.com/wp-content/uploads/2017/10/G_iaqlP3_400x400-150x150.jpg",
+    "format": "IMAGE_RIGHT"
+  }
+]

@@ -1,22 +1,42 @@
 const constants = require('../../constants')
 
 module.exports = function(Feed) {
-	Feed.getLatest = async(id, cb) => {
+	Feed.getLatest = async(oldestSeenId, newestSeenId, cb) => {
 
 		let err = null
 
-		id = Number.isNaN(Number(id)) ? 0 : Number(id)
+		oldestSeenId = Number.isNaN(Number(oldestSeenId)) ? 0 : Number(oldestSeenId)
+		newestSeenId = Number.isNaN(Number(newestSeenId)) ? 0 : Number(newestSeenId)
 
-		let query = {where: {id: {gt: id}}}
-		query = { ...query , order: 'id DESC', limit: 10};
+		console.log({oldestSeenId, newestSeenId})
+		// the OR operator doesn't seem to work with loopback-connector-arangodb
+		const feeds = await Promise.all([
+			Feed.find({
+				where: {
+					id: { gt: newestSeenId }
+				},
+				order: 'id DESC',
+				limit: 5
+			}),
+			Feed.find({
+				where: {
+					id: { lt: oldestSeenId }
+				},
+				order: 'id DESC',
+				limit: 5
+			})
+		]).catch(e =>{err=e});
 
-		const recentFeed = await Feed.find(query).catch(e =>{err=e});
 		if(err){
 			cb(err, null)
 			return
 		}
 
-		cb(null ,recentFeed);
+		const recentFeed = feeds
+			.reduce((acc, curr)=>acc.concat(curr), [])
+			.splice(0, 10)
+
+		cb(null, recentFeed);
 	}
 
 	Feed.feedActivity = async(data, cb) => {
@@ -38,14 +58,25 @@ module.exports = function(Feed) {
 			path: constants.ENDPOINT.FEED_REQUEST,
 			verb: 'get'
 		},
-		accepts: {
-			arg: 'id',
-			type: 'string',
-			http: {
-				source : 'query'
+		accepts: [
+			{
+				arg: 'oldestSeenId',
+				type: 'number',
+				http: {
+					source : 'query'
+				},
+				description : "The id of the oldes seen feed item retrieved",
 			},
-			description : "The id of the lastest feed item retrieved",
-		},
+
+			{
+				arg: 'newestSeenId',
+				type: 'number',
+				http: {
+					source : 'query'
+				},
+				description : "The id of the newest seen feed item retrieved",
+			}
+		],
 		returns: {
 			root: true,
 			type: "feed"
