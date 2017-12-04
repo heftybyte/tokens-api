@@ -46,6 +46,17 @@
       "options": {
         "forceId": false
       }
+    },
+    "feed":{
+      "type": "embedsMany",
+      "model": "feed",
+      "property": "feed",
+      "default": [],
+      "options": {
+        "forceId": true,
+        "validate": true,
+        "persistent": true
+      }
     }
   },
   "acls": [

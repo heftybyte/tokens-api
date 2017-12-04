@@ -13,6 +13,30 @@ const app = loopback();
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
+app.use(async (req, res, next) => {
+  // get the access token, either from the url or from the headers
+  var token = false;
+  if (req.query && req.query.access_token) {
+    token = req.query.access_token;
+  } else if (req.headers && req.headers.Authorization) {
+    token = req.headers.Authorization;
+  }
+
+  app.currentUser = false;
+
+  if (token) {
+    var account = app.models.account;
+    let err = null;
+    const accessToken = await account.relations.accessTokens.modelTo.findById(token).catch(e => err = e);
+    if (err || !accessToken) return next();
+    // Look up the user associated with the accessToken
+    const userAccount = await account.findById(accessToken.userId).catch(e => err = e);
+    if (err || !userAccount) return next();
+    app.currentUser = userAccount;
+  }
+  next();
+});
+
 app.start = function(httpOnly) {
   if (httpOnly === undefined) {
     httpOnly = process.env.NODE_ENV !== 'production' || process.env.PLATFORM != 'digitalocean';

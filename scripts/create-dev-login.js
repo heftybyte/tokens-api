@@ -8,11 +8,11 @@ const Account = server.models.Account;
 
 let err = null;
 
-const email = process.env.DEV_LOGIN_USER_NAME || 'tom@petty.com';
+const username = process.env.DEV_LOGIN_USER_NAME || 'tompetty';
 const password = process.env.DEV_LOGIN_PASSWORD || 'petty';
 
 Account.create({
-  email,
+  username,
   password,
 }).catch(e=> err = e);
 
@@ -20,7 +20,7 @@ if (err) {
   console.log('Failed creating test dev account');
 } else {
   console.log(`Created test dev account.
-     email: ${email}, password: ${password}`);
+  username: ${username}, password: ${password}`);
 };
 
 redisClient.quit();
