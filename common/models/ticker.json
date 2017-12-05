@@ -1,15 +1,11 @@
 {
-  "name": "appmeta",
-  "base": "PersistedModel",
+  "name": "Ticker",
+  "base": "Model",
   "idInjection": false,
   "options": {
     "validateUpsert": true
   },
-  "properties": {
-    "version": {
-      "type": "string"
-    }
-  },
+  "properties": {},
   "validations": [],
   "relations": {},
   "acls": [],
