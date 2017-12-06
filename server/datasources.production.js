@@ -26,7 +26,7 @@ module.exports = {
         }
       },
       'functions': {
-        'priceNow': ['fsym', 'tsym']
+        'price/now': ['fsym', 'tsym']
       }
     }, {
       'template': {
@@ -38,7 +38,7 @@ module.exports = {
         }
       },
       'functions': {
-        'pricesNow': ['fsyms', 'tsyms']
+        'prices/now': ['fsyms', 'tsyms']
       },
     }, {
       'template': {
@@ -52,7 +52,7 @@ module.exports = {
         'url': '/price/histday'
       },
       'functions': {
-        'priceHistorical': ['fsym', 'tsym', 'start', 'end']
+        'price/historical': ['fsym', 'tsym', 'start', 'end']
       }
     }, {
       'template': {
@@ -66,7 +66,7 @@ module.exports = {
         'url': '/prices/histday'
       },
       'functions': {
-        'pricesHistorical': ['fsyms', 'tsyms', 'start', 'end']
+        'prices/historical': ['fsyms', 'tsyms', 'start', 'end']
       }
     }]
   },

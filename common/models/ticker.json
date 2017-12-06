@@ -9,5 +9,8 @@
   "validations": [],
   "relations": {},
   "acls": [],
-  "methods": {}
+  "methods": {},
+  "http": {
+    "path": "/ticker"
+  }
 }

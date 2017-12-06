@@ -70,6 +70,6 @@
   },
   "Ticker": {
     "dataSource": "TickerApiService",
-    "public": false
+    "public": true
   }
 }
