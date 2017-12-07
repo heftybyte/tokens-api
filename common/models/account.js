@@ -502,7 +502,8 @@ module.exports = function(Account) {
   Account.validatesLengthOf('password', {min: 5, message: {min: 'Password should be at least 5 characters'}});
 
   Account.afterRemoteError('prototype.login', function(ctx, next) {
-    measureMetric('')
+    const start_time = new Date().getTime() - 10;
+    measureMetric(constants.METRICS.login.failed, (start_time);
   });
 
 	Account.remoteMethod('logout', {
