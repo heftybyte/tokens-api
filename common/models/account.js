@@ -501,6 +501,10 @@ module.exports = function(Account) {
 
   Account.validatesLengthOf('password', {min: 5, message: {min: 'Password should be at least 5 characters'}});
 
+  Account.afterRemoteError('prototype.login', function(ctx, next) {
+    measureMetric('')
+  });
+
 	Account.remoteMethod('logout', {
 			description: 'Logout a user with access token.',
 			accepts: [
