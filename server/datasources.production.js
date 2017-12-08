@@ -16,60 +16,65 @@ module.exports = {
     'name': 'TickerApiService',
     'connector': 'rest',
     'baseUrl': process.env.TICKER_API_URL,
-    'operations': [{
-      'template': {
-        'method': 'GET',
-        'url': '/price/now',
-        'query': {
-          'fsym': '{^fsym:string}',
-          'tsym': '{^tsym:string}'
+    'operations': [
+      {
+        'template': {
+          'method': 'GET',
+          'url': '/price/now',
+          'query': {
+            'fsym': '{^fsym:string}',
+            'tsym': '{^tsym:string}'
+          }
+        },
+        'functions': {
+          'price/now': ['fsym', 'tsym']
         }
       },
-      'functions': {
-        'price/now': ['fsym', 'tsym']
-      }
-    }, {
-      'template': {
-        'method': 'GET',
-        'url': '/prices/now',
-        'query': {
-          'fsyms': '{^fsyms:string}',
-          'tsyms': '{^tsyms:string}'
+      {
+        'template': {
+          'method': 'GET',
+          'url': '/prices/now',
+          'query': {
+            'fsyms': '{^fsyms:string}',
+            'tsyms': '{^tsyms:string}'
+          }
+        },
+        'functions': {
+          'prices/now': ['fsyms', 'tsyms']
+        },
+      },
+      {
+        'template': {
+          'method': 'GET',
+          'query': {
+            'fsym': '{^fsym:string}',
+            'tsym': '{^tsym:string}',
+            'start': '{^start:number}',
+            'end': '{^end:number}',
+            'format': '{^format:string}'
+          },
+          'url': '/price/historical'
+        },
+        'functions': {
+          'price/historical': ['fsym', 'tsym', 'start', 'end', 'format']
         }
       },
-      'functions': {
-        'prices/now': ['fsyms', 'tsyms']
-      },
-    }, {
-      'template': {
-        'method': 'GET',
-        'query': {
-          'fsym': '{^fsym:string}',
-          'tsym': '{^tsym:string}',
-          'start': '{^start:number}',
-          'end': '{^end:number}',
-          'format': '{^format:string}'
+      {
+        'template': {
+          'method': 'GET',
+          'query': {
+            'fsyms': '{^fsyms:string}',
+            'tsyms': '{^tsyms:string}',
+            'start': '{^start:number}',
+            'end': '{^end:number}',
+            'format': '{^format:string}'
+          },
+          'url': '/prices/historical'
         },
-        'url': '/price/historical'
-      },
-      'functions': {
-        'price/historical': ['fsym', 'tsym', 'start', 'end', 'format']
+        'functions': {
+          'prices/historical': ['fsyms', 'tsyms', 'start', 'end', 'format']
+        }
       }
-    }, {
-      'template': {
-        'method': 'GET',
-        'query': {
-          'fsyms': '{^fsyms:string}',
-          'tsyms': '{^tsyms:string}',
-          'start': '{^start:number}',
-          'end': '{^end:number}',
-          'format': '{^format:string}'
-        },
-        'url': '/prices/historical'
-      },
-      'functions': {
-        'prices/historical': ['fsyms', 'tsyms', 'start', 'end', 'format']
-      }
-    }]
+    ]
   },
 };
