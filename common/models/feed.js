@@ -1,14 +1,20 @@
-const constants = require('../../constants')
+const constants = require('../../constants');
+import app from '../../server/server';
 
 module.exports = function(Feed) {
-	Feed.getLatest = async(oldestSeenId, newestSeenId, cb) => {
+	Feed.getLatest = async(oldestSeenId, newestSeenId, lastPersonalFeedId, cb) => {
 
 		let err = null
 
 		oldestSeenId = Number.isNaN(Number(oldestSeenId)) ? 0 : Number(oldestSeenId)
 		newestSeenId = Number.isNaN(Number(newestSeenId)) ? 0 : Number(newestSeenId)
+		lastPersonalFeedId = Number.isNaN(Number(lastPersonalFeedId)) ? 0 : Number(lastPersonalFeedId)
+		
+		const currentUser = app.currentUser;
 
-		console.log({oldestSeenId, newestSeenId})
+		const personalFeed = currentUser.feed().filter(feedItem => feedItem.id > lastPersonalFeedId);
+		if (personalFeed.length) return cb(null, personalFeed).catch(e => { return cb(err, null); });
+
 		// the OR operator doesn't seem to work with loopback-connector-arangodb
 		const feeds = await Promise.all([
 			Feed.find({
@@ -65,7 +71,7 @@ module.exports = function(Feed) {
 				http: {
 					source : 'query'
 				},
-				description : "The id of the oldes seen feed item retrieved",
+				description : "The id of the oldest seen feed item retrieved",
 			},
 
 			{
@@ -75,6 +81,14 @@ module.exports = function(Feed) {
 					source : 'query'
 				},
 				description : "The id of the newest seen feed item retrieved",
+			},
+			{
+				arg: 'lastPersonalFeedId',
+				type: 'number',
+				http:{
+					source: 'query'
+				},
+				description: "The id of last retrieved personal feed item"
 			}
 		],
 		returns: {

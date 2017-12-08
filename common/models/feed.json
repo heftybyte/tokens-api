@@ -43,17 +43,19 @@
       "required": false
     },
     "link": {
-      "target": {
-        "type": "string",
-        "enum": [
-          "web",
-          "internal",
-          "app"
-        ]
-      },
-      "uri": "string",
-      "params": {
-        "type": "object"
+      "type": {
+        "target": {
+          "type": "string",
+          "enum": [
+            "web",
+            "internal",
+            "app"
+          ]
+        },
+        "uri": "string",
+        "params": {
+          "type": "object"
+        }
       }
     },
     "format": {
@@ -66,7 +68,7 @@
         "IMAGE",
         "IMAGE_LEFT",
         "IMAGE_RIGHT"
-      ] 
+      ]
     }
   },
   "validations": [],
