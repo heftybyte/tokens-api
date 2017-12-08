@@ -504,7 +504,7 @@ module.exports = function(Account) {
 
   Account.afterRemoteError('prototype.login', function(ctx, next) {
     const start_time = new Date().getTime() - 10;
-    measureMetric(constants.METRICS.login.failed, (start_time);
+    measureMetric(constants.METRICS.login.failed, (start_time));
   });
 
 	Account.remoteMethod('logout', {

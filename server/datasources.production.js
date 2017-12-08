@@ -47,12 +47,13 @@ module.exports = {
           'fsym': '{^fsym:string}',
           'tsym': '{^tsym:string}',
           'start': '{^start:number}',
-          'end': '{^end:number}'
+          'end': '{^end:number}',
+          'format': '{^format:string}'
         },
-        'url': '/price/histday'
+        'url': '/price/historical'
       },
       'functions': {
-        'price/historical': ['fsym', 'tsym', 'start', 'end']
+        'price/historical': ['fsym', 'tsym', 'start', 'end', 'format']
       }
     }, {
       'template': {
@@ -61,12 +62,13 @@ module.exports = {
           'fsyms': '{^fsyms:string}',
           'tsyms': '{^tsyms:string}',
           'start': '{^start:number}',
-          'end': '{^end:number}'
+          'end': '{^end:number}',
+          'format': '{^format:string}'
         },
-        'url': '/prices/histday'
+        'url': '/prices/historical'
       },
       'functions': {
-        'prices/historical': ['fsyms', 'tsyms', 'start', 'end']
+        'prices/historical': ['fsyms', 'tsyms', 'start', 'end', 'format']
       }
     }]
   },
