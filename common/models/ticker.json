@@ -1,0 +1,16 @@
+{
+  "name": "Ticker",
+  "base": "Model",
+  "idInjection": false,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {},
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {},
+  "http": {
+    "path": "/ticker"
+  }
+}

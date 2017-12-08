@@ -46,6 +46,7 @@
     "loopback-connector-arangodb": "^2.0.0",
     "loopback-connector-influxdb": "^0.4.0",
     "loopback-connector-mysql": "^2.4.1",
+    "loopback-connector-rest": "^3.1.0",
     "node-fetch": "^1.7.3",
     "node-statsd": "^0.1.1",
     "object-hash": "^1.2.0",

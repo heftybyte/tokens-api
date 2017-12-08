@@ -12,4 +12,62 @@ module.exports = {
     'name': 'arangodbDs',
     'connector': 'loopback-connector-arangodb',
   },
+  'TickerApiService': {
+    'name': 'TickerApiService',
+    'connector': 'rest',
+    'baseUrl': process.env.TICKER_API_URL || 'http://localhost:3003',
+    'operations': [{
+      'template': {
+        'method': 'GET',
+        'url': '/price/now',
+        'query': {
+          'fsym': '{^fsym:string}',
+          'tsym': '{^tsym:string}'
+        }
+      },
+      'functions': {
+        'price/now': ['fsym', 'tsym']
+      }
+    }, {
+      'template': {
+        'method': 'GET',
+        'url': '/prices/now',
+        'query': {
+          'fsyms': '{^fsyms:string}',
+          'tsyms': '{^tsyms:string}'
+        }
+      },
+      'functions': {
+        'prices/now': ['fsyms', 'tsyms']
+      },
+    }, {
+      'template': {
+        'method': 'GET',
+        'query': {
+          'fsym': '{^fsym:string}',
+          'tsym': '{^tsym:string}',
+          'start': '{^start:number}',
+          'end': '{^end:number}'
+        },
+        'url': '/price/histday'
+      },
+      'functions': {
+        'price/historical': ['fsym', 'tsym', 'start', 'end']
+      }
+    }, {
+      'template': {
+        'method': 'GET',
+        'query': {
+          'fsyms': '{^fsyms:string}',
+          'tsyms': '{^tsyms:string}',
+          'start': '{^start:number}',
+          'end': '{^end:number}'
+        },
+        'url': '/prices/histday'
+      },
+      'functions': {
+        'prices/historical': ['fsyms', 'tsyms', 'start', 'end']
+      }
+    }]
+  },
 };
