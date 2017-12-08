@@ -5,6 +5,8 @@ const https = require('https');
 const http = require('http');
 const sslConfig = require('./ssl-config');
 
+import { healthCheck } from '../lib/statsd';
+
 import bodyParser from 'body-parser';
 import loopback from 'loopback';
 import boot from 'loopback-boot';
@@ -12,6 +14,9 @@ import boot from 'loopback-boot';
 const app = loopback();
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
+
+// health check
+setInterval(healthCheck, 1000);
 
 app.use(async (req, res, next) => {
   // get the access token, either from the url or from the headers

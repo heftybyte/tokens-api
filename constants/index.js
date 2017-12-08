@@ -31,5 +31,8 @@ module.exports =  {
       'success': '.account.add_notification.success',
       'failed': '.account.add_notification.failed',
     },
+    'login': {
+      'failed': '.account.login.failed'
+    }
   },
 };
