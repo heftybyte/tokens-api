@@ -404,7 +404,7 @@ module.exports = function(Account) {
     totalValue += balance * price
     const priceChange = getPriceChange({price, balance, change})
     const priceChange7d = getPriceChange({ price, change: change7d, balance })
-    const { website, reddit, twitter, name } = TOKEN_CONTRACTS[symbol] || {}
+    const { website, reddit, twitter, name, videoUrl } = TOKEN_CONTRACTS[symbol] || {}
     return cb(null, {
       price,
       balance,
@@ -419,7 +419,8 @@ module.exports = function(Account) {
       name,
       website,
       reddit,
-      twitter
+      twitter,
+      videoUrl
     });
   };
 
