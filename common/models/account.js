@@ -300,20 +300,8 @@ module.exports = function(Account) {
 		}
 	}
 
-  Account.prototype.getPortfolio = async function (cb) {
-
-    const start_time = new Date().getTime();
-
-    const {err, account} = await getAccount(this.id);
-    if (err) {
-
-      // metrics
-      measureMetric(constants.METRICS.get_portfolio.failed, start_time);
-
-      return cb(err);
-    }
-    const { addresses } = account
-    let uniqueTokens = {}
+  const aggregateTokens = (addresses) => {
+    const uniqueTokens = {}
     let totalEther = 0
     addresses.forEach((addressObj)=>{
       totalEther += addressObj.ether || 0
@@ -330,11 +318,30 @@ module.exports = function(Account) {
       uniqueTokens['ETH'] = { balance: totalEther, symbol: 'ETH' }
       symbols.unshift('ETH')
     }
-    const currentTokens = symbols.map((symbol)=>uniqueTokens[symbol])
+    const tokens = symbols.map((symbol)=>uniqueTokens[symbol])
+    return { symbols, tokens }
+  };
+
+  Account.prototype.getPortfolio = async function (cb) {
+
+    const start_time = new Date().getTime();
+
+    const {err, account} = await getAccount(this.id);
+    if (err) {
+
+      // metrics
+      measureMetric(constants.METRICS.get_portfolio.failed, start_time);
+
+      return cb(err);
+    }
+    const { addresses } = account
+    
+    const { symbols, tokens: currentTokens } = aggregateTokens(addresses)
+
     let { top, prices, watchList } = await all({
       top: getTopNTokens(TOP_N),
       prices: getTokenPrices(symbols),
-	    watchList: getTokensBySymbol(account.watchList)
+      watchList: getTokensBySymbol(account.watchList)
     })
     top = (top || []).map((token)=>({
       ...token,
@@ -358,8 +365,7 @@ module.exports = function(Account) {
     const totalPriceChangePct7d = (1-totalValue/(totalValue+totalPriceChange7d))*100
     // metrics
     measureMetric(constants.METRICS.get_portfolio.failed, start_time);
-
-    return cb(null, {
+    const portfolio = {
       watchList,
       tokens,
       totalValue,
@@ -368,7 +374,66 @@ module.exports = function(Account) {
       totalPriceChange7d,
       totalPriceChangePct7d,
       top
-    });
+    }
+    cb && cb(null, portfolio)
+    return portfolio
+  };
+
+  const periodInterval = {
+    '1d': '5m',
+    '1w': '10m',
+    '1m': '1d',
+    '3m': '1d',
+    '1y': '1w',
+    'all': '1w'
+  }
+  const periodMap = {
+    '1d': '1d',
+    '1w': '1w',
+    '1m': '31d',
+    '3m': '93d',
+    '1y': '366d',
+    'all': '5000d'
+  }
+
+  Account.prototype.getPortfolioChart = async function (period='1m', cb) {
+    const { symbols: fsyms, tokens } = aggregateTokens(this.addresses)
+    const ticker = await app.default.models.Ticker.historicalPrices(
+      fsyms.join(','), 'USD', 0, 0, 'chart', period, periodInterval[period]||'1d'
+    )
+    const tsym = 'USD'
+    const symbols = Object.keys(ticker)
+    if (!symbols.length) {
+      cb && cb(null)
+      return []
+    }
+
+    let foundPrice
+    let timeIndex = 0
+    const chartData = []
+    do {
+      const aggregatePoint = { x: 0, y: 0 }
+      foundPrice = false
+      tokens.forEach(token=>{
+        if (!token.balance || !ticker[token.symbol] || !ticker[token.symbol][tsym]) {
+          return
+        }
+        const point = ticker[token.symbol][tsym][timeIndex]
+        if (!point || !point.x || !point.y) {
+          return
+        } else {
+          foundPrice = true
+        }
+        aggregatePoint.x = point.x
+        aggregatePoint.y += point.y * token.balance
+      })
+      if (foundPrice) {
+        chartData.push(aggregatePoint)
+      }
+      timeIndex++
+    } while(foundPrice)
+    //'fsym', 'tsym', 'start', 'end', 'format', 'period', 'interval'
+    return cb(null, chartData)
   };
 
   const getPriceChange = ({price, balance, change}) => {
@@ -699,6 +764,26 @@ module.exports = function(Account) {
       root: true,
     },
     description: ['Gets the total balance for the specified Ethereum Address ',
+      'as well as its tokens, their respective prices, and balances'],
+  });
+
+  Account.remoteMethod('getPortfolioChart', {
+    isStatic: false,
+    http: {
+      path: '/portfolio-chart',
+      verb: 'get',
+    },
+    accepts: {
+      arg: 'period',
+      type: 'string',
+      http: {
+        source: 'query'
+      }
+    },
+    returns: {
+      root: true,
+    },
+    description: ['Gets the total balance across all ethereum addresses',
       'as well as its tokens, their respective prices, and balances'],
   });
 };

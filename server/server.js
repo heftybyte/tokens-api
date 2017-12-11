@@ -26,7 +26,6 @@ app.use(async (req, res, next) => {
   } else if (req.headers && req.headers.Authorization) {
     token = req.headers.Authorization;
   }
-
   app.currentUser = false;
 
   if (token) {
@@ -37,6 +36,7 @@ app.use(async (req, res, next) => {
     // Look up the user associated with the accessToken
     const userAccount = await account.findById(accessToken.userId).catch(e => err = e);
     if (err || !userAccount) return next();
+
     app.currentUser = userAccount;
   }
   next();

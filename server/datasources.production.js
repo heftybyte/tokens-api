@@ -15,7 +15,7 @@ module.exports = {
   'TickerApiService': {
     'name': 'TickerApiService',
     'connector': 'rest',
-    'baseUrl': process.env.TICKER_API_URL,
+    'baseUrl': process.env.TICKER_API_URL || 'http://localhost:3003',
     'operations': [
       {
         'template': {
@@ -27,7 +27,8 @@ module.exports = {
           }
         },
         'functions': {
-          'price/now': ['fsym', 'tsym']
+          'price/now': ['fsym', 'tsym'],
+          'currentPrice': ['fsym', 'tsym']
         }
       },
       {
@@ -40,7 +41,8 @@ module.exports = {
           }
         },
         'functions': {
-          'prices/now': ['fsyms', 'tsyms']
+          'prices/now': ['fsyms', 'tsyms'],
+          'currentPrices': ['fsyms', 'tsyms']
         },
       },
       {
@@ -49,14 +51,17 @@ module.exports = {
           'query': {
             'fsym': '{^fsym:string}',
             'tsym': '{^tsym:string}',
-            'start': '{^start:number}',
-            'end': '{^end:number}',
-            'format': '{^format:string}'
+            'start': '{start:number}',
+            'end': '{end:number}',
+            'format': '{format:string}',
+            'period': '{period:string}',
+            'interval': '{interval:string}'
           },
           'url': '/price/historical'
         },
         'functions': {
-          'price/historical': ['fsym', 'tsym', 'start', 'end', 'format']
+          'price/historical': ['fsym', 'tsym', 'start', 'end', 'format', 'period', 'interval'],
+          'historicalPrice': ['fsym', 'tsym', 'start', 'end', 'format', 'period', 'interval']
         }
       },
       {
@@ -65,16 +70,19 @@ module.exports = {
           'query': {
             'fsyms': '{^fsyms:string}',
             'tsyms': '{^tsyms:string}',
-            'start': '{^start:number}',
-            'end': '{^end:number}',
-            'format': '{^format:string}'
+            'start': '{start:number}',
+            'end': '{end:number}',
+            'format': '{format:string}',
+            'period': '{period:string}',
+            'interval': '{interval:string}'
           },
           'url': '/prices/historical'
         },
         'functions': {
-          'prices/historical': ['fsyms', 'tsyms', 'start', 'end', 'format']
+          'prices/historical': ['fsyms', 'tsyms', 'start', 'end', 'format', 'period', 'interval'],
+          'historicalPrices': ['fsyms', 'tsyms', 'start', 'end', 'format', 'period', 'interval']
         }
       }
     ]
-  },
+  }
 };

@@ -76,6 +76,18 @@
       "principalType": "ROLE",
       "principalId": "$everyone",
       "permission": "DENY",
+      "property": "getPortfolioTicker"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$owner",
+      "permission": "ALLOW",
+      "property": "getPortfolioChart"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "DENY",
       "property": "refreshAddress"
     },
     {
