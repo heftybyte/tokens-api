@@ -19,7 +19,7 @@ fastCsv
         }
     })
     .on('end', () => {
-        writeJson(path.join(__dirname, '../data/tokensWithVideo.json'), tokensData).then(() => console.log('write done'));
+        writeJson(path.join(__dirname, '../data/tokens.json'), tokensData).then(() => console.log('write done'));
     });
 
 // not all the URI are actual playble videos so I'm filtering them out
