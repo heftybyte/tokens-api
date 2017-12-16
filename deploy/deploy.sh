@@ -1,7 +1,5 @@
 echo "---- Running npm install ----"
 npm install
-echo " --- remove current build ---"
-rm -R dist/
 echo "--- Running npm bild ----"
 npm run build
 echo "---- cd dist ----"
