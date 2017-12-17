@@ -387,19 +387,11 @@ module.exports = function(Account) {
     '1y': '1w',
     'all': '1w'
   }
-  const periodMap = {
-    '1d': '1d',
-    '1w': '1w',
-    '1m': '31d',
-    '3m': '93d',
-    '1y': '366d',
-    'all': '5000d'
-  }
 
   Account.prototype.getPortfolioChart = async function (period='1m', cb) {
     const { symbols: fsyms, tokens } = aggregateTokens(this.addresses)
     const ticker = await app.default.models.Ticker.historicalPrices(
-      fsyms.join(','), 'USD', 0, 0, 'chart', period, periodInterval[period]||'1d'
+      fsyms.join(','), 'USD', 0, 0, 'chart', period, periodInterval[period] || '1d'
     )
     const tsym = 'USD'
     const symbols = Object.keys(ticker)

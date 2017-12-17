@@ -10,10 +10,9 @@ module.exports = function(Feed) {
 		newestSeenId = Number.isNaN(Number(newestSeenId)) ? 0 : Number(newestSeenId)
 		lastPersonalFeedId = Number.isNaN(Number(lastPersonalFeedId)) ? 0 : Number(lastPersonalFeedId)
 		
-		const currentUser = app.currentUser;
-
-		const personalFeed = currentUser.feed().filter(feedItem => feedItem.id > lastPersonalFeedId);
-		if (personalFeed.length) return cb(null, personalFeed).catch(e => { return cb(err, null); });
+		// const currentUser = app.currentUser;
+		// const personalFeed = currentUser.feed().filter(feedItem => feedItem.id > lastPersonalFeedId);
+		// if (personalFeed.length) return cb(null, personalFeed).catch(e => { return cb(err, null); });
 
 		// the OR operator doesn't seem to work with loopback-connector-arangodb
 		const feeds = await Promise.all([
