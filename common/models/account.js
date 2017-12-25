@@ -366,7 +366,6 @@ module.exports = function(Account) {
       ...token,
       ...watchListPrices[i]
     }))
-    console.log({watchListTokens, watchList,prices})
     const tokens = currentTokens.map((token, i)=>({
       symbol: token.symbol,
       balance: token.balance,
@@ -449,7 +448,7 @@ module.exports = function(Account) {
   };
 
   const getPriceChange = ({price, balance, change}) => {
-    const totalValue = price * balance
+    const totalValue = price * (balance || 1)
     const prevTotalValue = totalValue / ((100+change)/100)
     const priceChange = totalValue - prevTotalValue
     return priceChange || 0
@@ -463,7 +462,8 @@ module.exports = function(Account) {
 
     const symbol = sym.toUpperCase()
     const balances = []
-    const { price, marketCap, volume24Hr, change, change7d, supply } = await getPriceForSymbol(symbol, 'USD');
+    const priceData = await app.default.models.Ticker.currentPrice(symbol, 'USD').catch(e=>err=e)
+    const { price, market_cap, volume_24_hr, change_pct_24_hr } = (priceData && priceData[symbol]['USD']) ? priceData[symbol]['USD'] : {}
     let balance = 0
     let totalValue = 0
     account.addresses.forEach(addressObj => {
@@ -479,17 +479,16 @@ module.exports = function(Account) {
 
     balance += balances.reduce((init, nxt) => init + nxt, balance)
     totalValue += balance * price
-    const priceChange = getPriceChange({price, balance, change})
-    const priceChange7d = getPriceChange({ price, change: change7d, balance })
+    const priceChange = getPriceChange({price, balance, change: change_pct_24_hr})
+    const priceChange7d = 0
     const { website, reddit, twitter, name, videoUrl } = TOKEN_CONTRACTS[symbol] || {}
     return cb(null, {
       price,
       balance,
       totalValue,
-      marketCap,
-      volume24Hr,
-      change,
-      supply,
+      marketCap: market_cap,
+      volume24Hr: volume_24_hr,
+      change: change_pct_24_hr,
       priceChange,
       priceChange7d,
       symbol,
