@@ -6,7 +6,7 @@ import {
   getEthAddressBalance,
   getTopNTokens,
   getTokenPrices,
-	getTokensBySymbol,
+  getTokensBySymbol,
   TOKEN_CONTRACTS
 } from '../../lib/eth.js';
 import { all } from '../../lib/async-promise';
@@ -19,6 +19,26 @@ import { measureMetric } from '../../lib/statsd';
 import web3 from '../../lib/web3'
 
 const INVITE_ENABLED = false
+
+const defaultPriceData = {
+  price: 0,
+  change: 0,
+  marketCap: 0,
+  volume24Hr: 0,
+  period: '24h'
+};
+
+const mapPrice = (priceMap, symbol) => {
+  const priceData = priceMap[symbol] && priceMap[symbol]['USD'] ?
+    priceMap[symbol]['USD'] : defaultPriceData
+  return {
+    price: priceData.price,
+    change: priceData.change_pct_24_hr,
+    marketCap: priceData.market_cap,
+    volume24Hr: priceData.volume_24_hr,
+    period: '24h'
+  }
+}
 
 module.exports = function(Account) {
   Account.register = async (data, cb) => {
@@ -81,59 +101,59 @@ module.exports = function(Account) {
     }
   };
 
-	Account.prototype.addToWatchList = async function (data, cb) {
-		const { symbol } = data
+  Account.prototype.addToWatchList = async function (data, cb) {
+    const { symbol } = data
 
-		let { err, token } = await getTokenBySymbol(symbol);
-		if (err) {
-			cb(err)
-			return err
-		}
+    let { err, token } = await getTokenBySymbol(symbol);
+    if (err) {
+      cb(err)
+      return err
+    }
 
-		if(_.includes(this.watchList, token.symbol)) {
-			err = new Error('This symbol  has already been added to this user account')
-			err.status = 422
-			cb(err)
-			return err
-		}
-
-
-		this.watchList.push(token.symbol)
-
-		const account = await this.updateAttribute('watchList', this.watchList).catch(e=>{err=e})
-
-		if (err) {
-			cb(err);
-			return err
-		}
-		return cb(null, account)
-	};
-
-	Account.prototype.removeFromWatchList = async function (symbol, cb) {
-		let watchList = this.watchList
-		let err
-
-		if(!_.includes(watchList, symbol)){
-			err = new Error('This symbol does not exist for user account')
-			err.status = 422
-			cb(err)
-			return err
-		}
-
-		watchList = _.remove(watchList, (n) => {
-			return n !== symbol;
-		});
-
-		const account = await this.updateAttribute('watchList', watchList).catch(e=>{err=e})
-
-		if (err) {
-			cb(err);
-			return err
-		}
-		return cb(null, account)
+    if(_.includes(this.watchList, token.symbol)) {
+      err = new Error('This symbol  has already been added to this user account')
+      err.status = 422
+      cb(err)
+      return err
+    }
 
 
-	}
+    this.watchList.push(token.symbol)
+
+    const account = await this.updateAttribute('watchList', this.watchList).catch(e=>{err=e})
+
+    if (err) {
+      cb(err);
+      return err
+    }
+    return cb(null, account)
+  };
+
+  Account.prototype.removeFromWatchList = async function (symbol, cb) {
+    let watchList = this.watchList
+    let err
+
+    if(!_.includes(watchList, symbol)){
+      err = new Error('This symbol does not exist for user account')
+      err.status = 422
+      cb(err)
+      return err
+    }
+
+    watchList = _.remove(watchList, (n) => {
+      return n !== symbol;
+    });
+
+    const account = await this.updateAttribute('watchList', watchList).catch(e=>{err=e})
+
+    if (err) {
+      cb(err);
+      return err
+    }
+    return cb(null, account)
+
+
+  }
 
   Account.prototype.addAddress = async function (data, cb) {
 
@@ -284,21 +304,21 @@ module.exports = function(Account) {
     }
   }
 
-	const getTokenBySymbol = async (symbol) => {
-		let err = null
-		const Token = app.default.models.Token;
-		const token = await Token.findOne({where: {symbol}}).catch(e=>{err=e})
+  const getTokenBySymbol = async (symbol) => {
+    let err = null
+    const Token = app.default.models.Token;
+    const token = await Token.findOne({where: {symbol}}).catch(e=>{err=e})
 
-		if (!err && !token) {
-			err = new Error("Token not found")
-			err.status = 404
-		}
+    if (!err && !token) {
+      err = new Error("Token not found")
+      err.status = 404
+    }
 
-		return {
-			token,
-			err
-		}
-	}
+    return {
+      token,
+      err
+    }
+  }
 
   const aggregateTokens = (addresses) => {
     const uniqueTokens = {}
@@ -335,18 +355,18 @@ module.exports = function(Account) {
       return cb(err);
     }
     const { addresses } = account
-    
     const { symbols, tokens: currentTokens } = aggregateTokens(addresses)
-
-    let { top, prices, watchList } = await all({
-      top: getTopNTokens(TOP_N),
-      prices: getTokenPrices(symbols),
-      watchList: getTokensBySymbol(account.watchList)
+    let { priceMap, watchListTokens } = await all({
+      priceMap: app.default.models.Ticker.currentPrices(symbols.concat(account.watchList).join(','), 'USD'),
+      watchListTokens: getTokensBySymbol(account.watchList)
     })
-    top = (top || []).map((token)=>({
+    const prices = symbols.map(mapPrice.bind(null, priceMap))
+    const watchListPrices = account.watchList.map(mapPrice.bind(null, priceMap))
+    const watchList = watchListTokens.map((token, i)=>({
       ...token,
-       ...TOKEN_CONTRACTS[token.symbol]
+      ...watchListPrices[i]
     }))
+    console.log({watchListTokens, watchList,prices})
     const tokens = currentTokens.map((token, i)=>({
       symbol: token.symbol,
       balance: token.balance,
@@ -373,7 +393,7 @@ module.exports = function(Account) {
       totalPriceChangePct,
       totalPriceChange7d,
       totalPriceChangePct7d,
-      top
+      top: []
     }
     cb && cb(null, portfolio)
     return portfolio
@@ -392,7 +412,7 @@ module.exports = function(Account) {
     const { symbols: fsyms, tokens } = aggregateTokens(this.addresses)
     const ticker = await app.default.models.Ticker.historicalPrices(
       fsyms.join(','), 'USD', 0, 0, 'chart', period, periodInterval[period] || '1d'
-    )
+    ) 
     const tsym = 'USD'
     const symbols = Object.keys(ticker)
     if (!symbols.length) {
@@ -481,81 +501,81 @@ module.exports = function(Account) {
     });
   };
 
-	Account.addNotificationToken = async function (req, data, cb) {
+  Account.addNotificationToken = async function (req, data, cb) {
     const start_time = new Date().getTime();
-		const { token } = data
-		let {account, err} = await getAccount(req.accessToken.userId);
+    const { token } = data
+    let {account, err} = await getAccount(req.accessToken.userId);
 
-		if (err) {
+    if (err) {
       // metrics
       measureMetric(constants.METRICS.add_notification.failed, start_time);
-			return cb(err);
-		}
+      return cb(err);
+    }
 
-		let notificationTokens = account.notification_tokens;
-		if(!_.includes(notificationTokens, token)){
-			notificationTokens.push(token)
-			const newAccount = await account.updateAttribute('notification_tokens', notificationTokens).catch(e=>{err=e})
+    let notificationTokens = account.notification_tokens;
+    if(!_.includes(notificationTokens, token)){
+      notificationTokens.push(token)
+      const newAccount = await account.updateAttribute('notification_tokens', notificationTokens).catch(e=>{err=e})
 
-			if (err) {
-				// metrics
-				measureMetric(constants.METRICS.add_notification.failed, start_time);
-				return cb(err);
-			}
+      if (err) {
+        // metrics
+        measureMetric(constants.METRICS.add_notification.failed, start_time);
+        return cb(err);
+      }
 
-			return cb(null, newAccount)
-		}
-		return cb(null, account)
-	}
+      return cb(null, newAccount)
+    }
+    return cb(null, account)
+  }
 
-	Account.logout = async function(accessToken, data, fn) {
-		fn = fn || utils.createPromiseCallback();
-		let tokenId = accessToken && accessToken.id
-		const { notification_token } = data
+  Account.logout = async function(accessToken, data, fn) {
+    fn = fn || utils.createPromiseCallback();
+    let tokenId = accessToken && accessToken.id
+    const { notification_token } = data
 
-		if (!tokenId) {
-			const err = new Error('accessToken is required to logout');
-			err.status = 401;
-			process.nextTick(fn, err);
-			return fn.promise;
-		}
+    if (!tokenId) {
+      const err = new Error('accessToken is required to logout');
+      err.status = 401;
+      process.nextTick(fn, err);
+      return fn.promise;
+    }
 
-		if (!notification_token) {
-			const err = new Error('Notification Token is required to logout');
-			err.status = 401;
-			process.nextTick(fn, err);
-			return fn.promise;
-		}
+    if (!notification_token) {
+      const err = new Error('Notification Token is required to logout');
+      err.status = 401;
+      process.nextTick(fn, err);
+      return fn.promise;
+    }
 
-		let {account, err} = await getAccount(accessToken.userId)
+    let {account, err} = await getAccount(accessToken.userId)
 
-		if(err){
-			return fn(err);
-		}
+    if(err){
+      return fn(err);
+    }
 
-		let notificationTokens = account.notification_tokens;
-		notificationTokens = notificationTokens.filter((e) => e !== notification_token)
+    let notificationTokens = account.notification_tokens;
+    notificationTokens = notificationTokens.filter((e) => e !== notification_token)
 
-		account.updateAttribute('notification_tokens', notificationTokens).catch(e=>{err=e})
+    account.updateAttribute('notification_tokens', notificationTokens).catch(e=>{err=e})
 
-		if(err){
-			return fn(err);
-		}
+    if(err){
+      return fn(err);
+    }
 
-		const info = this.relations.accessTokens.modelTo.destroyById(tokenId).catch(e=>{err=e})
+    const info = this.relations.accessTokens.modelTo.destroyById(tokenId).catch(e=>{err=e})
 
-		if (err) {
-			fn(err);
-		} else if ('count' in info && info.count === 0) {
-			err = new Error('Could not find accessToken');
-			err.status = 401;
-			fn(err);
-		} else {
-			fn();
-		}
+    if (err) {
+      fn(err);
+    } else if ('count' in info && info.count === 0) {
+      err = new Error('Could not find accessToken');
+      err.status = 401;
+      fn(err);
+    } else {
+      fn();
+    }
 
-		return fn.promise;
-	};
+    return fn.promise;
+  };
 
   Account.validatesLengthOf('password', {min: 5, message: {min: 'Password should be at least 5 characters'}});
 
@@ -564,23 +584,23 @@ module.exports = function(Account) {
     measureMetric(constants.METRICS.login.failed, (start_time));
   });
 
-	Account.remoteMethod('logout', {
-			description: 'Logout a user with access token.',
-			accepts: [
-				{arg: 'access_token', type: 'object', http: function(ctx) {
-					let req = ctx && ctx.req;
-					let accessToken = req && req.accessToken;
-					//var tokenID = accessToken ? accessToken.id : undefined;
+  Account.remoteMethod('logout', {
+      description: 'Logout a user with access token.',
+      accepts: [
+        {arg: 'access_token', type: 'object', http: function(ctx) {
+          let req = ctx && ctx.req;
+          let accessToken = req && req.accessToken;
+          //var tokenID = accessToken ? accessToken.id : undefined;
 
-					return accessToken;
-				}, description: 'Do not supply this argument, it is automatically extracted ' +
-				'from request headers.',
-				},
-				{arg: 'data', type: 'object', http: { source: 'body'}, description: 'Notification Token'}
-			],
-			http: {verb: 'all'},
-		}
-	);
+          return accessToken;
+        }, description: 'Do not supply this argument, it is automatically extracted ' +
+        'from request headers.',
+        },
+        {arg: 'data', type: 'object', http: { source: 'body'}, description: 'Notification Token'}
+      ],
+      http: {verb: 'all'},
+    }
+  );
 
   Account.remoteMethod('getTokenMeta', {
     isStatic: false,
@@ -602,20 +622,20 @@ module.exports = function(Account) {
     description: 'Shows metadata information details for a token'
   });
 
-	Account.remoteMethod('addNotificationToken', {
-		http: {
-			path: '/push-token',
-			verb: 'post'
-		},
-		accepts:[
-			{arg: 'req', type: 'object', 'http': {source: 'req'}},
-			{arg: 'data', type: 'object', http: { source: 'body'}, description: 'token'}
-		],
-		returns: {
-			root: true,
-		},
-		description: 'Update User Notification token'
-	});
+  Account.remoteMethod('addNotificationToken', {
+    http: {
+      path: '/push-token',
+      verb: 'post'
+    },
+    accepts:[
+      {arg: 'req', type: 'object', 'http': {source: 'req'}},
+      {arg: 'data', type: 'object', http: { source: 'body'}, description: 'token'}
+    ],
+    returns: {
+      root: true,
+    },
+    description: 'Update User Notification token'
+  });
 
   Account.remoteMethod('register', {
     http: {
@@ -660,51 +680,51 @@ module.exports = function(Account) {
     description: 'Add an ethereum address to a user\'s account',
   });
 
-	Account.remoteMethod('addToWatchList', {
-		isStatic: false,
-		http: {
-			path: '/watch-list',
-			verb: 'post',
-		},
-		accepts: [
-			{
-				arg: 'watchlist',
-				type: 'object',
-				http: {
-					source: 'body',
-				},
-				description: 'Watch List Symbol',
-			}
-		],
-		returns: {
-			"root": true,
-			"type": "account"
-		},
-		description: 'Add watchlist to a user\'s account',
-	});
+  Account.remoteMethod('addToWatchList', {
+    isStatic: false,
+    http: {
+      path: '/watch-list',
+      verb: 'post',
+    },
+    accepts: [
+      {
+        arg: 'watchlist',
+        type: 'object',
+        http: {
+          source: 'body',
+        },
+        description: 'Watch List Symbol',
+      }
+    ],
+    returns: {
+      "root": true,
+      "type": "account"
+    },
+    description: 'Add watchlist to a user\'s account',
+  });
 
-	Account.remoteMethod('removeFromWatchList', {
-		isStatic: false,
-		http: {
-			path: '/watch-list/:symbol',
-			verb: 'delete',
-		},
-		accepts: [
-			{
-				arg: 'symbol',
-				type: 'string',
-				http: {
-					source: 'path'
-				},
-				description: 'symbol',
-			}
-		],
-		returns: {
-			"root": true,
-			"type": "account"
-		},
-		description: 'Delete a symbol from watchlist.',
-	});
+  Account.remoteMethod('removeFromWatchList', {
+    isStatic: false,
+    http: {
+      path: '/watch-list/:symbol',
+      verb: 'delete',
+    },
+    accepts: [
+      {
+        arg: 'symbol',
+        type: 'string',
+        http: {
+          source: 'path'
+        },
+        description: 'symbol',
+      }
+    ],
+    returns: {
+      "root": true,
+      "type": "account"
+    },
+    description: 'Delete a symbol from watchlist.',
+  });
 
   Account.remoteMethod('refreshAddress', {
     isStatic: false,
