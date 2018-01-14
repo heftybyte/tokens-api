@@ -412,7 +412,6 @@ module.exports = function(Account) {
     const ticker = await app.default.models.Ticker.historicalPrices(
       fsyms.join(','), 'USD', 0, 0, 'chart', period, periodInterval[period] || '1d'
     )
-    console.log('--->', fsyms.join(','), 'USD', 0, 0, 'chart', period, periodInterval[period] || '1d')
     const tsym = 'USD'
     const symbols = Object.keys(ticker)
     if (!symbols.length) {
