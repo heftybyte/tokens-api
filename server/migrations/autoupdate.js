@@ -4,7 +4,7 @@ import server from '../server';
 import redisClient from '../../server/boot/redisConnector';
 redisClient.quit();
 
-const ds = server.dataSources.arangodbDs;
+const ds = server.dataSources.mongodb;
 
 const model = process.argv[2];
 

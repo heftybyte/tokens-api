@@ -3,6 +3,15 @@ module.exports = {
     'name': 'db',
     'connector': 'memory',
   },
+  "mongodb": {
+    "name": "mongodb",
+    "host": process.env.MONGODB_HOST || 'localhost',
+    "port": process.env.MONGODB_PORT || 27017,
+    "database": process.env.MONGODB_DATABASE || "tokens-api",
+    "password": process.env.MONGODB_PASSWORD || "",
+    "user": process.env.MONGODB_USER || "",
+    "connector": "mongodb"  
+  },
   'arangodbDs': {
     'host': process.env.DB_HOST || 'localhost',
     'port': process.env.DB_PORT || '8529',
