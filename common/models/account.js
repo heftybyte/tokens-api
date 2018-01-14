@@ -411,7 +411,8 @@ module.exports = function(Account) {
     const { symbols: fsyms, tokens } = aggregateTokens(this.addresses)
     const ticker = await app.default.models.Ticker.historicalPrices(
       fsyms.join(','), 'USD', 0, 0, 'chart', period, periodInterval[period] || '1d'
-    ) 
+    )
+    console.log('--->', fsyms.join(','), 'USD', 0, 0, 'chart', period, periodInterval[period] || '1d')
     const tsym = 'USD'
     const symbols = Object.keys(ticker)
     if (!symbols.length) {
@@ -419,32 +420,22 @@ module.exports = function(Account) {
       return []
     }
 
-    let foundPrice
-    let timeIndex = 0
     const chartData = []
-    do {
-      const aggregatePoint = { x: 0, y: 0 }
-      foundPrice = false
-      tokens.forEach(token=>{
-        if (!token.balance || !ticker[token.symbol] || !ticker[token.symbol][tsym]) {
-          return
-        }
-        const point = ticker[token.symbol][tsym][timeIndex]
-        if (!point || !point.x || !point.y) {
-          return
-        } else {
-          foundPrice = true
-        }
-        aggregatePoint.x = point.x
-        aggregatePoint.y += point.y * token.balance
+    const numBuckets = ticker[symbols[0]][tsym].length
+
+    for (let i = 0; i < numBuckets; i++) {
+      const time = ticker[symbols[0]][tsym][i].x
+      const aggregatePrice = tokens.reduce((acc, token)=>{
+        const point = ticker[token.symbol][tsym][i] || { y: 0 }
+        return acc + (token.balance * point.y)
+      }, 0)
+      chartData.push({
+        x: time,
+        y: aggregatePrice
       })
-      if (foundPrice) {
-        chartData.push(aggregatePoint)
-      }
-      timeIndex++
-    } while(foundPrice)
-    //'fsym', 'tsym', 'start', 'end', 'format', 'period', 'interval'
-    return cb(null, chartData)
+    }
+    cb(null, chartData)
+    return chartData
   };
 
   const getPriceChange = ({price, balance, change}) => {
