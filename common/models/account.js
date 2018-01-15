@@ -328,20 +328,23 @@ module.exports = function(Account) {
 
     const start_time = new Date().getTime();
 
-    const {err, account} = await getAccount(this.id);
+    let {err, account} = await getAccount(this.id);
     if (err) {
-
       // metrics
       measureMetric(constants.METRICS.get_portfolio.failed, start_time);
-
       return cb(err);
     }
     const { addresses } = account
-    const { symbols, tokens: currentTokens } = aggregateTokens(addresses)
-    let { priceMap, watchListTokens, balances } = await all({
+    const balances = await app.default.models.Balance.getBalances(addresses.map(a=>a.id).join(',')).catch(e=>err=e)
+    const symbols = Object.keys(balances)
+    if (err) {
+      // metrics
+      measureMetric(constants.METRICS.get_portfolio.failed, start_time);
+      return cb(err);
+    }
+    let { priceMap, watchListTokens } = await all({
       priceMap: app.default.models.Ticker.currentPrices(symbols.concat(account.watchList).join(','), 'USD'),
-      watchListTokens: getTokensBySymbol(account.watchList),
-      balances: app.default.models.Balance.getBalances(addresses.map(a=>a.id).join(','))
+      watchListTokens: getTokensBySymbol(account.watchList)
     })
     const prices = symbols.map(mapPrice.bind(null, priceMap))
     const watchListPrices = account.watchList.map(mapPrice.bind(null, priceMap))
@@ -349,13 +352,13 @@ module.exports = function(Account) {
       ...token,
       ...watchListPrices[i]
     }))
-    const tokens = currentTokens.map((token, i)=>({
-      symbol: token.symbol,
-      balance: balances[token.symbol] || 0,
-      ...TOKEN_CONTRACTS[token.symbol],
+    const tokens = symbols.map((symbol, i)=>({
+      symbol: symbol,
+      balance: balances[symbol] || 0,
+      ...TOKEN_CONTRACTS[symbol],
       ...prices[i],
-      priceChange: getPriceChange({...prices[i], balance: balances[token.symbol] || 0 }),
-      priceChange7d: getPriceChange({price: prices[i].price, change: prices[i].change7d, balance: balances[token.symbol] || 0})
+      priceChange: getPriceChange({...prices[i], balance: balances[symbol] || 0 }),
+      priceChange7d: getPriceChange({price: prices[i].price, change: prices[i].change7d, balance: balances[symbol] || 0})
     })).sort((a,b)=>Math.abs(a.priceChange) > Math.abs(b.priceChange) ? -1 : 1)
     const totalValue = tokens.reduce(
       (acc, curr) => acc += (curr.price * curr.balance), 0);
@@ -391,29 +394,38 @@ module.exports = function(Account) {
   }
 
   Account.prototype.getPortfolioChart = async function (period='1m', cb) {
-    const { symbols: fsyms, tokens } = aggregateTokens(this.addresses)
-    const ticker = await app.default.models.Ticker.historicalPrices(
-      fsyms.join(','), 'USD', 0, 0, 'chart', period, periodInterval[period] || '1d'
-    )
-    const tsym = 'USD'
-    const symbols = Object.keys(ticker)
-    if (!symbols.length) {
-      cb && cb(null)
+    let err = null
+    const balances = await app.default.models.Balance.getBalances(this.addresses.map(a=>a.id).join(',')).catch(e=>err=e)
+    const symbols = Object.keys(balances)
+    if (err || !symbols.length) {
+      cb && cb(err)
       return []
     }
-
+    const ticker = await app.default.models.Ticker.historicalPrices(
+      symbols.join(','), 'USD', 0, 0, 'chart', period, periodInterval[period] || '1d'
+    )
+    const tsym = 'USD'
     const chartData = []
     const numBuckets = ticker[symbols[0]][tsym].length
 
     for (let i = 0; i < numBuckets; i++) {
       const time = ticker[symbols[0]][tsym][i].x
-      const aggregatePrice = tokens.reduce((acc, token)=>{
-        const point = ticker[token.symbol][tsym][i] || { y: 0 }
-        return acc + (token.balance * point.y)
+      const aggregatePrice = symbols.reduce((acc, symbol)=>{
+        const point = ticker[symbol][tsym][i] || { y: 0 }
+        return acc + (balances[symbol] * point.y)
       }, 0)
+      const aggregateChange = symbols.reduce((acc, symbol)=>{
+        const point = ticker[symbol][tsym][i] || { y: 0 }
+        return acc + (balances[symbol] * point.change_close)
+      }, 0)
+      const aggregatePrevPrice = aggregatePrice - aggregateChange
       chartData.push({
         x: time,
-        y: aggregatePrice
+        y: aggregatePrice,
+        change_close: aggregateChange,
+        change_pct: aggregatePrice > aggregatePrevPrice ?
+          ((1/(aggregatePrevPrice / aggregatePrice))-1)*100 : 
+          (aggregatePrice / aggregatePrevPrice) - 1
       })
     }
     cb(null, chartData)
@@ -434,24 +446,15 @@ module.exports = function(Account) {
     }
 
     const symbol = sym.toUpperCase()
-    const balances = []
+    const balances = await app.default.models.Balance.getBalances(this.addresses.map(a=>a.id).join(',')).catch(e=>err=e)
+    if (err) {
+      cb && cb(err)
+      return err
+    }
     const priceData = await app.default.models.Ticker.currentPrice(symbol, 'USD').catch(e=>err=e)
     const { price, market_cap, volume_24_hr, change_pct_24_hr } = (priceData && priceData[symbol]['USD']) ? priceData[symbol]['USD'] : {}
-    let balance = 0
-    let totalValue = 0
-    account.addresses.forEach(addressObj => {
-      const token = addressObj.tokens.filter(obj => obj.symbol === symbol)[0]
-
-      if (token) {
-        balances.push(token.balance)
-        return
-      } else if (symbol === 'ETH') {
-        balance += addressObj.ether
-      }
-    })
-
-    balance += balances.reduce((init, nxt) => init + nxt, balance)
-    totalValue += balance * price
+    let balance = balances[symbol]
+    let totalValue = balance * price
     const priceChange = getPriceChange({price, balance, change: change_pct_24_hr})
     const priceChange7d = 0
     const { website, reddit, twitter, name, videoUrl } = TOKEN_CONTRACTS[symbol] || {}
