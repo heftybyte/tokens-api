@@ -47,7 +47,7 @@
         "forceId": false
       }
     },
-    "feed":{
+    "feed": {
       "type": "embedsMany",
       "model": "feed",
       "property": "feed",

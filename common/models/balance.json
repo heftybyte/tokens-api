@@ -1,12 +1,12 @@
 {
-  "name": "Ticker",
+  "name": "Balance",
   "base": "Model",
   "idInjection": false,
   "options": {
     "validateUpsert": true
   },
   "http": {
-    "path": "/ticker"
+    "path": "/balance"
   },
   "properties": {},
   "validations": [],

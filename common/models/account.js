@@ -1,3 +1,4 @@
+import uuidv4 from 'uuid/v4'
 import {
   getAllTokenBalances,
   getTokenBalance,
@@ -156,16 +157,13 @@ module.exports = function(Account) {
   }
 
   Account.prototype.addAddress = async function (data, cb) {
-
     //metric timing
     const start_time = new Date().getTime();
 
     let { address } = data;
     address = address.toLowerCase();
-
     let err = null
     if (!web3.utils.isAddress(address)) {
-
       // metrics
       measureMetric(constants.METRICS.add_address.invalid_address, start_time);
 
@@ -173,24 +171,27 @@ module.exports = function(Account) {
       err.status = 400
       cb(err)
       return err
-    } else if ( this.addresses.find((addressObj)=> addressObj.id.toLowerCase() === address) ) {
+    } else if (this.addresses.find((addressObj)=> addressObj.id.toLowerCase() === address) ) {
       err = new Error('This address has already been added to this user account')
       err.status = 422
       cb(err)
       return err
     }
-
-    this.addresses.push({ id: address })
-    let account = await this.save().catch(e=>err=e)
+    const { newAddressQueue } = app.default.queues.address
+    await newAddressQueue.add({ address, userId: this.id }, { jobId: uuidv4() }).catch(e=>err=e)
     if (err) {
       cb(err);
       return err
     }
-
+    this.addresses.push({ id: address })
+    let account = await this.save().catch(e=>err=e)
+    if (err) {
+      err.status = 500
+      cb(err);
+      return err
+    }
     // metrics
     measureMetric(constants.METRICS.add_address.success, start_time);
-
-    account = await this.refreshAddress(address)
     cb(null, account)
     return account
   }
@@ -198,49 +199,30 @@ module.exports = function(Account) {
   Account.prototype.refreshAddress = async function (address, cb=()=>{}) {
     //metric timing
     const start_time = new Date().getTime();
+    
+    let err = null
     address = address.toLowerCase();
-
-    let { err, account } = await getAccount(this.id);
-    if (err) {
-
+    
+    if (!web3.utils.isAddress(address)) {
       // metrics
-      measureMetric(constants.METRICS.refresh_address.success, start_time);
-
+      measureMetric(constants.METRICS.add_address.invalid_address, start_time);
+      err = new Error('Invalid ethereum address')
+      err.status = 400
       cb(err)
       return err
     }
-
-    const tokens = await getAllTokenBalances(address).catch(e=>err=e)
+    const { backfillBalanceQueue } = app.default.queues.address
+    await backfillBalanceQueue.add({ address, userId: this.id, days: 1 }, { jobId: uuidv4() }).catch(e=>err=e)
     if (err) {
-
       // metrics
       measureMetric(constants.METRICS.refresh_address.failed, start_time);
-
       cb(err)
       return err
     }
-
-    //get address eth balance
-    const _ethBalance = await getEthAddressBalance(address).catch(e=>err=e)
-    if (err) {
-
-      // metrics
-      measureMetric(constants.METRICS.refresh_address.failed, start_time);
-
-      cb(err)
-      return err
-    }
-    const ethBalance = _ethBalance.addressBalance
-    const addressObj = account.addresses.find((addressObj)=>addressObj.id.toLowerCase() === address)
-    addressObj.tokens = tokens.filter(token=>token.balance)
-    addressObj.ether = ethBalance
-    account.save()
-
     // metrics
     measureMetric(constants.METRICS.refresh_address.success, start_time);
-
     cb(null)
-    return account
+    return
   }
 
   Account.prototype.deleteAddress = async function (address, cb) {
@@ -356,9 +338,10 @@ module.exports = function(Account) {
     }
     const { addresses } = account
     const { symbols, tokens: currentTokens } = aggregateTokens(addresses)
-    let { priceMap, watchListTokens } = await all({
+    let { priceMap, watchListTokens, balances } = await all({
       priceMap: app.default.models.Ticker.currentPrices(symbols.concat(account.watchList).join(','), 'USD'),
-      watchListTokens: getTokensBySymbol(account.watchList)
+      watchListTokens: getTokensBySymbol(account.watchList),
+      balances: app.default.models.Balance.getBalances(addresses.map(a=>a.id).join(','))
     })
     const prices = symbols.map(mapPrice.bind(null, priceMap))
     const watchListPrices = account.watchList.map(mapPrice.bind(null, priceMap))
@@ -368,11 +351,11 @@ module.exports = function(Account) {
     }))
     const tokens = currentTokens.map((token, i)=>({
       symbol: token.symbol,
-      balance: token.balance,
+      balance: balances[token.symbol] || 0,
       ...TOKEN_CONTRACTS[token.symbol],
       ...prices[i],
-      priceChange: getPriceChange({...prices[i], balance: token.balance}),
-      priceChange7d: getPriceChange({price: prices[i].price, change: prices[i].change7d, balance: token.balance})
+      priceChange: getPriceChange({...prices[i], balance: balances[token.symbol] || 0 }),
+      priceChange7d: getPriceChange({price: prices[i].price, change: prices[i].change7d, balance: balances[token.symbol] || 0})
     })).sort((a,b)=>Math.abs(a.priceChange) > Math.abs(b.priceChange) ? -1 : 1)
     const totalValue = tokens.reduce(
       (acc, curr) => acc += (curr.price * curr.balance), 0);

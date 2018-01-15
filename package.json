@@ -28,6 +28,7 @@
     "bluebird": "^3.5.0",
     "bluebird-queue": "0.0.8",
     "body-parser": "^1.18.2",
+    "bull": "^3.3.8",
     "cheerio": "^1.0.0-rc.2",
     "coinmarketcap": "^0.2.0",
     "compression": "^1.0.3",
@@ -48,6 +49,7 @@
     "loopback-connector-arangodb": "^2.0.0",
     "loopback-connector-influxdb": "^0.4.0",
     "loopback-connector-mysql": "^2.4.1",
+    "loopback-connector-remote": "^3.3.0",
     "loopback-connector-rest": "^3.1.0",
     "node-fetch": "^1.7.3",
     "node-statsd": "^0.1.1",
@@ -58,6 +60,7 @@
     "serve-favicon": "^2.0.1",
     "simple-rate-limiter": "^0.2.3",
     "strong-error-handler": "^2.0.0",
+    "uuid": "^3.1.0",
     "web3": "^1.0.0-beta.18",
     "write-json-file": "^2.3.0"
   },

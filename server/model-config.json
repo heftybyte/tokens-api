@@ -71,5 +71,9 @@
   "Ticker": {
     "dataSource": "TickerApiService",
     "public": true
+  },
+  "Balance": {
+    "dataSource": "BalanceApiService",
+    "public": true
   }
 }

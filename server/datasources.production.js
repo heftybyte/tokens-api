@@ -84,5 +84,25 @@ module.exports = {
         }
       }
     ]
+  },
+  'BalanceApiService': {
+    'name': 'BalanceApiService',
+    'connector': 'rest',
+    'baseUrl': process.env.BALANCE_API_URL || 'http://localhost:3004',
+    'operations': [
+      {
+        'template': {
+          'method': 'GET',
+          'url': '/balances',
+          'query': {
+            'addresses': '{^addresses:string}'
+          }
+        },
+        'functions': {
+          'balances': ['addresses'],
+          'getBalances': ['addresses']
+        }
+      }
+    ]
   }
 };
