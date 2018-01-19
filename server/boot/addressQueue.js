@@ -1,8 +1,17 @@
 const Queue = require('bull')
-
+import Expo from 'expo-server-sdk';
+console.log({Expo}, Expo.isExpoPushToken)
 module.exports = app => {
+	const expo = new Expo()
 
 	const scanQueue = new Queue('address_scanner', {
+		redis: { 
+			port: process.env.REDIS_PORT || 6379,
+			host: process.env.REDIS_HOST || '127.0.0.1',
+		}
+	})
+
+	const scanCompleteQueue = new Queue('address_scan_complete', {
 		redis: { 
 			port: process.env.REDIS_PORT || 6379,
 			host: process.env.REDIS_HOST || '127.0.0.1',
@@ -27,9 +36,36 @@ module.exports = app => {
 		}
 	})
 
-	scanQueue.on('completed', (job, balances)=>{
-		const { address, userId } = job
-		console.log('scan complete', job, balances, app.models.Account)
+	scanCompleteQueue.process(async (job)=>{
+		console.log('scan complete', job.data)
+
+		const { address, numTokens, userId } = job.data
+		const account = await app.loopback.getModel('account').findById(userId)
+		const messages = account.notification_tokens.toJSON()
+			.filter(pushToken=>Expo.isExpoPushToken(pushToken))
+			.map(pushToken=>({
+				to: pushToken,
+				sound: 'default',
+				body: numTokens ? 
+					`We found ${numTokens} tokens in ${address}` :
+					`No tokens were found in ${address}`,
+				data: {
+					address,
+					numTokens,
+					type: 'ADDRESS_SCANNED'
+				}
+			}))
+
+		console.log({messages})
+		const chunks = expo.chunkPushNotifications(messages)
+		for (const chunk of chunks) {
+			try {
+				const receipt = await expo.sendPushNotificationsAsync(chunk)
+				console.log({receipt})
+			} catch (e) {
+				console.error('error', e)
+			}
+		}
 	})
 
 	app.queues = {}
