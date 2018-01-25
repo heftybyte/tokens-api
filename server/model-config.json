@@ -75,5 +75,13 @@
   "Balance": {
     "dataSource": "BalanceApiService",
     "public": true
+  },
+  "ExchangeAccount": {
+    "dataSource": "arangodbDs",
+    "public": false
+  },
+  "Exchange": {
+    "dataSource": "arangodbDs",
+    "public": true
   }
 }

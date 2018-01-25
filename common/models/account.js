@@ -42,6 +42,7 @@ const mapPrice = (priceMap, symbol) => {
 }
 
 module.exports = function(Account) {
+
   Account.register = async (data, cb) => {
 
     //metric timing

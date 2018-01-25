@@ -47,7 +47,7 @@
         "forceId": false
       }
     },
-    "feed": {
+    "_feed": {
       "type": "embedsMany",
       "model": "feed",
       "property": "feed",
@@ -57,9 +57,21 @@
         "validate": true,
         "persistent": true
       }
+    },
+    "_exchangeAccounts": {
+      "type": "embedsMany",
+      "model": "ExchangeAccount",
+      "property": "exchangeAccounts",
+      "default": []
     }
   },
   "acls": [
+    {
+      "principalType": "ROLE",
+      "principalId": "ownsEmbedded",
+      "permission": "ALLOW",
+      "property": "__create___exchangeAccounts"
+    },
     {
       "principalType": "ROLE",
       "principalId": "$everyone",

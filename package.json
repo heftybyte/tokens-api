@@ -8,7 +8,7 @@
     "build": "babel . -d dist --ignore dist,node_modules --copy-files",
     "start": "node server/server.js",
     "start-dev": "nodemon server/server.js --exec babel-node",
-    "start-debug": "nodemon debug server/server.js --exec babel-node",
+    "debug": "nodemon debug server/server.js --exec babel-node",
     "inspect": "babel-node --inspect server/server.js",
     "serve": "./node_modules/.bin/pm2 start dist/server/server.js -i 4",
     "automigrate": "babel-node server/migrations/automigrate.js",
