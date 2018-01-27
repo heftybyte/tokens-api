@@ -62,7 +62,10 @@
       "type": "embedsMany",
       "model": "ExchangeAccount",
       "property": "exchangeAccounts",
-      "default": []
+      "default": [],
+      "options": {
+        "forceId": false
+      }
     }
   },
   "acls": [

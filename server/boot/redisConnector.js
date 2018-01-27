@@ -7,6 +7,7 @@ bluebird.promisifyAll(redis.Multi.prototype);
 let client = redis.createClient({
   port: process.env.REDIS_PORT || '6379',
   host: process.env.REDIS_HOST || 'localhost',
+  password: process.env.REDIS_PASSWORD,
   retry_strategy(options) {
     console.log('redis retry <<<<<< ', options.attempt);
     if (options.error && options.error.code === 'ECONNREFUSED') {

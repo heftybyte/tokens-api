@@ -333,18 +333,24 @@ module.exports = function(Account) {
     if (err) {
       // metrics
       measureMetric(constants.METRICS.get_portfolio.failed, start_time);
-      return cb(err);
+      cb && cb(err)
+      return err
     }
     const { addresses } = account
-    const balances = await app.default.models.Balance.getBalances(addresses.map(a=>a.id).join(',')).catch(e=>err=e)
-    const symbols = Object.keys(balances)
+    const addressList = addresses.map(a=>a.id).join(',')
+    const balances = !addressList ? {} : await app.default.models.Balance.getBalances(addressList).catch(e=>err=e)
+
     if (err) {
       // metrics
       measureMetric(constants.METRICS.get_portfolio.failed, start_time);
-      return cb(err);
+      cb && cb(err)
+      return err
     }
+
+    const symbols = Object.keys(balances)
+    const symbolList = symbols.concat(account.watchList).join(',')
     let { priceMap, watchListTokens } = await all({
-      priceMap: app.default.models.Ticker.currentPrices(symbols.concat(account.watchList).join(','), 'USD'),
+      priceMap: !symbolList ? {} : app.default.models.Ticker.currentPrices(symbolList, 'USD'),
       watchListTokens: getTokensBySymbol(account.watchList)
     })
     const prices = symbols.map(mapPrice.bind(null, priceMap))
@@ -396,15 +402,24 @@ module.exports = function(Account) {
 
   Account.prototype.getPortfolioChart = async function (period='1m', cb) {
     let err = null
-    const balances = await app.default.models.Balance.getBalances(this.addresses.map(a=>a.id).join(',')).catch(e=>err=e)
+    const addressList = this.addresses.map(a=>a.id).join(',')
+    const balances = !addressList ? {} : await app.default.models.Balance.getBalances(addressList).catch(e=>err=e)
     const symbols = Object.keys(balances)
     if (err || !symbols.length) {
       cb && cb(err)
+      return err
+    }
+    const ticker = !symbols.length ? {} : await app.default.models.Ticker.historicalPrices(
+      symbols.join(','), 'USD', 0, 0, 'chart', period, periodInterval[period] || '1d'
+    ).catch(e=>err=e)
+    if (err) {
+      cb && cb(err)
+      return err
+    }
+    if (!Object.keys(ticker).length) {
+      cb(null, [])
       return []
     }
-    const ticker = await app.default.models.Ticker.historicalPrices(
-      symbols.join(','), 'USD', 0, 0, 'chart', period, periodInterval[period] || '1d'
-    )
     const tsym = 'USD'
     const chartData = []
     const numBuckets = ticker[symbols[0]][tsym].length

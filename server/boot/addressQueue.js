@@ -4,36 +4,24 @@ console.log({Expo}, Expo.isExpoPushToken)
 module.exports = app => {
 	const expo = new Expo()
 
-	const scanQueue = new Queue('address_scanner', {
-		redis: { 
-			port: process.env.REDIS_PORT || 6379,
-			host: process.env.REDIS_HOST || '127.0.0.1',
-		}
-	})
+	const redis = { 
+		port: process.env.REDIS_PORT || 6379,
+		host: process.env.REDIS_HOST || '127.0.0.1',
+		password: process.env.REDIS_PASSWORD
+	}
 
-	const scanCompleteQueue = new Queue('address_scan_complete', {
-		redis: { 
-			port: process.env.REDIS_PORT || 6379,
-			host: process.env.REDIS_HOST || '127.0.0.1',
-		}
-	})
+	const scanQueue = new Queue('address_scanner', { redis })
 
-	const newAddressQueue = new Queue('new_address', {
-		redis: { 
-			port: process.env.REDIS_PORT || 6379,
-			host: process.env.REDIS_HOST || '127.0.0.1',
-		}
-	})
+	const scanCompleteQueue = new Queue('address_scan_complete', { redis })
+
+	const newAddressQueue = new Queue('new_address', { redis })
 
 	const backfillBalanceQueue = new Queue('backfill_balances', {
 		limiter: {
 			max: 2,
 			duration: 1000 * 3600
 		},
-		redis: { 
-			port: process.env.REDIS_PORT || 6379,
-			host: process.env.REDIS_HOST || '127.0.0.1',
-		}
+		redis
 	})
 
 	scanCompleteQueue.process(async (job)=>{

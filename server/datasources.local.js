@@ -15,7 +15,7 @@ module.exports = {
   'TickerApiService': {
     'name': 'TickerApiService',
     'connector': 'rest',
-    'baseUrl': process.env.TICKER_API_URL || 'http://localhost:3003',
+    'baseUrl': process.env.TICKER_API_URL || 'http://dev.local:8888/ticker',
     'operations': [
       {
         'template': {
@@ -88,12 +88,12 @@ module.exports = {
   'BalanceApiService': {
     'name': 'BalanceApiService',
     'connector': 'rest',
-    'baseUrl': process.env.BALANCE_API_URL || 'http://localhost:3004',
+    'baseUrl': process.env.BALANCE_API_URL || 'http://dev.local:8888/balance',
     'operations': [
       {
         'template': {
           'method': 'GET',
-          'url': '/balances',
+          'url': '/',
           'query': {
             'addresses': '{^addresses:string}'
           }
