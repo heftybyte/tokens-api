@@ -1,0 +1,60 @@
+{
+  "name": "ICOList",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "symbol": {
+      "type": "string",
+      "required": true
+    },
+    "whitelistLink": {
+      "type": "string",
+      "required": true
+    },
+    "video": {
+      "type": "string",
+    },
+    "image": {
+      "type": "string",
+    },
+    "logo": {
+      "type": "string",
+      "required": true
+    },
+    "price": {
+      "type": "number",
+      "required": true
+    },
+    "supply": {
+      "type": "number",
+      "required": true
+    },
+    "supplyOffered": {
+      "type": "number",
+      "required": true
+    },
+    "startDate": {
+      "type": "number",
+      "required": true
+    },
+    "endDate": {
+      "type": "number",
+      "required": true
+    },
+    "createdAt": {
+      "type": "number",
+      "required": true
+    },
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}
