@@ -50,6 +50,10 @@
     },
     "createdAt": {
       "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "required": true
     }
   },
   "validations": [],
