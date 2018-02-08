@@ -5,12 +5,9 @@ import constants from "../../constants";
 module.exports = function(ICOS) {
 
 	ICOS.badgeCount = (lastViewed, cb) => {
-		console.log(lastViewed);
 		ICOS.count({
-		  where: {
-		  	"createdAt": { "gt": lastViewed }
-		  }
-		}, (err, data) => {
+		  	"createdAt": { "gte": lastViewed }
+		  }, (err, data) => {
 		  if (err) cb(err, null)
 		  cb(null, {count: data})
 		})
