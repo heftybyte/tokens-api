@@ -1,5 +1,5 @@
 {
-  "name": "ICOList",
+  "name": "icos",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -19,10 +19,10 @@
       "required": true
     },
     "video": {
-      "type": "string",
+      "type": "string"
     },
     "image": {
-      "type": "string",
+      "type": "string"
     },
     "logo": {
       "type": "string",
@@ -49,9 +49,8 @@
       "required": true
     },
     "createdAt": {
-      "type": "number",
-      "required": true
-    },
+      "type": "number"
+    }
   },
   "validations": [],
   "relations": {},

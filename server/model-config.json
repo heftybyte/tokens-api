@@ -83,5 +83,9 @@
   "Exchange": {
     "dataSource": "arangodbDs",
     "public": true
+  },
+  "icos": {
+    "dataSource": "arangodbDs",
+    "public": true
   }
 }

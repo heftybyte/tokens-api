@@ -2,6 +2,7 @@ module.exports =  {
   ENDPOINT: {
     FEED_REQUEST: '/latest',
     FEED_ACTIVITY: '/:id/action',
+    ICO_BADGE: '/badge-count',
   },
 
   METRICS: {
