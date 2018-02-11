@@ -69,6 +69,10 @@
         "IMAGE_LEFT",
         "IMAGE_RIGHT"
       ]
+    },
+    "expired": {
+      "type": "boolean",
+      "default": false
     }
   },
   "validations": [],

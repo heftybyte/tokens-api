@@ -11,7 +11,7 @@ import {
   TOKEN_CONTRACTS
 } from '../../lib/eth.js';
 import { all } from '../../lib/async-promise';
-let app = require('../../server/server');
+const app = require('../../server/server');
 const _ = require('lodash')
 const constants = require('../../constants/');
 const TOP_N = 100

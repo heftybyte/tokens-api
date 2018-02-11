@@ -34,6 +34,18 @@
     "created_at": {
       "type": "date",
       "defaultFn": "now"
+    },
+    "feedState": {
+      "type": {
+        "news": ["string"],
+        "ad": ["string"],
+        "user": ["string"],
+        "slot": "number",
+        "lastReset": {
+          "type": "date",
+          "defaultFn": "now"
+        }
+      }
     }
   },
   "validations": [],

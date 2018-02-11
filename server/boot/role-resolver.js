@@ -35,13 +35,30 @@ module.exports = function(app) {
 
   Role.registerResolver('ownsEmbedded', function(role, context, cb) {
     let userId;
-    let data;
     let id;
 
     try {
       userId = context.accessToken.userId.toString();
-      data = context.remotingContext.args.data;
       id = String(context.remotingContext.ctorArgs.id)
+    } catch(err) {
+      console.log(err);
+      return reject(cb);
+    }
+
+    if (!userId || id !== userId) {
+      return reject(cb);
+    }
+    cb(null, true)
+  });
+
+  // Verify that user id in path is the same as in accessToken
+  Role.registerResolver('identity', function(role, context, cb) {
+    let userId;
+    let id;
+
+    try {
+      userId = context.accessToken.userId.toString();
+      id = String(context.remotingContext.ctorArgs.userId)
     } catch(err) {
       console.log(err);
       return reject(cb);
