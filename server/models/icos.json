@@ -14,7 +14,15 @@
       "type": "string",
       "required": true
     },
+    "description": {
+      "type": "string",
+      "required": true
+    },
     "tokenId": {
+      "type": "string",
+      "required": true
+    },
+    "website": {
       "type": "string",
       "required": true
     },
