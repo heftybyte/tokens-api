@@ -37,7 +37,8 @@ const mapPrice = (priceMap, symbol) => {
     change: priceData.change_pct_24_hr,
     marketCap: priceData.market_cap,
     volume24Hr: priceData.volume_24_hr,
-    period: '24h'
+    period: '24h',
+    supply: priceData.supply
   }
 }
 
@@ -357,7 +358,8 @@ module.exports = function(Account) {
     const watchListPrices = account.watchList.map(mapPrice.bind(null, priceMap))
     const watchList = watchListTokens.map((token, i)=>({
       ...token,
-      ...watchListPrices[i]
+      ...watchListPrices[i],
+      symbol: symbols[i]
     }))
     const tokens = symbols.map((symbol, i)=>({
       symbol: symbol,

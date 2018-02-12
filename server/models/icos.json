@@ -40,6 +40,12 @@
       "type": "string",
       "required": true
     },
+    "ethPrice": {
+      "type": "string"
+    },
+    "usdPrice": {
+      "type": "string"
+    },
     "price": {
       "type": "number",
       "required": true
