@@ -149,7 +149,11 @@ const downloadCoinsAndImages = () => {
 const saveTokenDescription = (token) => {
   return new Promise((resolve, reject) => {
     request(`https://raw.githubusercontent.com/etherdelta/etherdelta.github.io/master/tokenGuides/${token}.ejs`, (err, res, body) => {
-      if (err) reject(err);
+      if (err) {
+        console.error(err)
+        resolve('');
+        return
+      }
 
       const $ = cheerio.load(body);
       const description = $('p').first().text();
