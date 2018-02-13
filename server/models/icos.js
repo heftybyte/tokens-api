@@ -9,7 +9,7 @@ module.exports = function(ICOS) {
 
 		ICOS.find({where:{"endDate": {'gt': currentDate}}}, function(err, data){
 			
-			if(err) cb(err, null)
+			if(err) return cb(err, null)
 
 			const result = {
 				'featured':[],
