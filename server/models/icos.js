@@ -8,10 +8,10 @@ module.exports = function(ICOS) {
 		const currentDate = new Date().getTime();
 
 		ICOS.find({where:{"endDate": {'gt': currentDate}}}, function(err, data){
-
-			if(err) cb(err, null)
 			
-			let result = {
+			if(err) cb(err, null)
+
+			const result = {
 				'featured':[],
 				'upcoming':[],
 				'active':  []
@@ -19,13 +19,15 @@ module.exports = function(ICOS) {
 
 			data.forEach(function(item){
 				if(item.featured){
-					result.active.push(item)
-				}
-				if(item.startDate > currentDate){
-					result.upcoming.push(item)
-				}
-				if(item.startDate < currentDate){
-					result.active.push(item)
+					result.featured.push(item)
+				} else {
+					if(item.startDate > currentDate){
+						result.upcoming.push(item)
+					}
+
+					if(item.startDate < currentDate){
+						result.active.push(item)
+					}
 				}
 			})
 
