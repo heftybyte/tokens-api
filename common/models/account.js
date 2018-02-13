@@ -470,7 +470,7 @@ module.exports = function(Account) {
       return err
     }
     const priceData = await app.default.models.Ticker.currentPrice(symbol, 'USD').catch(e=>err=e)
-    const { price, market_cap, volume_24_hr, change_pct_24_hr } = (priceData && priceData[symbol]['USD']) ? priceData[symbol]['USD'] : {}
+    const { price, market_cap, volume_24_hr, change_pct_24_hr, supply } = (priceData && priceData[symbol]['USD']) ? priceData[symbol]['USD'] : {}
     let balance = balances[symbol]
     let totalValue = balance * price
     const priceChange = getPriceChange({price, balance, change: change_pct_24_hr})
@@ -485,6 +485,7 @@ module.exports = function(Account) {
       change: change_pct_24_hr,
       priceChange,
       priceChange7d,
+      supply,
       symbol,
       name,
       website,
