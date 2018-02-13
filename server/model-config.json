@@ -14,58 +14,58 @@
     ]
   },
   "User": {
-    "dataSource": "arangodbDs",
+    "dataSource": "mongodb",
     "public": false
   },
   "AccessToken": {
-    "dataSource": "arangodbDs",
+    "dataSource": "mongodb",
     "public": false
   },
   "ACL": {
-    "dataSource": "arangodbDs",
+    "dataSource": "mongodb",
     "public": false
   },
   "RoleMapping": {
-    "dataSource": "arangodbDs",
+    "dataSource": "mongodb",
     "public": false,
     "options": {
       "strictObjectIDCoercion": true
     }
   },
   "Role": {
-    "dataSource": "arangodbDs",
+    "dataSource": "mongodb",
     "public": false
   },
   "account": {
-    "dataSource": "arangodbDs",
+    "dataSource": "mongodb",
     "public": true
   },
   "eth": {
-    "dataSource": "arangodbDs",
+    "dataSource": "mongodb",
     "public": true
   },
   "feed": {
-    "dataSource": "arangodbDs",
+    "dataSource": "mongodb",
     "public": true
   },
   "token": {
-    "dataSource": "arangodbDs",
+    "dataSource": "mongodb",
     "public": true
   },
   "Invite": {
-    "dataSource": "arangodbDs",
+    "dataSource": "mongodb",
     "public": true
   },
   "address": {
-    "dataSource": "arangodbDs",
+    "dataSource": "mongodb",
     "public": false
   },
   "FeedActivity": {
-    "dataSource": "arangodbDs",
+    "dataSource": "mongodb",
     "public": true
   },
   "appmeta": {
-    "dataSource": "arangodbDs",
+    "dataSource": "mongodb",
     "public": true
   },
   "Ticker": {

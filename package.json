@@ -49,6 +49,7 @@
     "loopback-component-explorer": "^5.0.0",
     "loopback-connector-arangodb": "^2.0.0",
     "loopback-connector-influxdb": "^0.4.0",
+    "loopback-connector-mongodb": "^3.3.1",
     "loopback-connector-mysql": "^2.4.1",
     "loopback-connector-remote": "^3.3.0",
     "loopback-connector-rest": "^3.1.0",

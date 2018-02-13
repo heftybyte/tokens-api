@@ -4,6 +4,37 @@ import constants from "../../constants";
 
 module.exports = function(ICOS) {
 
+	ICOS.fetch = (cb) => {
+		const currentDate = new Date().getTime();
+
+		ICOS.find({where:{"endDate": {'gt': currentDate}}}, function(err, data){
+			
+			if(err) return cb(err, null)
+
+			const result = {
+				'featured':[],
+				'upcoming':[],
+				'active':  []
+			}
+
+			data.forEach(function(item){
+				if(item.featured){
+					result.featured.push(item)
+				} else {
+					if(item.startDate > currentDate){
+						result.upcoming.push(item)
+					}
+
+					if(item.startDate < currentDate){
+						result.active.push(item)
+					}
+				}
+			})
+
+			cb(null, {data: result})
+		})
+	}
+
 	ICOS.badgeCount = (lastViewed, cb) => {
 		ICOS.count({
 		  	"createdAt": { "gte": lastViewed }
@@ -28,4 +59,11 @@ module.exports = function(ICOS) {
 	    ],
 	    returns: {arg: 'data', type: 'object'},
   	});
+
+  	ICOS.remoteMethod('fetch', {
+  		description: 'Fetch the ICO\'s',
+  		http: {path: '/', verb: 'get'},
+  		returns: {arg: 'data', type: 'object'},
+  	});
+
 };
