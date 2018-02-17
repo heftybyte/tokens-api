@@ -53,6 +53,7 @@
     "loopback-connector-mysql": "^2.4.1",
     "loopback-connector-remote": "^3.3.0",
     "loopback-connector-rest": "^3.1.0",
+    "mongodb": "^3.0.2",
     "node-fetch": "^1.7.3",
     "node-statsd": "^0.1.1",
     "object-hash": "^1.2.0",

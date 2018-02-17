@@ -77,15 +77,15 @@
     "public": true
   },
   "ExchangeAccount": {
-    "dataSource": "arangodbDs",
+    "dataSource": "mongodb",
     "public": false
   },
   "Exchange": {
-    "dataSource": "arangodbDs",
+    "dataSource": "mongodb",
     "public": true
   },
   "icos": {
-    "dataSource": "arangodbDs",
+    "dataSource": "mongodb",
     "public": true
   }
 }
