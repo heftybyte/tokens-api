@@ -359,7 +359,7 @@ module.exports = function(Account) {
     const watchList = watchListTokens.map((token, i)=>({
       ...token,
       ...watchListPrices[i],
-      symbol: symbols[i]
+      symbol: account.watchList[i]
     }))
     const tokens = symbols.map((symbol, i)=>({
       symbol: symbol,
