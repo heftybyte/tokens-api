@@ -8,6 +8,18 @@ module.exports = function(Feed) {
 	const MAX_USER_SLOTS = 4
 
 	const WEEK_MILLISECONDS = 24*60*60*7*1000
+	
+	const FEED_TYPES = {
+		ARTICLE: 'article',
+		AD: 'ad',
+		USER: 'user'
+	}
+
+	const FEED_TYPE_GROUPS = {
+		[FEED_TYPES.ARTICLE]: 'news',
+		[FEED_TYPES.AD]: 'ad',
+		[FEED_TYPES.USER]: 'user'
+	}
 
 	// key - slot index, 
 	// 		key - type, value - weight
@@ -154,27 +166,16 @@ module.exports = function(Feed) {
 				slot: account.feedState.slot
 			} 
 		}
-		let feedType
-		switch(feedItem.type) {
-			case 'ARTICLE':
-				feedType = 'news'
-				break;
-			case 'AD':
-				feedType = 'ad'
-				break;
-			case 'USER':
-				feedType = 'user'
-				break;
-			default:
-				throw new Error ('unknown feed type')
-		}
-		const seenIds = new Set(account.feedState[feedType] || [])
+
+		const feedTypeGroup = FEED_TYPE_GROUPS[feedItem.type]
+		if (!feedTypeGroup) throw new Error ('unknown feed type')
+		const seenIds = new Set(account.feedState[feedTypeGroup] || [])
 		if (seenIds.has(itemId)) {
 			cb(null, true)
 			return
 		}
 		seenIds.add(itemId)
-		account.feedState[feedType] = Array.from(seenIds)
+		account.feedState[feedTypeGroup] = Array.from(seenIds)
 		try {
 			await account.save()
 		} catch(err) {
