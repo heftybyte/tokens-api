@@ -30,7 +30,7 @@ async function run() {
   Promise.all(savePromises)
     .then((tokens) => {
       const tokensJSON = tokens.map((token)=>token.toJSON());
-      const checksum = Hash(tokensJSON);
+      const checksum = Hash(Object.keys(tokensJSON));
       console.log(checksum, 'tokens hash');
       console.log('Seeded tokens collection.');
       storeInRedis(redisClient, tokensJSON, checksum);

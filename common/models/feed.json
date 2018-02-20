@@ -32,7 +32,8 @@
       "defaultFn": "now"
     },
     "updatedAt": {
-      "type": "date"
+      "type": "date",
+      "defaultFn": "now"
     },
     "image": {
       "type": "string",

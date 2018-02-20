@@ -2,10 +2,10 @@ const constants = require('../../constants');
 const app = require('../../server/server');
 
 module.exports = function(Feed) {
-	const MAX_SLOTS = 5
-	const MAX_AD_SLOTS = 1
-	const MAX_NEWS_SLOTS = 4
-	const MAX_USER_SLOTS = 4
+	const MAX_SLOTS = 10
+	const MAX_AD_SLOTS = 2
+	const MAX_NEWS_SLOTS = 8
+	const MAX_USER_SLOTS = 8
 
 	const WEEK_MILLISECONDS = 24*60*60*7*1000
 	
@@ -43,10 +43,6 @@ module.exports = function(Feed) {
 			{type: 'news', weight: 1},
 			{type: 'user', weight: 1}
 		]
-	}
-
-	if (Object.keys(SLOT_DISTRIBUTION).length !== MAX_SLOTS) {
-		throw new Error("SLOT_DISTRIBUTION is incomplete")
 	}
 
 	// Get news and ad feeds
@@ -110,7 +106,7 @@ module.exports = function(Feed) {
 		const inventory = { news: [], ad: [], user: [] }
 		for (let i = 0; i < MAX_SLOTS; i++) {
 			// Filter out outcomes where no feed items of the type are left
-			const distribution = SLOT_DISTRIBUTION[i].filter(outcome=>feeds[outcome.type].length > 0)
+			const distribution = SLOT_DISTRIBUTION[i%5].filter(outcome=>feeds[outcome.type].length > 0)
 			const selectedOutcome = selectRandByWeight(distribution)
 			if (!selectedOutcome) {
 				continue
@@ -148,7 +144,6 @@ module.exports = function(Feed) {
 			cb(err, null)
 			return
 		}
-
 		account.feedState = account.feedState || {}
 		account.feedState.slot = account.feedState.slot !== undefined ?
 			account.feedState.slot + 1 : 0
@@ -167,8 +162,10 @@ module.exports = function(Feed) {
 			} 
 		}
 
-		const feedTypeGroup = FEED_TYPE_GROUPS[feedItem.type]
-		if (!feedTypeGroup) throw new Error ('unknown feed type')
+		const feedTypeGroup = FEED_TYPE_GROUPS[FEED_TYPES[feedItem.type]]
+		if (!feedTypeGroup) {
+			throw new Error ('unknown feed type')
+		}
 		const seenIds = new Set(account.feedState[feedTypeGroup] || [])
 		if (seenIds.has(itemId)) {
 			cb(null, true)
@@ -192,13 +189,6 @@ module.exports = function(Feed) {
 		const feedActivity = await FeedActivity.create(data);
 		return cb(null);
 	}
-
-	Feed.observe('before save', function updateTimestamp(ctx, next) {
-		if (!ctx.isNewInstance) {
-			ctx.data["updatedAt"] = Date.now();
-		}
-		next();
-	});
 
 	Feed.remoteMethod('getLatest', {
 		http: {
