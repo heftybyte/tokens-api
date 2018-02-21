@@ -10,7 +10,8 @@ const { Feed } = server.models;
 const cryptopanic = {
 	fetch: async () => {
 		try {
-			const response = await axios.get('https://cryptopanic.com/api/posts/?auth_token=bce6da6de24b7fa8aa9ead0b6494e631de42f09f&currencies=BTC,ETH&filter=important&public=true')
+			const filter = process.argv[2] || 'important'
+			const response = await axios.get(`https://cryptopanic.com/api/posts/?auth_token=bce6da6de24b7fa8aa9ead0b6494e631de42f09f&currencies=BTC,ETH&filter=${filter}&public=true`)
 			return response.data.results
 		} catch (e) {
 			console.log(e)
