@@ -1,0 +1,35 @@
+{
+  "name": "Alert",
+  "base": "PersistedModel",
+  "idInjection": false,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "required": true
+    },
+    "createdAt": {
+      "type": "date",
+      "defaultFn": "now"
+    },
+    "updatedAt":{
+      "type": "date"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "user": {
+      "type": "belongsTo",
+      "model": "account",
+      "foreignKey": ""
+    },
+    "alert": {
+      "type": "belongTo",
+      "model": "KapacitorAlert"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
