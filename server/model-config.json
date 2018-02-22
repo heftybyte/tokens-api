@@ -87,5 +87,13 @@
   "icos": {
     "dataSource": "mongodb",
     "public": true
+  },
+  "Alert": {
+    "dataSource": "mongodb",
+    "public": true
+  },
+  "KapacitorAlert": {
+    "dataSource": "mongodb",
+    "public": false
   }
 }
