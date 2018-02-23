@@ -1,6 +1,6 @@
 const Queue = require('bull')
 import Expo from 'expo-server-sdk';
-console.log({Expo}, Expo.isExpoPushToken)
+
 module.exports = app => {
 	const expo = new Expo()
 
