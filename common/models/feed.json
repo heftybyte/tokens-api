@@ -71,6 +71,14 @@
         "IMAGE_RIGHT"
       ]
     },
+    "imageFormat": {
+      "type": "string",
+      "required": false,
+      "enum": [
+        "NORMAL",
+        "ROUND"
+      ]
+    },
     "expired": {
       "type": "boolean",
       "default": false
