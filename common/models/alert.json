@@ -26,7 +26,7 @@
       "foreignKey": ""
     },
     "alert": {
-      "type": "belongTo",
+      "type": "belongsTo",
       "model": "KapacitorAlert"
     }
   },
