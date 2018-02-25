@@ -6,9 +6,13 @@
     "validateUpsert": true
   },
   "properties": {
-    "id": {
-      "type": "string",
-      "required": true
+    "frequency": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "boolean",
+      "default": true
     },
     "createdAt": {
       "type": "date",
@@ -22,8 +26,7 @@
   "relations": {
     "user": {
       "type": "belongsTo",
-      "model": "account",
-      "foreignKey": ""
+      "model": "account"
     },
     "alert": {
       "type": "belongsTo",

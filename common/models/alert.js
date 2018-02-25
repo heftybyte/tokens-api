@@ -9,157 +9,227 @@ const app = require('../../server/server');
 
 module.exports = (Alert) => {
 
-    const getAlertTemplateID = () => process.env.KAPACITOR_ALERT_TEMPLATE_ID;
+  const getAlertTemplateID = (type) => 0 ? process.env.KAPACITOR_GT_ALERT_TEMPLATE_ID : process.env.KAPACITOR_LS_ALERT_TEMPLATE_ID;
 
-    Alert.create = async (data, cb) => {
 
-        let err = null
-
-        const KapacitorAlert = app.default.Models.KapacitorAlert
-
-        const findAlert = await KapacitorAlert.findOrCreate(
-            {where: {fsym: data['fsym'],tsym: data['tsym'], price: data['price']}},
-            {fsym: data['fsym'],tsym: data['tsym'], price: data['price']}
-        ).catch(e=>err=e);
-
-        if(err != null){
-            cb(null, err)
+  const pushNotification = async (data) => {
+    console.log('in expo')
+    const messages = data
+      .filter(item => Expo.isExpoPushToken(item.user.notification_tokens.toJSON()))
+      .map(item => ({
+        to: item.user.notification_tokens.toJSON(),
+        sound: 'default',
+        body: item['level'] == 0 ?
+          `Price for token ${item['fsym']} is greater than ${item['price']}`:
+          `Price for token ${item['fsym']} is lesser than ${item['price']}`,
+        data: {
+          fsym: item['fsym'],
+          tsym: item['tsym'],
+          price: item['price'],
+          frequency: item['frequency'],
+          type: 'PRICE_ALERT'
         }
+      }))
 
-        console.log(findAlert)
-        data.alertId = findAlert.id
+    console.log('messages')
+    console.log(messages);
 
-        const result = await Alert.create(data).catch(e=>err=e)
-        if (err){
-            cb(err, null)
-        }
+    let chunks = expo.chunkPushNotifications(messages);
 
-        // create task on kapacitor
-        const template_id = getAlertTemplateID()
-        const vars = {
-            "priceLevel": {value: data['price'], "type": "float"},
-            "fsym": {value: data['fsym'], "type": "string"},
-            "tsym": {value: data['tsym'], "type": "string"},
-        }
-
-        if(findAlert['task_id'] == ""){
-            const task = await Kapacitor.CreateTask(template_id, vars)
-            console.log(task)
-            // update kapacitor alert with task_id
-
-            if(result) {
-                cb(null, result)
-                return
-            }
-            cb(task, null)
-            return
-        }
-
-        cb(null, {'data': result})
+    for (let chunk of chunks) {
+      try {
+        let receipts = await expo.sendPushNotificationsAsync(chunk);
+        console.log(receipts);
+      } catch (error) {
+        console.error(error);
+      }
     }
+  }
 
-    Alert.trigger = async(data, cb) => {
-        // frequency=0 is once
-        // frequency=1 is persistent
-
-        console.log(data)
-        let err = null
-        const alertData = JSON.parse(data['data'])
-
-        const fsym = alertData['data']['series'][0]['tags']['fsym']
-        const tsym = alertData['data']['series'][0]['tags']['tsym']
-        const price = alertData['data']['series'][0]['values'][0][1]
-
-        const KapacitorAlert = app.default.Models.KapacitorAlert
-
-        const result = await KapacitorAlert.findOne({
-            where:{"fsym": fsym, "tsym": tsym, "price": price}
-        }).catch(e=>err=e);
-
-        Alert.find({where:{'alertId': result['id']}}, function(err, data){
-            console.log(data)
-            console.log(data[0].user.notification_tokens.toJSON())
-            const messages = data
-                .filter(item=>Expo.isExpoPushToken(item.user.notification_tokens.toJSON()))
-                .map(item=>({
-                    to: item.user.notification_tokens.toJSON(),
-                    sound: 'default',
-                    body: `Price Alert for token ${fsym}`,
-                    data: {
-                        fsym,
-                        tsym,
-                        price,
-                        frequency: item['frequency'],
-                        type: 'PRICE_ALERT'
-                    }
-                }))
-
-            // console.log(data);
-
-            let chunks = expo.chunkPushNotifications(messages);
-
-            (async () => {
-                for (let chunk of chunks) {
-                    try {
-                        let receipts = await expo.sendPushNotificationsAsync(chunk);
-                        console.log(receipts);
-                    } catch (error) {
-                        console.error(error);
-                    }
-                }
-            })();
-
-            (async() => {
-                data
-                    .filter(item => item['frequency'] == 0)
-                    .forEach((user) => {
-                        Alert.remove({where: {userId: user['id']}}, function (err, result) {
-                            if (err) {
-                                console.log(err)
-                            }
-                            console.log(result)
-                        })
-                    })
-            })()
-
-            (async() => {
-                const persistentAlerts = data.filter(item=>item['frequency']== 1)
-                if(persistentAlerts.length == 0 ) {
-                    // delete the task on kapacitor
-                    KapacitorAlert.remove({where:{'id': result['id']}},function(err, alert){
-                        Kapacitor.DeleteTask(result['task_id'])
-                    })
-                }
-            })()
+  const disableAlertNotification = async(data) => {
+    console.log('in disable for alert frequency price')
+    data
+      .filter(item => item['frequency'] == 0)
+      .forEach((user) => {
+        Alert.updateAll({userId: user['id']}, {'status': false}, function (err, result) {
+          if (err) {
+            console.log(err)
+          }
+          console.log(result)
         })
+      })
+  }
 
+  const disableKapacitorTask = async(data, kapacitorAlert) => {
+    console.log('in remove kapacitor alert')
+    const KapacitorAlert = app.default.models.KapacitorAlert
+    const persistentAlerts = data.filter(item => item['frequency'] == 1)
+    if (persistentAlerts.length == 0) {
+      // disable the task on kapacitor
+      KapacitorAlert.updateAll({'id': kapacitorAlert['id']}, {'status': false}, function (err, alert) {
+        Kapacitor.DisableTask(kapacitorAlert['task_id'])
+      })
+    }
+  }
+
+  Alert.make = async function (access_token, fsym, tsym, price, type, frequency, cb) {
+
+    if (!access_token || !access_token.userId) {
+      const err = new Error('accessToken is required to');
+      err.status = 401
+      cb(err, null)
     }
 
+    let err = null
 
-    Alert.remoteMethod('create', {
-        http: {
-            path: '/',
-            verb: 'post'
-        },
-        accepts: [
-            { arg: 'fsym', type: 'string', required: true },
-            { arg: 'tsym', type: 'string', required: true },
-            { arg: 'price', type: 'number', required: true },
-            { arg: 'frequency', type: 'number', required: true, description: "0 is once , 1 is persistent" }
-        ],
-        description: 'Update User Notification token',
-        returns: {arg: 'data', type: 'object'},
+    const KapacitorAlert = app.default.models.KapacitorAlert
+
+    const findAlert = await KapacitorAlert.findOrCreate(
+      {where: {fsym, tsym, price, type, 'status': true}},
+      {fsym, tsym, price, type}
+    ).catch(e => err = e);
+
+    if (err != null) {
+      cb(err, null)
+      return err
+    }
+
+    const data = {
+      fsym,
+      tsym,
+      price,
+      frequency,
+      type,
+      "alert": findAlert[0].id,
+      "user": access_token.userId,
+    }
+
+    const result = await Alert.create(data).catch(e => err = e)
+
+    if (err) {
+      cb(err, null)
+      return err
+    }
+
+    // create task on kapacitor
+    const template_id = getAlertTemplateID(type)
+    const vars = {
+      "priceLevel": {value: data['price'], "type": "float"},
+      "fsym": {value: data['fsym'], "type": "string"},
+      "tsym": {value: data['tsym'], "type": "string"},
+    }
+
+    if (!findAlert[0]['task_id']) {
+      const task = await Kapacitor.CreateTask(template_id, vars, "prices", "autogen")
+      // update kapacitor alert with task_id
+      const alertUpdate = await KapacitorAlert.updateAll({id: findAlert[0].id}, {'task_id': task['id']})
+        .catch(e => err = e)
+      if (err) {
+        cb(err, null)
+      }
+    }
+
+    cb(null, {'data': {...data, id: result['id']}})
+  }
+
+  Alert.trigger = async(access_token, alertData, cb) => {
+    // frequency=0 is once
+    // frequency=1 is persistent
+    console.log(alertData)
+    console.log()
+
+    let err = null
+
+    const fsym = alertData['data']['series'][0]['tags']['fsym']
+    const tsym = alertData['data']['series'][0]['tags']['tsym']
+    const price = alertData['data']['series'][0]['values'][0][1]
+
+    console.log(fysm, tsym, price)
+
+    const KapacitorAlert = app.default.models.KapacitorAlert
+
+    const resultGT = await KapacitorAlert.find({
+      where: {"fsym": fsym, "tsym": tsym, level: 0, price: {'gt': price}}
+    }).catch(e => err = e);
+
+    const resultLT = await KapacitorAlert.find({
+      where: {"fsym": fsym, "tsym": tsym, level: 1, price: {'lt': price}}
     })
 
-    Alert.remoteMethod('trigger', {
-        http: {
-            path: '/trigger',
-            verb: 'post'
-        },
-        accepts: [
-            { arg: 'data', type: 'object', http: { source: 'body' } }
-        ],
-        description: 'Alert Trigger URL',
+
+    console.log("kapacitor alert")
+    const kapacitorAlerts = resultGT.concat(resultLT)
+    console.log(result)
+
+
+    kapacitorAlerts.forEach((kapacitorAlert) => {
+      const data = Alert.find({where: {'alert': kapacitorAlert['id'], 'status': true}}).catch(e => err = e)
+      console.log(data[0].user.notification_tokens.toJSON())
+
+      pushNotification(data)
+      disableAlertNotification(data)
+      disableKapacitorTask(data, kapacitorAlert)
+
     })
+
+    (async() => {
+      console.log('in remove kapacitor alert')
+      const persistentAlerts = data.filter(item => item['frequency'] == 1)
+      if (persistentAlerts.length == 0) {
+        // delete the task on kapacitor
+        KapacitorAlert.updateAll({'id': result['id']}, {'status': false}, function (err, alert) {
+          Kapacitor.DisableTask(result['task_id'])
+        })
+      }
+    })()
+
+    cb(null, {'data': 'success'})
+
+  }
+
+
+  Alert.remoteMethod('make', {
+    http: {
+      path: '/',
+      verb: 'post'
+    },
+    accepts: [
+      {
+        arg: 'access_token', type: 'object', http: function (ctx) {
+        let req = ctx && ctx.req;
+        let accessToken = req && req.accessToken;
+        return accessToken;
+      }, description: 'Do not supply this argument, it is automatically extracted ' +
+      'from request headers.',
+      },
+      {arg: 'fsym', type: 'string', required: true},
+      {arg: 'tsym', type: 'string', required: true},
+      {arg: 'price', type: 'number', required: true},
+      {arg: 'type', type: 'number', required: true, description: "0 is greater than , 1 is less than"},
+      {arg: 'frequency', type: 'number', required: true, description: "0 is once , 1 is persistent"}
+    ],
+    description: 'Update User Notification token',
+    returns: {root: true},
+  })
+
+  Alert.remoteMethod('trigger', {
+    http: {
+      path: '/trigger',
+      verb: 'post'
+    },
+    accepts: [
+      {
+        arg: 'access_token', type: 'object', http: function (ctx) {
+        let req = ctx && ctx.req;
+        let accessToken = req && req.accessToken;
+        return accessToken;
+      }, description: 'Do not supply this argument, it is automatically extracted ' +
+      'from request headers.',
+      },
+      {arg: 'data', type: 'object', http: {source: 'body'}}
+    ],
+    description: 'Alert Trigger URL',
+    returns: {root: true},
+  })
 
 }

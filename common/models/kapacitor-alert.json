@@ -6,6 +6,10 @@
     "validateUpsert": true
   },
   "properties": {
+    "type": {
+      "type": "number",
+      "default": 0
+    },
     "fsym": {
       "type": "string",
       "required": true
@@ -27,6 +31,10 @@
     },
     "task_id":{
       "type": "string"
+    },
+    "status": {
+      "type": "boolean",
+      "default": true
     }
   },
   "validations": [],
