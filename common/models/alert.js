@@ -120,12 +120,12 @@ module.exports = (Alert) => {
       price,
       frequency,
       type,
-      "alert": findAlert[0].id,
-      "user": access_token.userId,
+      "alertId": findAlert[0].id.toString(),
+      "userId": access_token.userId.toString(),
     }
 
     console.log(data)
-    const result = await Alert.create({frequency, "alert": findAlert[0].id, "user": access_token.userId})
+    const result = await Alert.create({frequency, "alertId": data['alertId'], "userId": data['userId']})
       .catch(e => err = e)
 
     if (err) {
@@ -166,18 +166,21 @@ module.exports = (Alert) => {
 
     const KapacitorAlert = app.default.models.KapacitorAlert
 
-    const kapacitorAlert = await KapacitorAlert.findOne({
+    const kAlert = await KapacitorAlert.findOne({
       where: {"script_id": alertData['id']}
     }).catch(e => err = e);
 
     console.log('kapacitor alert')
-    console.log(kapacitorAlert);
-
-    const data = await Alert.find({where:{'status': true, alert: kapacitorAlert['id']}})
-      .catch(e => err = e);
-
+    console.log(k['id'].toString())
+    console.log(typeof k['id']);
+    const query = {'where': {'status':true, 'alertId': k['id'].toString() }}
+    console.log(query)
+    const data = await Alert.find(query).catch(e=>err = e);
     console.log('alert data')
     console.log(data)
+    process.exit(1)
+
+
 
     pushNotification(data)
     disableAlertNotification(data)
