@@ -11,12 +11,23 @@ const uuidv4 = require('uuid/v4');
 
 module.exports = (Alert) => {
 
-  const getAlertTemplateID = (type) => 0 ? process.env.KAPACITOR_GT_ALERT_TEMPLATE_ID : process.env.KAPACITOR_LS_ALERT_TEMPLATE_ID;
+  const getAlertTemplateID = (type) => type==0 ? process.env.KAPACITOR_GT_ALERT_TEMPLATE_ID : process.env.KAPACITOR_LS_ALERT_TEMPLATE_ID;
 
 
   const pushNotification = async (data) => {
     console.log('in expo')
-    const messages = data
+
+    const result = data.map((alert)=>{
+      const Account = app.default.models.Account
+      Account.find({'id': alert['user']}, function(err, data){
+        alert['user'] = data
+        return data
+      })
+    });
+
+    console.log(result)
+
+    const messages = result
       .filter(item => Expo.isExpoPushToken(item.user.notification_tokens.toJSON()))
       .map(item => ({
         to: item.user.notification_tokens.toJSON(),
@@ -53,7 +64,7 @@ module.exports = (Alert) => {
     data
       .filter(item => item['frequency'] == 0)
       .forEach((user) => {
-        Alert.updateAll({userId: user['id']}, {'status': false}, function (err, result) {
+        Alert.updateAll({user: user['id']}, {'status': false}, function (err, result) {
           if (err) {
             console.log(err)
           }
@@ -75,12 +86,15 @@ module.exports = (Alert) => {
   }
 
   Alert.make = async function (access_token, fsym, tsym, price, type, frequency, cb) {
+    console.log('sdsgagagdsga')
 
     if (!access_token || !access_token.userId) {
       const err = new Error('accessToken is required to');
       err.status = 401
       cb(err, null)
     }
+
+    console.log('sdsgagagdsga')
 
     let err = null
 
@@ -91,7 +105,11 @@ module.exports = (Alert) => {
       {fsym, tsym, price, type}
     ).catch(e => err = e);
 
+    console.log(findAlert)
+
     if (err != null) {
+      console.log(err)
+
       cb(err, null)
       return err
     }
@@ -106,7 +124,9 @@ module.exports = (Alert) => {
       "user": access_token.userId,
     }
 
-    const result = await Alert.create(data).catch(e => err = e)
+    console.log(data)
+    const result = await Alert.create({frequency, "alert": findAlert[0].id, "user": access_token.userId})
+      .catch(e => err = e)
 
     if (err) {
       cb(err, null)
@@ -137,7 +157,7 @@ module.exports = (Alert) => {
     cb(null, {'data': {...data, id: result['id']}})
   }
 
-  Alert.trigger = async(access_token, alertData, cb) => {
+  Alert.trigger = async(alertData, cb) => {
     // frequency=0 is once
     // frequency=1 is persistent
     console.log(alertData)
@@ -150,17 +170,22 @@ module.exports = (Alert) => {
       where: {"script_id": alertData['id']}
     }).catch(e => err = e);
 
-    const data = Alert.find({where: {'alert': kapacitorAlert['id'], 'status': true}}).catch(e => err = e)
-    console.log(data[0].user.notification_tokens.toJSON())
+    console.log('kapacitor alert')
+    console.log(kapacitorAlert);
+
+    const data = await Alert.find({where:{'status': true, alert: kapacitorAlert['id']}})
+      .catch(e => err = e);
+
+    console.log('alert data')
+    console.log(data)
 
     pushNotification(data)
     disableAlertNotification(data)
     disableKapacitorTask(data, kapacitorAlert)
 
-
     cb(null, {'data': 'success'})
-  }
 
+  }
 
   Alert.remoteMethod('make', {
     http: {
@@ -192,18 +217,12 @@ module.exports = (Alert) => {
       verb: 'post'
     },
     accepts: [
-      {
-        arg: 'access_token', type: 'object', http: function (ctx) {
-        let req = ctx && ctx.req;
-        let accessToken = req && req.accessToken;
-        return accessToken;
-      }, description: 'Do not supply this argument, it is automatically extracted ' +
-      'from request headers.',
-      },
       {arg: 'data', type: 'object', http: {source: 'body'}}
     ],
     description: 'Alert Trigger URL',
     returns: {root: true},
   })
+
+  Alert.disableRemoteMethodByName('create');
 
 }
