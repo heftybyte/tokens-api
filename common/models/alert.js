@@ -6,6 +6,8 @@ import Kapacitor from "../../lib/kapacitor";
 import Expo from 'expo-server-sdk';
 console.log({Expo}, Expo.isExpoPushToken)
 const app = require('../../server/server');
+const uuidv4 = require('uuid/v4');
+
 
 module.exports = (Alert) => {
 
@@ -113,17 +115,20 @@ module.exports = (Alert) => {
 
     // create task on kapacitor
     const template_id = getAlertTemplateID(type)
+    const script_id = uuidv4()
+
     const vars = {
       "priceLevel": {value: data['price'], "type": "float"},
       "fsym": {value: data['fsym'], "type": "string"},
       "tsym": {value: data['tsym'], "type": "string"},
+      "idVar": {value: script_id, "type": "string"},
     }
 
     if (!findAlert[0]['task_id']) {
       const task = await Kapacitor.CreateTask(template_id, vars, "prices", "autogen")
       // update kapacitor alert with task_id
-      const alertUpdate = await KapacitorAlert.updateAll({id: findAlert[0].id}, {'task_id': task['id']})
-        .catch(e => err = e)
+      const alertUpdate = await KapacitorAlert.updateAll(
+        {id: findAlert[0].id}, {'task_id': task['id'], 'script_id': script_id}).catch(e => err = e)
       if (err) {
         cb(err, null)
       }
@@ -136,55 +141,24 @@ module.exports = (Alert) => {
     // frequency=0 is once
     // frequency=1 is persistent
     console.log(alertData)
-    console.log()
 
     let err = null
 
-    const fsym = alertData['data']['series'][0]['tags']['fsym']
-    const tsym = alertData['data']['series'][0]['tags']['tsym']
-    const price = alertData['data']['series'][0]['values'][0][1]
-
-    console.log(fysm, tsym, price)
-
     const KapacitorAlert = app.default.models.KapacitorAlert
 
-    const resultGT = await KapacitorAlert.find({
-      where: {"fsym": fsym, "tsym": tsym, level: 0, price: {'gt': price}}
+    const kapacitorAlert = await KapacitorAlert.findOne({
+      where: {"script_id": alertData['id']}
     }).catch(e => err = e);
 
-    const resultLT = await KapacitorAlert.find({
-      where: {"fsym": fsym, "tsym": tsym, level: 1, price: {'lt': price}}
-    })
+    const data = Alert.find({where: {'alert': kapacitorAlert['id'], 'status': true}}).catch(e => err = e)
+    console.log(data[0].user.notification_tokens.toJSON())
 
+    pushNotification(data)
+    disableAlertNotification(data)
+    disableKapacitorTask(data, kapacitorAlert)
 
-    console.log("kapacitor alert")
-    const kapacitorAlerts = resultGT.concat(resultLT)
-    console.log(result)
-
-
-    kapacitorAlerts.forEach((kapacitorAlert) => {
-      const data = Alert.find({where: {'alert': kapacitorAlert['id'], 'status': true}}).catch(e => err = e)
-      console.log(data[0].user.notification_tokens.toJSON())
-
-      pushNotification(data)
-      disableAlertNotification(data)
-      disableKapacitorTask(data, kapacitorAlert)
-
-    })
-
-    (async() => {
-      console.log('in remove kapacitor alert')
-      const persistentAlerts = data.filter(item => item['frequency'] == 1)
-      if (persistentAlerts.length == 0) {
-        // delete the task on kapacitor
-        KapacitorAlert.updateAll({'id': result['id']}, {'status': false}, function (err, alert) {
-          Kapacitor.DisableTask(result['task_id'])
-        })
-      }
-    })()
 
     cb(null, {'data': 'success'})
-
   }
 
 
