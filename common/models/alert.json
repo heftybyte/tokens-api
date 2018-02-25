@@ -21,10 +21,10 @@
     "updatedAt":{
       "type": "date"
     },
-    "user":{
+    "userId":{
       "type": "string"
     },
-    "alert": {
+    "alertId": {
       "type": "string"
     }
   },
