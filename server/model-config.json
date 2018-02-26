@@ -90,10 +90,7 @@
   },
   "Alert": {
     "dataSource": "mongodb",
-    "public": true,
-    "options": {
-      "strictObjectIDCoercion": true
-    }
+    "public": true
   },
   "KapacitorAlert": {
     "dataSource": "mongodb",
