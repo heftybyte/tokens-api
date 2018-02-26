@@ -117,6 +117,10 @@ module.exports = (Alert) => {
     }
     // create task on kapacitor
     const template_id = getAlertTemplateID(type)
+
+    const httpOutput = process.env.KAPACITOR_TRIGGER_URL ?
+      process.env.KAPACITOR_TRIGGER_URL : 'localhost:3000/api//Alert/trigger'
+
     const script_id = uuidv4()
 
     const vars = {
@@ -124,6 +128,7 @@ module.exports = (Alert) => {
       "fsym": {value: data['fsym'], "type": "string"},
       "tsym": {value: data['tsym'], "type": "string"},
       "idVar": {value: script_id, "type": "string"},
+      "httpOutput": {value: httpOutput, "type": "string" }
     }
 
     if (!findAlert[0]['task_id']) {
