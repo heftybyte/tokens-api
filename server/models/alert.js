@@ -14,7 +14,6 @@ module.exports = (Alert) => {
   const getAlertTemplateID = (type) => type==0 ? process.env.KAPACITOR_GT_ALERT_TEMPLATE_ID : process.env.KAPACITOR_LS_ALERT_TEMPLATE_ID;
 
   const pushNotification = async (data) => {
-    console.log('in expo')
 
     const result = data.map((alert)=>{
       const Account = app.default.models.Account
@@ -24,8 +23,6 @@ module.exports = (Alert) => {
         return alert
       })
     });
-
-    console.log(result)
 
     const messages = result
       .filter(item => Expo.isExpoPushToken(item.user.notification_tokens.toJSON()))
@@ -44,9 +41,6 @@ module.exports = (Alert) => {
         }
       }))
 
-    console.log('messages')
-    console.log(messages);
-
     let chunks = expo.chunkPushNotifications(messages);
 
     for (let chunk of chunks) {
@@ -60,7 +54,6 @@ module.exports = (Alert) => {
   }
 
   const disableAlertNotification = async(data) => {
-    console.log('in disable for alert frequency price')
     data
       .filter(item => item['frequency'] == 0)
       .forEach((user) => {
@@ -74,7 +67,6 @@ module.exports = (Alert) => {
   }
 
   const disableKapacitorTask = async(data, kapacitorAlert) => {
-    console.log('in remove kapacitor alert')
     const KapacitorAlert = app.default.models.KapacitorAlert
     const persistentAlerts = data.filter(item => item['frequency'] == 1)
     if (persistentAlerts.length == 0) {
