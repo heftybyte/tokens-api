@@ -13,15 +13,15 @@ module.exports = (Alert) => {
 
   const getAlertTemplateID = (type) => type==0 ? process.env.KAPACITOR_GT_ALERT_TEMPLATE_ID : process.env.KAPACITOR_LS_ALERT_TEMPLATE_ID;
 
-
   const pushNotification = async (data) => {
     console.log('in expo')
 
     const result = data.map((alert)=>{
       const Account = app.default.models.Account
-      Account.find({'id': alert['user']}, function(err, data){
+      Account.findById(alert['userId'], function(err, data){
+        if(err) console.log(err)
         alert['user'] = data
-        return data
+        return alert
       })
     });
 
@@ -64,7 +64,7 @@ module.exports = (Alert) => {
     data
       .filter(item => item['frequency'] == 0)
       .forEach((user) => {
-        Alert.updateAll({user: user['id']}, {'status': false}, function (err, result) {
+        Alert.updateAll({userId: user['userId']}, {'status': false}, function (err, result) {
           if (err) {
             console.log(err)
           }
@@ -86,16 +86,11 @@ module.exports = (Alert) => {
   }
 
   Alert.make = async function (access_token, fsym, tsym, price, type, frequency, cb) {
-    console.log('sdsgagagdsga')
-
     if (!access_token || !access_token.userId) {
       const err = new Error('accessToken is required to');
       err.status = 401
       cb(err, null)
     }
-
-    console.log('sdsgagagdsga')
-
     let err = null
 
     const KapacitorAlert = app.default.models.KapacitorAlert
@@ -105,11 +100,8 @@ module.exports = (Alert) => {
       {fsym, tsym, price, type}
     ).catch(e => err = e);
 
-    console.log(findAlert)
-
     if (err != null) {
       console.log(err)
-
       cb(err, null)
       return err
     }
@@ -124,7 +116,6 @@ module.exports = (Alert) => {
       "userId": access_token.userId.toString(),
     }
 
-    console.log(data)
     const result = await Alert.create({frequency, "alertId": data['alertId'], "userId": data['userId']})
       .catch(e => err = e)
 
@@ -132,7 +123,6 @@ module.exports = (Alert) => {
       cb(err, null)
       return err
     }
-
     // create task on kapacitor
     const template_id = getAlertTemplateID(type)
     const script_id = uuidv4()
@@ -160,8 +150,6 @@ module.exports = (Alert) => {
   Alert.trigger = async(alertData, cb) => {
     // frequency=0 is once
     // frequency=1 is persistent
-    console.log(alertData)
-
     let err = null
 
     const KapacitorAlert = app.default.models.KapacitorAlert
@@ -170,21 +158,12 @@ module.exports = (Alert) => {
       where: {"script_id": alertData['id']}
     }).catch(e => err = e);
 
-    console.log('kapacitor alert')
-    console.log(k['id'].toString())
-    console.log(typeof k['id']);
-    const query = {'where': {'status':true, 'alertId': k['id'].toString() }}
-    console.log(query)
-    const data = await Alert.find(query).catch(e=>err = e);
-    console.log('alert data')
-    console.log(data)
-    process.exit(1)
-
-
+    const query = {where: {alertId: kAlert['id'].toString(), status:true }}
+    const data = await Alert.find(query).catch(e=>err=e);
 
     pushNotification(data)
     disableAlertNotification(data)
-    disableKapacitorTask(data, kapacitorAlert)
+    disableKapacitorTask(data, kAlert)
 
     cb(null, {'data': 'success'})
 
