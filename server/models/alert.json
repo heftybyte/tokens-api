@@ -24,7 +24,7 @@
     "userId":{
       "type": "string"
     },
-    "alertId": {
+    "alert": {
       "type": "string"
     }
   },
