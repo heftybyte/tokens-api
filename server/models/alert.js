@@ -14,15 +14,9 @@ module.exports = (Alert) => {
   const getAlertTemplateID = (type) => type==0 ? process.env.KAPACITOR_GT_ALERT_TEMPLATE_ID : process.env.KAPACITOR_LS_ALERT_TEMPLATE_ID;
 
   const pushNotification = async (data) => {
+    const Account = app.default.models.Account
 
-    const result = data.map((alert)=>{
-      const Account = app.default.models.Account
-      Account.findById(alert['userId'], function(err, data){
-        if(err) console.log(err)
-        alert['user'] = data
-        return alert
-      })
-    });
+    const result = await Promise.all(data.map((alert)=>{ Account.findById(alert['userId'])}))
 
     const messages = result
       .filter(item => Expo.isExpoPushToken(item.user.notification_tokens.toJSON()))
@@ -60,6 +54,7 @@ module.exports = (Alert) => {
         Alert.updateAll({userId: user['userId']}, {'status': false}, function (err, result) {
           if (err) {
             console.log(err)
+            return
           }
           console.log(result)
         })
@@ -82,7 +77,9 @@ module.exports = (Alert) => {
       const err = new Error('accessToken is required to');
       err.status = 401
       cb(err, null)
+      return
     }
+
     let err = null
 
     const KapacitorAlert = app.default.models.KapacitorAlert
@@ -138,6 +135,7 @@ module.exports = (Alert) => {
         {id: findAlert[0].id}, {'task_id': task['id'], 'script_id': script_id}).catch(e => err = e)
       if (err) {
         cb(err, null)
+        return
       }
     }
 
