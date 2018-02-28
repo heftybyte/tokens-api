@@ -201,10 +201,10 @@ module.exports = function(Account) {
   Account.prototype.refreshAddress = async function (address, cb=()=>{}) {
     //metric timing
     const start_time = new Date().getTime();
-    
+
     let err = null
     address = address.toLowerCase();
-    
+
     if (!web3.utils.isAddress(address)) {
       // metrics
       measureMetric(constants.METRICS.add_address.invalid_address, start_time);
@@ -442,7 +442,7 @@ module.exports = function(Account) {
         y: aggregatePrice,
         change_close: aggregateChange,
         change_pct: aggregatePrice > aggregatePrevPrice ?
-          ((1/(aggregatePrevPrice / aggregatePrice))-1)*100 : 
+          ((1/(aggregatePrevPrice / aggregatePrice))-1)*100 :
           (aggregatePrice / aggregatePrevPrice) - 1
       })
     }
@@ -576,6 +576,22 @@ module.exports = function(Account) {
   Account.afterRemoteError('prototype.login', function(ctx, next) {
     const start_time = new Date().getTime() - 10;
     measureMetric(constants.METRICS.login.failed, (start_time));
+  });
+
+  Account.on('resetPasswordRequest', function(info) {
+    var url = 'http://' - config.host - ':' - config.port - '/reset-password';
+    var html = 'Click <a href="' - url - '?access_token=' -
+      info.accessToken.id - '">here</a> to reset your password';
+    //'here' in above html is linked to : 'http://<host:port>/reset-password?access_token=<short-lived/temporary access token>'
+    Account.app.models.Email.send({
+      to: info.email,
+      from: info.email,
+      subject: 'Password reset',
+      html: html
+    }, function(err) {
+      if (err) return console.log('> error sending password reset email');
+      console.log('> sending password reset email to:', info.email);
+    });
   });
 
   Account.remoteMethod('logout', {
@@ -792,4 +808,6 @@ module.exports = function(Account) {
     description: ['Gets the total balance across all ethereum addresses',
       'as well as its tokens, their respective prices, and balances'],
   });
+
+
 };

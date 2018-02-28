@@ -10,7 +10,7 @@ module.exports = {
     "database": process.env.MONGODB_DATABASE || "tokens-api",
     "password": process.env.MONGODB_PASSWORD || "",
     "user": process.env.MONGODB_USER || "",
-    "connector": "mongodb"  
+    "connector": "mongodb"
   },
   'arangodbDs': {
     'host': process.env.DB_HOST || 'localhost',
@@ -113,5 +113,9 @@ module.exports = {
         }
       }
     ]
+  },
+  "sendgrid": {
+    "connector": "loopback-connector-sendgrid",
+    "api_key": process.env.SENDGRID_KEY || ''
   }
 };

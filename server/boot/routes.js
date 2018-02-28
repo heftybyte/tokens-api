@@ -62,5 +62,20 @@ module.exports = app => {
     `
     res.send(ogMeta)
   })
+
+  app.post('/request-password-reset', function(req, res, next) {
+    User.resetPassword({
+      email: req.body.email
+    }, function(err) {
+      if (err) return res.status(401).send(err);
+      res.render('response', {
+        title: 'Password reset requested',
+        content: 'Check your email for further instructions',
+        redirectTo: '/',
+        redirectToLinkText: 'Log in'
+      });
+    });
+  });
+
   app.use(router);
 };
