@@ -3,8 +3,10 @@ const { COIN_MARKETCAP, getAllPrices }  = require('../../lib/price');
 const TOKENS = require('../../data/tokens');
 const _ = require('lodash');
 
-module.exports = app => {
+module.exports = function(app){
   let router = app.loopback.Router();
+  console.log('in router')
+
   app.post('/api/client-logs', (req, res) => {
     console.log(req.body)
     const {message, level} = req.body;
@@ -64,18 +66,25 @@ module.exports = app => {
   })
 
   app.post('/request-password-reset', function(req, res, next) {
-    User.resetPassword({
+    const Account = app.models.Account
+    Account.resetPassword({
       email: req.body.email
     }, function(err) {
       if (err) return res.status(401).send(err);
-      res.render('response', {
-        title: 'Password reset requested',
-        content: 'Check your email for further instructions',
-        redirectTo: '/',
-        redirectToLinkText: 'Log in'
-      });
+      return res.status(200).json({message: 'Password reset complete'});
     });
   });
+
+
+  app.get('/users/reset-password', (req,res) => {
+    let data = {
+      access_token: req.query.access_token
+    }
+    res.render('password-reset',data);
+  })
+
+
+
 
   app.use(router);
 };

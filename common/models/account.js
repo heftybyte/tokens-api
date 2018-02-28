@@ -579,17 +579,17 @@ module.exports = function(Account) {
   });
 
   Account.on('resetPasswordRequest', function(info) {
-    var url = 'http://' - config.host - ':' - config.port - '/reset-password';
-    var html = 'Click <a href="' - url - '?access_token=' -
-      info.accessToken.id - '">here</a> to reset your password';
+    const url = 'http://localhost:3000/reset-password';
+    const html =`Click <a href="${url}?access_token=${info.accessToken.id}">here</a> to reset your password`;
     //'here' in above html is linked to : 'http://<host:port>/reset-password?access_token=<short-lived/temporary access token>'
     Account.app.models.Email.send({
       to: info.email,
-      from: info.email,
+      from: 'no-reply@tokens.express',
       subject: 'Password reset',
+      text: `Please copy the url below into your browser to reset your password.\n ${url}?access_token=${info.accessToken.id}`,
       html: html
     }, function(err) {
-      if (err) return console.log('> error sending password reset email');
+      if (err) return console.log(err['response']['body']['errors'], '> error sending password reset email');
       console.log('> sending password reset email to:', info.email);
     });
   });

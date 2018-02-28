@@ -4,6 +4,8 @@ require('dotenv').load();
 const https = require('https');
 const http = require('http');
 const sslConfig = require('./ssl-config');
+const path = require('path');
+
 
 import { healthCheck } from '../lib/statsd';
 
@@ -12,6 +14,10 @@ import loopback from 'loopback';
 import boot from 'loopback-boot';
 
 const app = loopback();
+
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 

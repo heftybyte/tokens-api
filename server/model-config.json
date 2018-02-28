@@ -94,6 +94,9 @@
   },
   "KapacitorAlert": {
     "dataSource": "mongodb",
+  },
+  "Email": {
+    "dataSource": "sendgrid",
     "public": false
   }
 }
