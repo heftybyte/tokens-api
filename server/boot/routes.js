@@ -5,7 +5,6 @@ const _ = require('lodash');
 
 module.exports = function(app){
   let router = app.loopback.Router();
-  console.log('in router')
 
   app.post('/api/client-logs', (req, res) => {
     console.log(req.body)
