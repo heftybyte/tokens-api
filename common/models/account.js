@@ -582,7 +582,7 @@ module.exports = function(Account) {
     const appUrl = process.env.APP_URL || 'http://localhost:3000'
     const url = `${appUrl}/reset-password`;
     const html =`Click <a href="${url}?access_token=${info.accessToken.id}">here</a> to reset your password`;
-    //'here' in above html is linked to : 'http://<host:port>/reset-password?access_token=<short-lived/temporary access token>'
+
     Account.app.models.Email.send({
       to: info.email,
       from: 'no-reply@tokens.express',
