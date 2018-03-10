@@ -201,10 +201,10 @@ module.exports = function(Account) {
   Account.prototype.refreshAddress = async function (address, cb=()=>{}) {
     //metric timing
     const start_time = new Date().getTime();
-    
+
     let err = null
     address = address.toLowerCase();
-    
+
     if (!web3.utils.isAddress(address)) {
       // metrics
       measureMetric(constants.METRICS.add_address.invalid_address, start_time);
@@ -268,6 +268,37 @@ module.exports = function(Account) {
 
     // metrics'
     measureMetric(constants.METRICS.delete_address.success, start_time);
+
+    cb(null, account)
+    return account
+  }
+
+  Account.prototype.addAddressToWallet = async function (data, cb) {
+    let { address } = data
+    let err = null
+
+    address = address.toLowerCase()
+
+    if (!web3.utils.isAddress(address)) {
+      err = new Error('Invalid ethereum address')
+      err.status = 400
+      cb(err)
+      return err
+    } else if (this.walletAddresses.find((addressObj)=> addressObj.id.toLowerCase() === address) ) {
+      err = new Error('This address has already been added to this user\'s wallet')
+      err.status = 422
+      cb(err)
+      return err
+    }
+
+    this.walletAddresses.push({adress: address})
+    let account = await this.save().catch(e=>err=e)
+
+    if (err) {
+      err.status = 500
+      cb(err);
+      return err
+    }
 
     cb(null, account)
     return account
@@ -442,7 +473,7 @@ module.exports = function(Account) {
         y: aggregatePrice,
         change_close: aggregateChange,
         change_pct: aggregatePrice > aggregatePrevPrice ?
-          ((1/(aggregatePrevPrice / aggregatePrice))-1)*100 : 
+          ((1/(aggregatePrevPrice / aggregatePrice))-1)*100 :
           (aggregatePrice / aggregatePrevPrice) - 1
       })
     }
@@ -672,6 +703,28 @@ module.exports = function(Account) {
       "type": "account"
     },
     description: 'Add an ethereum address to a user\'s account',
+  });
+
+  Account.remoteMethod('addAddressToWallet', {
+    isStatic: false,
+    http: {
+      path: '/wallets',
+      verb: 'post'
+    },
+    accepts: [
+      {
+        arg: 'address',
+        type: 'object',
+        http: {
+          source: 'body'
+        }
+      }
+    ],
+    returns: {
+      root: true,
+      type: 'account'
+    },
+    description: 'Add an ethereum address to a user\'s wallet'
   });
 
   Account.remoteMethod('addToWatchList', {
