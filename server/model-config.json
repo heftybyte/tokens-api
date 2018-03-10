@@ -98,5 +98,9 @@
   "Email": {
     "dataSource": "sendgrid",
     "public": false
+  },
+  "wallet": {
+    "dataSource": "mongodb",
+    "public": false
   }
 }

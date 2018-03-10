@@ -50,6 +50,15 @@
   },
   "validations": [],
   "relations": {
+    "_wallets": {
+      "type": "embedsMany",
+      "model": "wallet",
+      "property": "walletAddresses",
+      "default": [],
+      "options": {
+        "forceId": false
+      }
+    },
     "_addresses": {
       "type": "embedsMany",
       "model": "address",
@@ -158,6 +167,12 @@
       "principalId": "$owner",
       "permission": "ALLOW",
       "property": "deleteAddress"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$owner",
+      "permission": "ALLOW",
+      "property": "addAddressToWallet"
     },
     {
       "principalType": "ROLE",
