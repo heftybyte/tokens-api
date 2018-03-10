@@ -95,5 +95,9 @@
   "KapacitorAlert": {
     "dataSource": "mongodb",
     "public": false
+  },
+  "wallet": {
+    "dataSource": "mongodb",
+    "public": false
   }
 }
