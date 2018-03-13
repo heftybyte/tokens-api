@@ -273,8 +273,8 @@ module.exports = function(Account) {
     return account
   }
 
-  Account.prototype.addAddressToWallet = async function (data, cb) {
-    let { address } = data
+  Account.prototype.addWallet = async function (data, cb) {
+    let { id: address } = data
     let err = null
 
     address = address.toLowerCase()
@@ -284,14 +284,14 @@ module.exports = function(Account) {
       err.status = 400
       cb(err)
       return err
-    } else if (this.walletAddresses.find((addressObj)=> addressObj.id.toLowerCase() === address) ) {
+    } else if (this.wallets.find((addressObj)=> addressObj.id.toLowerCase() === address) ) {
       err = new Error('This address has already been added to this user\'s wallet')
       err.status = 422
       cb(err)
       return err
     }
 
-    this.walletAddresses.push({adress: address})
+    this.wallets.push({id: address})
     let account = await this.save().catch(e=>err=e)
 
     if (err) {
@@ -722,7 +722,7 @@ module.exports = function(Account) {
     description: 'Add an ethereum address to a user\'s account',
   });
 
-  Account.remoteMethod('addAddressToWallet', {
+  Account.remoteMethod('addWallet', {
     isStatic: false,
     http: {
       path: '/wallets',
