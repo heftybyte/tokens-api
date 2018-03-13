@@ -53,7 +53,7 @@
     "_wallets": {
       "type": "embedsMany",
       "model": "wallet",
-      "property": "walletAddresses",
+      "property": "wallets",
       "default": [],
       "options": {
         "forceId": false
@@ -172,7 +172,7 @@
       "principalType": "ROLE",
       "principalId": "$owner",
       "permission": "ALLOW",
-      "property": "addAddressToWallet"
+      "property": "addWallet"
     },
     {
       "principalType": "ROLE",
