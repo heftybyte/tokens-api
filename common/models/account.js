@@ -304,6 +304,40 @@ module.exports = function(Account) {
     return account
   }
 
+  Account.prototype.deleteWallet = async function (wallet, cb) {
+    const address = wallet.toLowerCase();
+
+    let { err, account } = await getAccount(this.id)
+
+    if (err) {
+      cb(err)
+      return err
+    }
+
+    const addressIndex = account.wallets.findIndex(addressObj=>addressObj.id.toLowerCase() === address)
+
+    if (addressIndex === -1) {
+      err = new Error(`The address ${address} is not in the user\'s wallet`)
+      err.status = 404
+      cb(err)
+      return err
+    }
+
+    account.wallets.splice(addressIndex, 1)
+    await account.save().catch(e=>err=e)
+
+    if (err) {
+      err = new Error('Could not update account')
+      err.status = 500
+      console.log(err)
+      cb(err)
+      return err
+    }
+
+    cb(null, account)
+    return account
+  }
+
   const getAccount = async (id) => {
     let err = null
     const account = await Account.findById(id).catch(e=>{err=e})
@@ -742,6 +776,26 @@ module.exports = function(Account) {
       type: 'account'
     },
     description: 'Add an ethereum address to a user\'s wallet'
+  });
+
+  Account.remoteMethod('deleteWallet', {
+    isStatic: false,
+    http: {
+      path: '/wallets/:wallet',
+      verb: 'delete',
+    },
+    accepts: {
+      arg: 'wallet',
+      type: 'string',
+      http: {
+        source: 'path'
+      }
+    },
+    returns: {
+      "root": true,
+      "type": "account"
+    },
+    description: 'Delete an ethereum address from a user\'s wallet'
   });
 
   Account.remoteMethod('addToWatchList', {
