@@ -40,6 +40,13 @@
       "type": "string",
       "required": true
     },
+    "logoFormat": {
+      "type": "string",
+      "enum": [
+        "NORMAL",
+        "ROUND"
+      ]
+    },  
     "ethPrice": {
       "type": "string"
     },
@@ -65,6 +72,9 @@
     "endDate": {
       "type": "number",
       "required": true
+    },
+    "displayDate": {
+      "type": "string"
     },
     "createdAt": {
       "type": "number"
