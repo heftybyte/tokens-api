@@ -274,7 +274,7 @@ module.exports = function(Account) {
   }
 
   Account.prototype.addWallet = async function (data, cb) {
-    let { id: address } = data
+    let { id, address } = data
     let err = null
 
     address = address.toLowerCase()
