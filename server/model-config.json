@@ -93,7 +93,7 @@
     "public": true
   },
   "KapacitorAlert": {
-    "dataSource": "mongodb",
+    "dataSource": "mongodb"
   },
   "Email": {
     "dataSource": "sendgrid",
