@@ -338,6 +338,69 @@ module.exports = function(Account) {
     return account
   }
 
+  const calculatePortfolio = async ({account, addresses, cb, err, start_time}) => {
+    if (err) {
+      // metrics
+      measureMetric(constants.METRICS.get_portfolio.failed, start_time);
+      cb && cb(err)
+      return err
+    }
+
+    const addressList = addresses.map(a=>a.id).join(',')
+    const balances = !addressList ? {} : await app.default.models.Balance.getBalances(addressList).catch(e=>err=e)
+
+    if (err) {
+      // metrics
+      measureMetric(constants.METRICS.get_portfolio.failed, start_time);
+      cb && cb(err)
+      return err
+    }
+
+    const symbols = Object.keys(balances)
+    const symbolList = symbols.concat(account.watchList).join(',')
+    let { priceMap, watchListTokens } = await all({
+      priceMap: !symbolList ? {} : app.default.models.Ticker.currentPrices(symbolList, 'USD'),
+      watchListTokens: getTokensBySymbol(account.watchList)
+    })
+    const prices = symbols.map(mapPrice.bind(null, priceMap))
+    const watchListPrices = account.watchList.map(mapPrice.bind(null, priceMap))
+    const watchList = watchListTokens.map((token, i)=>({
+      ...token,
+      ...watchListPrices[i],
+      symbol: account.watchList[i]
+    }))
+    const tokens = symbols.map((symbol, i)=>({
+      symbol: symbol,
+      balance: balances[symbol] || 0,
+      ...TOKEN_CONTRACTS[symbol],
+      ...prices[i],
+      priceChange: getPriceChange({...prices[i], balance: balances[symbol] || 0 }),
+      priceChange7d: getPriceChange({price: prices[i].price, change: prices[i].change7d, balance: balances[symbol] || 0})
+    })).sort((a,b)=>Math.abs(a.priceChange) > Math.abs(b.priceChange) ? -1 : 1)
+    const totalValue = tokens.reduce(
+      (acc, curr) => acc += (curr.price * curr.balance), 0);
+    const totalPriceChange = tokens.reduce(
+      (acc, curr) => acc + (curr.priceChange), 0)
+    const totalPriceChange7d = tokens.reduce(
+      (acc, curr) => acc + (curr.priceChange7d), 0)
+    const totalPriceChangePct = (1-totalValue/(totalValue+totalPriceChange))*100
+    const totalPriceChangePct7d = (1-totalValue/(totalValue+totalPriceChange7d))*100
+    metrics
+    measureMetric(constants.METRICS.get_portfolio.failed, start_time);
+    const portfolio = {
+      watchList,
+      tokens,
+      totalValue,
+      totalPriceChange,
+      totalPriceChangePct,
+      totalPriceChange7d,
+      totalPriceChangePct7d,
+      top: []
+    }
+    cb && cb(null, portfolio)
+    return portfolio
+  }
+
   const getAccount = async (id) => {
     let err = null
     const account = await Account.findById(id).catch(e=>{err=e})
@@ -392,70 +455,31 @@ module.exports = function(Account) {
   };
 
   Account.prototype.getPortfolio = async function (cb) {
-
     const start_time = new Date().getTime();
 
     let {err, account} = await getAccount(this.id);
-    if (err) {
-      // metrics
-      measureMetric(constants.METRICS.get_portfolio.failed, start_time);
-      cb && cb(err)
-      return err
-    }
-    const { addresses } = account
-    const addressList = addresses.map(a=>a.id).join(',')
-    const balances = !addressList ? {} : await app.default.models.Balance.getBalances(addressList).catch(e=>err=e)
 
-    if (err) {
-      // metrics
-      measureMetric(constants.METRICS.get_portfolio.failed, start_time);
-      cb && cb(err)
-      return err
-    }
+    return calculatePortfolio({
+      account,
+      err,
+      cb,
+      start_time,
+      addresses: account.addresses
+    });
+  };
 
-    const symbols = Object.keys(balances)
-    const symbolList = symbols.concat(account.watchList).join(',')
-    let { priceMap, watchListTokens } = await all({
-      priceMap: !symbolList ? {} : app.default.models.Ticker.currentPrices(symbolList, 'USD'),
-      watchListTokens: getTokensBySymbol(account.watchList)
-    })
-    const prices = symbols.map(mapPrice.bind(null, priceMap))
-    const watchListPrices = account.watchList.map(mapPrice.bind(null, priceMap))
-    const watchList = watchListTokens.map((token, i)=>({
-      ...token,
-      ...watchListPrices[i],
-      symbol: account.watchList[i]
-    }))
-    const tokens = symbols.map((symbol, i)=>({
-      symbol: symbol,
-      balance: balances[symbol] || 0,
-      ...TOKEN_CONTRACTS[symbol],
-      ...prices[i],
-      priceChange: getPriceChange({...prices[i], balance: balances[symbol] || 0 }),
-      priceChange7d: getPriceChange({price: prices[i].price, change: prices[i].change7d, balance: balances[symbol] || 0})
-    })).sort((a,b)=>Math.abs(a.priceChange) > Math.abs(b.priceChange) ? -1 : 1)
-    const totalValue = tokens.reduce(
-      (acc, curr) => acc += (curr.price * curr.balance), 0);
-    const totalPriceChange = tokens.reduce(
-      (acc, curr) => acc + (curr.priceChange), 0)
-    const totalPriceChange7d = tokens.reduce(
-      (acc, curr) => acc + (curr.priceChange7d), 0)
-    const totalPriceChangePct = (1-totalValue/(totalValue+totalPriceChange))*100
-    const totalPriceChangePct7d = (1-totalValue/(totalValue+totalPriceChange7d))*100
-    // metrics
-    measureMetric(constants.METRICS.get_portfolio.failed, start_time);
-    const portfolio = {
-      watchList,
-      tokens,
-      totalValue,
-      totalPriceChange,
-      totalPriceChangePct,
-      totalPriceChange7d,
-      totalPriceChangePct7d,
-      top: []
-    }
-    cb && cb(null, portfolio)
-    return portfolio
+  Account.prototype.refreshBalances = async function (cb) {
+    const start_time = new Date().getTime();
+
+    let {err, account} = await getAccount(this.id);
+
+    return calculatePortfolio({
+      account,
+      err,
+      cb,
+      start_time,
+      addresses: account.wallets
+    });
   };
 
   const periodInterval = {
@@ -778,6 +802,7 @@ module.exports = function(Account) {
     description: 'Add an ethereum address to a user\'s wallet'
   });
 
+<<<<<<< HEAD
   Account.remoteMethod('deleteWallet', {
     isStatic: false,
     http: {
@@ -796,6 +821,20 @@ module.exports = function(Account) {
       "type": "account"
     },
     description: 'Delete an ethereum address from a user\'s wallet'
+=======
+  Account.remoteMethod('refreshBalances', {
+    isStatic: false,
+    http: {
+      path: '/wallets/refreshBalances',
+      verb: 'get',
+    },
+    returns: {
+      root: true,
+    },
+    description: ['Gets the total balance for the specified Ethereum Address ',
+      'in the user\'s wallet ',
+      'as well as its tokens, their respective prices, and balances'],
+>>>>>>> Add new route for refreshing wallet balances
   });
 
   Account.remoteMethod('addToWatchList', {
