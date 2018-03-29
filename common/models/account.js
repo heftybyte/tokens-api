@@ -788,7 +788,6 @@ module.exports = function(Account) {
     description: 'Add an ethereum address to a user\'s wallet'
   });
 
-<<<<<<< HEAD
   Account.remoteMethod('deleteWallet', {
     isStatic: false,
     http: {
@@ -807,7 +806,8 @@ module.exports = function(Account) {
       "type": "account"
     },
     description: 'Delete an ethereum address from a user\'s wallet'
-=======
+  });
+
   Account.remoteMethod('refreshBalances', {
     isStatic: false,
     http: {
@@ -820,7 +820,6 @@ module.exports = function(Account) {
     description: ['Gets the total balance for the specified Ethereum Address ',
       'in the user\'s wallet ',
       'as well as its tokens, their respective prices, and balances'],
->>>>>>> Add new route for refreshing wallet balances
   });
 
   Account.remoteMethod('addToWatchList', {
