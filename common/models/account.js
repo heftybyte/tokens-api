@@ -385,7 +385,7 @@ module.exports = function(Account) {
       (acc, curr) => acc + (curr.priceChange7d), 0)
     const totalPriceChangePct = (1-totalValue/(totalValue+totalPriceChange))*100
     const totalPriceChangePct7d = (1-totalValue/(totalValue+totalPriceChange7d))*100
-    metrics
+    // metrics
     measureMetric(constants.METRICS.get_portfolio.failed, start_time);
     const portfolio = {
       watchList,
