@@ -385,7 +385,7 @@ module.exports = function(Account) {
       (acc, curr) => acc + (curr.priceChange7d), 0)
     const totalPriceChangePct = (1-totalValue/(totalValue+totalPriceChange))*100
     const totalPriceChangePct7d = (1-totalValue/(totalValue+totalPriceChange7d))*100
-    // metrics
+
     measureMetric(constants.METRICS.get_portfolio.failed, start_time);
     const portfolio = {
       watchList,
@@ -595,6 +595,56 @@ module.exports = function(Account) {
       return cb(null, newAccount)
     }
     return cb(null, account)
+  }
+
+  Account.changeEmail = async (data, cb) => {
+    const { oldEmail, newEmail, password } = data
+    let { err, account } = await Account.findOne({'email': oldEmail, 'password': Account.hashPassword(password)})
+    if(err)return cb(err)
+    if(!account){
+      const err = new Error('invalid previous password or email')
+      cb(err)
+      return err
+    }
+
+    const existEmail = await Account.findOne({'email': newEmail}).catch(e=>err=e)
+    if(err)return cb(err)
+
+    if(existEmail){
+      const err = new Error('Email already exists')
+      cb(err)
+      return
+    }
+
+    const result = account.updateAttribute('email', newEmail).catch(e=>err=e)
+    if(err) return cb(err)
+    cb(null, result)
+    return result
+  }
+
+  Account.changeUsername = async ( data, cb) => {
+    const {  newUsername, password } = data
+    let { err, account } = await Account.findOne({'password': Account.hashPassword(password)})
+    if(err) return cb(err)
+
+    if(!data){
+      const err = new Error('password invalid')
+      cb(err)
+      return
+    }
+
+    const usernameExists = await Account.findOne({'username': newUsername}).catch(e=>err=e)
+    if(err) return cb(err)
+
+    if(!usernameExists){
+      let {err, data} = account.updateAttribute('username', newUsername).catch(e=>err=e)
+      if(err) return cb(err)
+      cb(null, data)
+      return
+    }
+    err = new Error('username exists')
+    cb(err)
+    return
   }
 
   Account.logout = async function(accessToken, data, fn) {
@@ -939,6 +989,46 @@ module.exports = function(Account) {
     },
     description: ['Gets the total balance across all ethereum addresses',
       'as well as its tokens, their respective prices, and balances'],
+  });
+
+  Account.remoteMethod('changeEmail', {
+    isStatic: false,
+    http: {
+      path: '/change-email',
+      verb: 'post',
+    },
+    accepts: [{
+      arg: 'data',
+      type: 'string',
+      http: {
+        source: 'body'
+      },
+      'description': 'Contains oldEmail, newEmail, password'
+    }],
+    returns: {
+      root: true,
+    },
+    description: ['Change Email adddress of a user'],
+  });
+
+  Account.remoteMethod('changeUsername', {
+    isStatic: false,
+    http: {
+      path: '/change-username',
+      verb: 'post',
+    },
+    accepts: [{
+      arg: 'data',
+      type: 'string',
+      http: {
+        source: 'body'
+      },
+      description: 'contains password and new username'
+    }],
+    returns: {
+      root: true,
+    },
+    description: ['Change the username of a user'],
   });
 
 
