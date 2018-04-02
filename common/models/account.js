@@ -597,54 +597,67 @@ module.exports = function(Account) {
     return cb(null, account)
   }
 
-  Account.changeEmail = async (data, cb) => {
+  Account.prototype.changeEmail = async function (data, cb) {
     const { oldEmail, newEmail, password } = data
-    let { err, account } = await Account.findOne({'email': oldEmail, 'password': Account.hashPassword(password)})
+
+    let hasPassword = await this.hasPassword(password).catch(e=>err=e)
     if(err)return cb(err)
-    if(!account){
-      const err = new Error('invalid previous password or email')
-      cb(err)
-      return err
+
+    if(!hasPassword){
+      const err = new Error('invalid previous password')
+      err.status = 400
+      return cb(err)
     }
 
-    const existEmail = await Account.findOne({'email': newEmail}).catch(e=>err=e)
-    if(err)return cb(err)
+    const existEmail = await Account.findOne({where: {'email': newEmail}}).catch(e=>err=e)
+    if(err) return cb(err)
 
     if(existEmail){
       const err = new Error('Email already exists')
-      cb(err)
-      return
+      err.status = 400
+      return cb(err)
     }
 
-    const result = account.updateAttribute('email', newEmail).catch(e=>err=e)
+    const account = await Account.findOne({where:{'email': oldEmail }}).catch(e=>err=e)
     if(err) return cb(err)
-    cb(null, result)
-    return result
+
+    if(!account){
+      const err = new Error('invalid previous email')
+      err.status = 400
+      return cb(err)
+    }
+
+    const result = await account.updateAttribute('email', newEmail).catch(e=>err=e)
+    if(err) return cb(err)
+    return cb(null, result)
   }
 
-  Account.changeUsername = async ( data, cb) => {
+  Account.prototype.changeUsername = async function ( data, cb) {
     const {  newUsername, password } = data
-    let { err, account } = await Account.findOne({'password': Account.hashPassword(password)})
+    let hasPassword = await this.hasPassword(password).catch(e=>err=e)
     if(err) return cb(err)
 
-    if(!data){
+    if(!hasPassword){
       const err = new Error('password invalid')
-      cb(err)
-      return
+      err.status = 400
+      return cb(err)
     }
 
-    const usernameExists = await Account.findOne({'username': newUsername}).catch(e=>err=e)
+    const usernameExists = await Account.findOne({where: {'username': newUsername}}).catch(e=>err=e)
     if(err) return cb(err)
 
-    if(!usernameExists){
-      let {err, data} = account.updateAttribute('username', newUsername).catch(e=>err=e)
-      if(err) return cb(err)
-      cb(null, data)
-      return
+    if(usernameExists){
+      err = new Error('username exists')
+      err.status = 400
+      return cb(err)
     }
-    err = new Error('username exists')
-    cb(err)
-    return
+
+    let {account, err} = await getAccount(this.id)
+    if(err) return cb(err)
+
+    const result = await account.updateAttribute('username', newUsername).catch(e=>err=e)
+    if(err) return cb(err)
+    return cb(null, result)
   }
 
   Account.logout = async function(accessToken, data, fn) {
@@ -997,14 +1010,14 @@ module.exports = function(Account) {
       path: '/change-email',
       verb: 'post',
     },
-    accepts: [{
+    accepts: {
       arg: 'data',
-      type: 'string',
+      type: 'object',
       http: {
         source: 'body'
       },
       'description': 'Contains oldEmail, newEmail, password'
-    }],
+    },
     returns: {
       root: true,
     },
@@ -1019,7 +1032,7 @@ module.exports = function(Account) {
     },
     accepts: [{
       arg: 'data',
-      type: 'string',
+      type: 'object',
       http: {
         source: 'body'
       },
