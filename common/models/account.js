@@ -468,6 +468,20 @@ module.exports = function(Account) {
     });
   };
 
+  Account.prototype.refreshBalances = async function (cb) {
+    const start_time = new Date().getTime();
+
+    let {err, account} = await getAccount(this.id);
+
+    return calculatePortfolio({
+      account,
+      err,
+      cb,
+      start_time,
+      addresses: account.wallets
+    });
+  };
+
   const periodInterval = {
     '1d': '5m',
     '1w': '10m',
