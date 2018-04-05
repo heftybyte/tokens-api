@@ -100,25 +100,25 @@
       "principalType": "ROLE",
       "principalId": "$everyone",
       "permission": "DENY",
-      "property": "getPortfolio"
+      "property": "getEntirePortfolio"
     },
     {
       "principalType": "ROLE",
       "principalId": "$owner",
       "permission": "ALLOW",
-      "property": "getPortfolio"
+      "property": "getEntirePortfolio"
     },
     {
       "principalType": "ROLE",
       "principalId": "$everyone",
       "permission": "DENY",
-      "property": "getPortfolioTicker"
+      "property": "getEntirePortfolioChart"
     },
     {
       "principalType": "ROLE",
       "principalId": "$owner",
       "permission": "ALLOW",
-      "property": "getPortfolioChart"
+      "property": "getEntirePortfolioChart"
     },
     {
       "principalType": "ROLE",

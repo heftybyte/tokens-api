@@ -338,14 +338,8 @@ module.exports = function(Account) {
     return account
   }
 
-  const calculatePortfolio = async ({account, addresses, cb, err, start_time}) => {
-    if (err) {
-      // metrics
-      measureMetric(constants.METRICS.get_portfolio.failed, start_time);
-      cb && cb(err)
-      return err
-    }
-
+  const calculatePortfolio = async ({account, addresses, cb, start_time}) => {
+    let err
     const addressList = addresses.map(a=>a.id).join(',')
     const balances = !addressList ? {} : await app.default.models.Balance.getBalances(addressList).catch(e=>err=e)
 
@@ -454,14 +448,53 @@ module.exports = function(Account) {
     return { symbols, tokens }
   };
 
-  Account.prototype.getPortfolio = async function (cb) {
+  Account.prototype.getEntirePortfolio = async function (cb) {
+    const start_time = new Date().getTime();
+
+    const {err, account} = await getAccount(this.id);
+    if (err) {
+      // metrics
+      measureMetric(constants.METRICS.get_portfolio.failed, start_time);
+      cb && cb(err)
+      return err
+    }
+    return calculatePortfolio({
+      account,
+      cb,
+      start_time,
+      addresses: account.addresses
+    });
+  };
+
+  const AccountTypes = {
+    'address': 'addresses',
+    'wallet': 'wallets',
+    'exchange-account': 'exchangeAccounts'
+  }
+  Account.prototype.getPortfolio = async function (type, id, cb) {
     const start_time = new Date().getTime();
 
     let {err, account} = await getAccount(this.id);
+    if (err) {
+      // metrics
+      measureMetric(constants.METRICS.get_portfolio.failed, start_time);
+      cb && cb(err)
+      return err
+    }
+
+    const accountType = AccountTypes[type]
+    const accounts = account[accountType] || []
+    if (!accounts.find(a=>a.id===id)) {
+      err = new Error('Unauthorized Access')
+      err.status = 401
+      cb && cb(err)
+      return err
+    }
+
+    let addresses = [id]
 
     return calculatePortfolio({
       account,
-      err,
       cb,
       start_time,
       addresses: account.addresses
@@ -477,9 +510,10 @@ module.exports = function(Account) {
     'all': '1w'
   }
 
-  Account.prototype.getPortfolioChart = async function (period='1m', cb) {
+  const calculatePortfolioChart = async ({period='1m', addresses, cb}) => {
     let err = null
-    const addressList = this.addresses.map(a=>a.id).join(',')
+    const addressList = addresses.map(a=>a.id).join(',')
+    console.log({addressList,cb})
     const balances = !addressList ? {} : await app.default.models.Balance.getBalances(addressList).catch(e=>err=e)
     const symbols = Object.keys(balances)
     if (err || !symbols.length) {
@@ -524,6 +558,38 @@ module.exports = function(Account) {
     cb(null, chartData)
     return chartData
   };
+
+  Account.prototype.getEntirePortfolioChart = async function (period, cb) {
+    let {err, account} = await getAccount(this.id);
+    return calculatePortfolioChart({
+      addresses: account.addresses,
+      period,
+      cb
+    });
+  };
+
+
+  Account.prototype.getPortfolioChart = async function (type, id, period, cb) {
+    let {err, account} = await getAccount(this.id);
+    if (err) {
+      cb && cb(err)
+      return err
+    }
+    const accountType = AccountTypes[type]
+    const accounts = account[accountType] || []
+    if (!accounts.find(a=>a.id===id)) {
+      err = new Error('Unauthorized Access')
+      err.status = 401
+      cb && cb(err)
+      return err
+    }
+    return calculatePortfolioChart({
+      addresses: [id],
+      period,
+      cb
+    });
+  };
+
 
   const getPriceChange = ({price, balance, change}) => {
     const totalValue = price * (balance || 1)
@@ -908,7 +974,7 @@ module.exports = function(Account) {
     description: 'Delete an ethereum address from a user\'s account'
   });
 
-  Account.remoteMethod('getPortfolio', {
+  Account.remoteMethod('getEntirePortfolio', {
     isStatic: false,
     http: {
       path: '/portfolio',
@@ -921,7 +987,38 @@ module.exports = function(Account) {
       'as well as its tokens, their respective prices, and balances'],
   });
 
-  Account.remoteMethod('getPortfolioChart', {
+  Account.remoteMethod('getPortfolio', {
+    isStatic: false,
+    http: {
+      path: '/portfolio/:type/:id',
+      verb: 'get',
+    },
+    accepts: [
+      {
+        arg: 'type',
+        type: 'string',
+        http: {
+          source: 'path'
+        },
+        description: 'all|wallet|exchange|address',
+      },
+      {
+        arg: 'id',
+        type: 'string',
+        http: {
+          source: 'path'
+        },
+        description: 'account id for type != all',
+      }
+    ],
+    returns: {
+      root: true,
+    },
+    description: ['Gets the total balance for the specified account ',
+      'as well as its tokens, their respective prices, and balances'],
+  });
+
+  Account.remoteMethod('getEntirePortfolioChart', {
     isStatic: false,
     http: {
       path: '/portfolio-chart',
@@ -941,5 +1038,41 @@ module.exports = function(Account) {
       'as well as its tokens, their respective prices, and balances'],
   });
 
-
+  Account.remoteMethod('getPortfolioChart', {
+    isStatic: false,
+    http: {
+      path: '/portfolio-chart/:type/:id',
+      verb: 'get',
+    },
+    accepts: [
+      {
+        arg: 'type',
+        type: 'string',
+        http: {
+          source: 'path'
+        },
+        description: 'all|wallet|exchange|address',
+      },
+      {
+        arg: 'id',
+        type: 'string',
+        http: {
+          source: 'path'
+        },
+        description: 'account id for type != all',
+      },
+      {
+        arg: 'period',
+        type: 'string',
+        http: {
+          source: 'query'
+        }
+      }
+    ],
+    returns: {
+      root: true,
+    },
+    description: ['Gets the total balance across all ethereum addresses',
+      'as well as its tokens, their respective prices, and balances'],
+  });
 };
