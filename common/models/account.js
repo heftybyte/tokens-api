@@ -18,6 +18,7 @@ const TOP_N = 100
 import { measureMetric } from '../../lib/statsd';
 
 import web3 from '../../lib/web3'
+import { generateTwoFactorKey, verifyTwoFactorToken } from '../../lib/two-factor-auth';
 
 const INVITE_ENABLED = false
 
@@ -660,6 +661,26 @@ module.exports = function(Account) {
     return cb(null, result)
   }
 
+  Account.prototype.enableTwoFactorAuth = async function(data, cb){
+    let {account, err} =  await getAccount(this.id)
+    const authSecret = generateTwoFactorKey()
+    const result = await  account.updateAttribute('two_factor_secret', authSecret).catch(e=>err=e)
+    if(err) return cb(err)
+    return cb(null, result)
+  }
+
+  Account.prototype.validateTwoFactorToken = async function(data, cb){
+    const { token } = data
+    let {account, err} =  await getAccount(this.id)
+    const result = verifyTwoFactorToken(token, account.two_factor_secret)
+    if(!result){
+      const err = new Error('token not valid')
+      err.status = 400
+      return cb(err)
+    }
+    cb(null, result)
+  }
+
   Account.logout = async function(accessToken, data, fn) {
     fn = fn || utils.createPromiseCallback();
     let tokenId = accessToken && accessToken.id
@@ -1042,6 +1063,39 @@ module.exports = function(Account) {
       root: true,
     },
     description: ['Change the username of a user'],
+  });
+
+  Account.remoteMethod('enableTwoFactorAuth', {
+    isStatic: false,
+    http: {
+      path: '/two-factor/enable',
+      verb: 'post',
+    },
+    accepts: [],
+    returns: {
+      root: true,
+    },
+    description: ['Enable two factor auth'],
+  });
+
+  Account.remoteMethod('verifyTwoFactorToken', {
+    isStatic: false,
+    http: {
+      path: '/two-factor/verify',
+      verb: 'post',
+    },
+    accepts: [{
+      arg: 'data',
+      type: 'object',
+      http: {
+        source: 'body'
+      },
+      description: 'contains token'
+    }],
+    returns: {
+      root: true,
+    },
+    description: ['Verify two factor token'],
   });
 
 
