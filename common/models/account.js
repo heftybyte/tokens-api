@@ -661,18 +661,23 @@ module.exports = function(Account) {
     return cb(null, result)
   }
 
-  Account.prototype.enableTwoFactorAuth = async function(data, cb){
+  Account.prototype.enableTwoFactorAuth = async function(cb){
     let {account, err} =  await getAccount(this.id)
-    const authSecret = generateTwoFactorKey()
+    const authSecret = await generateTwoFactorKey()
     const result = await  account.updateAttribute('two_factor_secret', authSecret).catch(e=>err=e)
     if(err) return cb(err)
     return cb(null, result)
   }
 
   Account.prototype.validateTwoFactorToken = async function(data, cb){
-    const { token } = data
+    const { token, time } = data
+    console.log('token')
+    console.log(token)
     let {account, err} =  await getAccount(this.id)
-    const result = verifyTwoFactorToken(token, account.two_factor_secret)
+    console.log(account.two_factor_secret)
+
+    const result = await verifyTwoFactorToken(token, account.two_factor_secret, time)
+    console.log(result)
     if(!result){
       const err = new Error('token not valid')
       err.status = 400
@@ -1078,7 +1083,7 @@ module.exports = function(Account) {
     description: ['Enable two factor auth'],
   });
 
-  Account.remoteMethod('verifyTwoFactorToken', {
+  Account.remoteMethod('validateTwoFactorToken', {
     isStatic: false,
     http: {
       path: '/two-factor/verify',
