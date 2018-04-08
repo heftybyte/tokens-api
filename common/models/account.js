@@ -671,13 +671,8 @@ module.exports = function(Account) {
 
   Account.prototype.validateTwoFactorToken = async function(data, cb){
     const { token, time } = data
-    console.log('token')
-    console.log(token)
     let {account, err} =  await getAccount(this.id)
-    console.log(account.two_factor_secret)
-
-    const result = await verifyTwoFactorToken(token, account.two_factor_secret, time)
-    console.log(result)
+    const result = await verifyTwoFactorToken(token, account.two_factor_secret)
     if(!result){
       const err = new Error('token not valid')
       err.status = 400
