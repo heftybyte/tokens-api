@@ -37,9 +37,15 @@
     },
     "feedState": {
       "type": {
-        "news": ["string"],
-        "ad": ["string"],
-        "user": ["string"],
+        "news": [
+          "string"
+        ],
+        "ad": [
+          "string"
+        ],
+        "user": [
+          "string"
+        ],
         "slot": "number",
         "lastReset": {
           "type": "date",
@@ -179,6 +185,18 @@
       "principalId": "$owner",
       "permission": "ALLOW",
       "property": "deleteWallet"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$owner",
+      "permission": "ALLOW",
+      "property": "addExchangeAccount"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$owner",
+      "permission": "ALLOW",
+      "property": "deleteExchangeAccount"
     },
     {
       "principalType": "ROLE",

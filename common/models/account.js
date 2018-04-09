@@ -274,7 +274,7 @@ module.exports = function(Account) {
   }
 
   Account.prototype.addWallet = async function (data, cb) {
-    let { id, address } = data
+    let { address, platform } = data
     let err = null
 
     address = address.toLowerCase()
@@ -291,7 +291,7 @@ module.exports = function(Account) {
       return err
     }
 
-    this.wallets.push({id: address})
+    this.wallets.push({id: address, platform})
     let account = await this.save().catch(e=>err=e)
 
     if (err) {
@@ -324,6 +324,63 @@ module.exports = function(Account) {
     }
 
     account.wallets.splice(addressIndex, 1)
+    await account.save().catch(e=>err=e)
+
+    if (err) {
+      err = new Error('Could not update account')
+      err.status = 500
+      console.log(err)
+      cb(err)
+      return err
+    }
+
+    cb(null, account)
+    return account
+  }
+
+  Account.prototype.addExchangeAccount = async function (data, cb) {
+    const { key, secret, name, passphrase, exchangeId } = data
+    console.log({ accountId: this.id, key, secret, name, passphrase, exchangeId })
+    let err = null
+
+    if (this.exchangeAccounts.find((acct)=> acct.key.toLowerCase() === key.toLowerCase()) ) {
+      err = new Error('This exchange account has already been added for this user')
+      err.status = 422
+      cb(err)
+      return err
+    }
+
+    this.exchangeAccounts.push({ id: uuidv4(), key, secret, name, passphrase, exchangeId })
+    let account = await this.save().catch(e=>err=e)
+
+    if (err) {
+      err.status = 500
+      cb(err);
+      return err
+    }
+
+    cb(null, account)
+    return account
+  }
+
+  Account.prototype.deleteExchangeAccount = async function (id, cb) {
+    let { err, account } = await getAccount(this.id)
+
+    if (err) {
+      cb(err)
+      return err
+    }
+
+    const acctIndex = account.exchangeAccounts.findIndex(acct=>acct.id === id)
+
+    if (acctIndex === -1) {
+      err = new Error(`The account ${id} does not belong to the user`)
+      err.status = 404
+      cb(err)
+      return err
+    }
+
+    account.exchangeAccounts.splice(acctIndex, 1)
     await account.save().catch(e=>err=e)
 
     if (err) {
@@ -840,7 +897,7 @@ module.exports = function(Account) {
     },
     accepts: [
       {
-        arg: 'address',
+        arg: 'data',
         type: 'object',
         http: {
           source: 'body'
@@ -872,6 +929,48 @@ module.exports = function(Account) {
       "type": "account"
     },
     description: 'Delete an ethereum address from a user\'s wallet'
+  });
+
+  Account.remoteMethod('addExchangeAccount', {
+    isStatic: false,
+    http: {
+      path: '/exchangeAccounts',
+      verb: 'post'
+    },
+    accepts: [
+      {
+        arg: 'data',
+        type: 'object',
+        http: {
+          source: 'body'
+        }
+      }
+    ],
+    returns: {
+      root: true,
+      type: 'account'
+    },
+    description: 'Add an 3rd party exchange account to a user\'s account'
+  });
+
+  Account.remoteMethod('deleteExchangeAccount', {
+    isStatic: false,
+    http: {
+      path: '/exchangeAccounts/:id',
+      verb: 'delete',
+    },
+    accepts: {
+      arg: 'id',
+      type: 'string',
+      http: {
+        source: 'path'
+      }
+    },
+    returns: {
+      "root": true,
+      "type": "account"
+    },
+    description: 'Delete a 3rd party exchange account from the user'
   });
 
   Account.remoteMethod('refreshBalances', {

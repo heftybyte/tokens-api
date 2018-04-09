@@ -17,6 +17,8 @@
     "scrape": "node ./scripts/scraper.js",
     "seed-feed": "babel-node ./scripts/seed-feed.js",
     "seed-tokens": "babel-node ./scripts/seed-tokens.js",
+    "seed-exchanges": "babel-node ./scripts/seed-exchanges.js",
+    "seed-blockchains": "babel-node ./scripts/seed-blockchains.js",
     "scrape-videos": "babel-node ./scripts/add-token-videos.js"
   },
   "author": "",

@@ -26,10 +26,10 @@
       "type": "date",
       "defaultFn": "now"
     },
-    "updatedAt":{
+    "updatedAt": {
       "type": "date"
     },
-    "task_id":{
+    "task_id": {
       "type": "string"
     },
     "script_id": {

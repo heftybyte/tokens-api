@@ -1,0 +1,22 @@
+[
+  {
+      "name": "Bitcoin",
+      "website": "https://bitcoin.org/",
+      "asset": "BTC"
+  },
+  {
+      "name": "Ethereum",
+      "website": "https://ethereum.org/",
+      "asset": "ETH"
+  },
+  {
+      "name": "NEO",
+      "website": "https://neo.org/",
+      "asset": "NEO"
+  },
+  {
+      "name": "Stellar",
+      "website": "https://www.stellar.org/",
+      "asset": "XLM"
+  }
+]
