@@ -19,7 +19,7 @@ import { measureMetric } from '../../lib/statsd';
 
 import web3 from '../../lib/web3'
 
-const INVITE_ENABLED = false
+const INVITE_ENABLED = true
 
 const defaultPriceData = {
   price: 0,
@@ -52,7 +52,7 @@ module.exports = function(Account) {
     let err = null, Invite = app.default.models.Invite;
 
     const invite = INVITE_ENABLED &&
-      await Invite.findOne({where: {invite_code: data.code}}).catch(e=>err=e)
+      await Invite.findOne({where: {invite_code: data.invite_code}}).catch(e=>err=e)
 
     if (err){
 
@@ -65,27 +65,33 @@ module.exports = function(Account) {
       return cb(err);
     }
 
-    if (!invite && INVITE_ENABLED) {
+    // if (!invite && INVITE_ENABLED) {
 
-      // metrics
-      measureMetric(constants.METRICS.register.invalid_code, start_time);
+    //   // metrics
+    //   measureMetric(constants.METRICS.register.invalid_code, start_time);
 
-      err = new Error("You need a valid invitation code to register.\nTweet @tokens_express to get one.");
-      err.statusCode = 400;
-      return cb(err);
-    } else if (!invite.claimed || !INVITE_ENABLED) {
+    //   err = new Error("You need a valid invitation code to register.\nTweet @tokens_express to get one.");
+    //   err.statusCode = 400;
+    //   return cb(err);
+    // } else 
+
+    if (!invite || !invite.claimed || !INVITE_ENABLED) {
 
       // metrics
       measureMetric(constants.METRICS.register.success, start_time);
 
-      delete data.code
-      const instance = await Account.create(data).catch(e=>err=e)
+      const instance = await Account.create({
+        username: data.username,
+        password: data.password,
+        email: data.email,
+        invite_code: data.invite_code
+      }).catch(e=>err=e)
       if (err) {
         err = new Error(err.message);
         err.status = 400;
         return cb(err);
       }
-      if (INVITE_ENABLED) {
+      if (invite && INVITE_ENABLED) {
         invite.claimed = true
         await invite.save().catch(e=>err=e)
         if (err) {

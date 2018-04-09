@@ -35,6 +35,9 @@
       "type": "date",
       "defaultFn": "now"
     },
+    "invite_code": {
+      "type": "string"
+    },
     "feedState": {
       "type": {
         "news": [
