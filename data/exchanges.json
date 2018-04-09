@@ -1,0 +1,133 @@
+[
+  {
+      "name": "Bibox",
+      "website": "https://www.bibox.com",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "Binance",
+      "website": "https://www.binance.com",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "Bit-Z",
+      "website": "https://www.bit-z.com/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "Bitbank",
+      "website": "https://bitbank.cc/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "Bitfinex",
+      "website": "https://www.bitfinex.com/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "bitFlyer",
+      "website": "https://bitflyer.com",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "Bittrex",
+      "website": "https://bittrex.com/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "Bitstamp",
+      "website": "https://www.bitstamp.net/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "Bithumb",
+      "website": "https://www.bithumb.com/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "BTCBOX",
+      "website": " https://www.btcbox.co.jp/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "BTCC",
+      "website": "https://exchange.btcc.com/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "Coinone",
+      "website": "https://coinone.co.kr/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "EXMO",
+      "website": "https://exmo.com/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "EXX",
+      "website": "https://www.exx.com/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "Gate.io",
+      "website": "https://gate.io/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "GDAX",
+      "website": "https://www.gdax.com/",
+      "requiresPassphrase": true
+  },
+  {
+      "name": "Gemini",
+      "website": "https://gemini.com/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "HitBTC",
+      "website": "https://hitbtc.com/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "Huobi",
+      "website": "https://www.huobi.pro/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "Kraken",
+      "website": "https://www.kraken.com",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "Kucoin",
+      "website": "https://www.kucoin.com/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "LBANK",
+      "name": "LBANK",
+      "website": "https://www.lbank.info/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "Liqui",
+      "website": "https://liqui.io/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "Poloniex",
+      "website": "https://poloniex.com/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "Wex",
+      "website": "https://wex.nz/",
+      "requiresPassphrase": false
+  },
+  {
+      "name": "ZB",
+      "website": "https://www.zb.com/",
+      "requiresPassphrase": false
+  }
+]

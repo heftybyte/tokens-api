@@ -46,7 +46,7 @@
         "NORMAL",
         "ROUND"
       ]
-    },  
+    },
     "ethPrice": {
       "type": "string"
     },
