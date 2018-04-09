@@ -442,7 +442,7 @@ module.exports = function(Account) {
       (acc, curr) => acc + (curr.priceChange7d), 0)
     const totalPriceChangePct = (1-totalValue/(totalValue+totalPriceChange))*100
     const totalPriceChangePct7d = (1-totalValue/(totalValue+totalPriceChange7d))*100
-    // metrics
+
     measureMetric(constants.METRICS.get_portfolio.failed, start_time);
     const portfolio = {
       watchList,
@@ -724,6 +724,69 @@ module.exports = function(Account) {
       return cb(null, newAccount)
     }
     return cb(null, account)
+  }
+
+  Account.prototype.changeEmail = async function (data, cb) {
+    const { oldEmail, newEmail, password } = data
+
+    let hasPassword = await this.hasPassword(password).catch(e=>err=e)
+    if(err)return cb(err)
+
+    if(!hasPassword){
+      const err = new Error('invalid previous password')
+      err.status = 400
+      return cb(err)
+    }
+
+    const existEmail = await Account.findOne({where: {'email': newEmail}}).catch(e=>err=e)
+    if(err) return cb(err)
+
+    if(existEmail){
+      const err = new Error('Email already exists')
+      err.status = 400
+      return cb(err)
+    }
+
+    const account = await Account.findOne({where:{'email': oldEmail }}).catch(e=>err=e)
+    if(err) return cb(err)
+
+    if(!account){
+      const err = new Error('invalid previous email')
+      err.status = 400
+      return cb(err)
+    }
+
+    const result = await account.updateAttribute('email', newEmail).catch(e=>err=e)
+    if(err) return cb(err)
+    return cb(null, result)
+  }
+
+  Account.prototype.changeUsername = async function ( data, cb) {
+    const {  newUsername, password } = data
+    let hasPassword = await this.hasPassword(password).catch(e=>err=e)
+    if(err) return cb(err)
+
+    if(!hasPassword){
+      const err = new Error('password invalid')
+      err.status = 400
+      return cb(err)
+    }
+
+    const usernameExists = await Account.findOne({where: {'username': newUsername}}).catch(e=>err=e)
+    if(err) return cb(err)
+
+    if(usernameExists){
+      err = new Error('username exists')
+      err.status = 400
+      return cb(err)
+    }
+
+    let {account, err} = await getAccount(this.id)
+    if(err) return cb(err)
+
+    const result = await account.updateAttribute('username', newUsername).catch(e=>err=e)
+    if(err) return cb(err)
+    return cb(null, result)
   }
 
   Account.logout = async function(accessToken, data, fn) {
@@ -1179,5 +1242,45 @@ module.exports = function(Account) {
     },
     description: ['Gets the total balance across all ethereum addresses',
       'as well as its tokens, their respective prices, and balances'],
+  });
+ 
+  Account.remoteMethod('changeEmail', {
+    isStatic: false,
+    http: {
+      path: '/change-email',
+      verb: 'post',
+    },
+    accepts: {
+      arg: 'data',
+      type: 'object',
+      http: {
+        source: 'body'
+      },
+      'description': 'Contains oldEmail, newEmail, password'
+    },
+    returns: {
+      root: true,
+    },
+    description: ['Change Email adddress of a user'],
+  });
+
+  Account.remoteMethod('changeUsername', {
+    isStatic: false,
+    http: {
+      path: '/change-username',
+      verb: 'post',
+    },
+    accepts: [{
+      arg: 'data',
+      type: 'object',
+      http: {
+        source: 'body'
+      },
+      description: 'contains password and new username'
+    }],
+    returns: {
+      root: true,
+    },
+    description: ['Change the username of a user'],
   });
 };

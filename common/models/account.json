@@ -219,6 +219,20 @@
       "principalId": "$authenticated",
       "permission": "ALLOW",
       "property": "addNotificationToken"
+    },
+    {     
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "changeEmail"
+    },
+    {     
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "changeUsername"
     }
   ],
   "methods": {}
