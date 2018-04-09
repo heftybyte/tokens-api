@@ -18,10 +18,10 @@
       "type": "date",
       "defaultFn": "now"
     },
-    "updatedAt":{
+    "updatedAt": {
       "type": "date"
     },
-    "userId":{
+    "userId": {
       "type": "string"
     },
     "alert": {

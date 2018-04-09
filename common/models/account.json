@@ -35,11 +35,20 @@
       "type": "date",
       "defaultFn": "now"
     },
+    "invite_code": {
+      "type": "string"
+    },
     "feedState": {
       "type": {
-        "news": ["string"],
-        "ad": ["string"],
-        "user": ["string"],
+        "news": [
+          "string"
+        ],
+        "ad": [
+          "string"
+        ],
+        "user": [
+          "string"
+        ],
         "slot": "number",
         "lastReset": {
           "type": "date",
@@ -100,25 +109,25 @@
       "principalType": "ROLE",
       "principalId": "$everyone",
       "permission": "DENY",
-      "property": "getPortfolio"
+      "property": "getEntirePortfolio"
     },
     {
       "principalType": "ROLE",
       "principalId": "$owner",
       "permission": "ALLOW",
-      "property": "getPortfolio"
+      "property": "getEntirePortfolio"
     },
     {
       "principalType": "ROLE",
       "principalId": "$everyone",
       "permission": "DENY",
-      "property": "getPortfolioTicker"
+      "property": "getEntirePortfolioChart"
     },
     {
       "principalType": "ROLE",
       "principalId": "$owner",
       "permission": "ALLOW",
-      "property": "getPortfolioChart"
+      "property": "getEntirePortfolioChart"
     },
     {
       "principalType": "ROLE",
@@ -179,6 +188,18 @@
       "principalId": "$owner",
       "permission": "ALLOW",
       "property": "deleteWallet"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$owner",
+      "permission": "ALLOW",
+      "property": "addExchangeAccount"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$owner",
+      "permission": "ALLOW",
+      "property": "deleteExchangeAccount"
     },
     {
       "principalType": "ROLE",

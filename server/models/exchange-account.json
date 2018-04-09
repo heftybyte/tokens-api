@@ -2,14 +2,13 @@
   "name": "ExchangeAccount",
   "base": "Model",
   "idInjection": false,
-  "forceId": false,
   "options": {
     "validateUpsert": true
   },
+  "forceId": false,
   "properties": {
     "name": {
-      "type": "string",
-      "required": true
+      "type": "string"
     },
     "key": {
       "type": "string",

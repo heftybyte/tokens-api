@@ -10,10 +10,12 @@
       "type": "string",
       "required": true
     },
-    "type": {
+    "name": {
+      "type": "string"
+    },
+    "platform": {
       "type": "string",
-      "required": true,
-      "default": "ethereum"
+      "required": true
     }
   },
   "validations": [],
