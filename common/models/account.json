@@ -35,6 +35,10 @@
       "type": "date",
       "defaultFn": "now"
     },
+    "two_factor_secret": {
+      "type": "string",
+      "required": false
+    },
     "invite_code": {
       "type": "string"
     },
@@ -233,6 +237,20 @@
       "principalId": "$authenticated",
       "permission": "ALLOW",
       "property": "changeUsername"
+    },
+    {     
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "enableTwoFactorAuth"
+    },
+    {     
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "validateTwoFactorToken"
     }
   ],
   "methods": {}

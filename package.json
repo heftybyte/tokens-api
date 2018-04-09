@@ -70,7 +70,9 @@
     "request-promise": "^4.2.2",
     "serve-favicon": "^2.0.1",
     "simple-rate-limiter": "^0.2.3",
+    "speakeasy": "^2.0.0",
     "strong-error-handler": "^2.0.0",
+    "thirty-two": "^1.0.2",
     "uuid": "^3.2.1",
     "web3": "^1.0.0-beta.18",
     "write-json-file": "^2.3.0"
