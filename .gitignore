@@ -1,4 +1,5 @@
 node_modules
+data/serviceAccountKey.json
 dist
 deploy/parity-server.pem
 deploy/ecosystem.config.js.dev

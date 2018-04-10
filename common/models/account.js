@@ -11,6 +11,7 @@ import {
   TOKEN_CONTRACTS
 } from '../../lib/eth.js';
 import { all } from '../../lib/async-promise';
+import firebaseAdmin from '../../lib/firebaseAdmin'
 const app = require('../../server/server');
 const _ = require('lodash')
 const constants = require('../../constants/');
@@ -564,6 +565,16 @@ module.exports = function(Account) {
       addresses: account.addresses
     });
   };
+
+  Account.prototype.getFirebaseAuthToken = async function (cb) {
+    try {
+      const token = await firebaseAdmin.auth().createCustomToken(this.id.toString())
+      return cb(null, token)
+    } catch(err) {
+      console.log('err', err)
+      return cb(err)
+    }
+  }
 
   const periodInterval = {
     '1d': '5m',
@@ -1336,5 +1347,17 @@ module.exports = function(Account) {
       root: true,
     },
     description: ['Verify two factor token'],
+  });
+
+  Account.remoteMethod('getFirebaseAuthToken', {
+    isStatic: false,
+    http: {
+      path: '/firebase-auth-token',
+      verb: 'get',
+    },
+    returns: {
+      root: true,
+    },
+    description: ['Generates an access token for firebase'],
   });
 };

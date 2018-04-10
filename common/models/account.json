@@ -251,6 +251,13 @@
       "principalId": "$authenticated",
       "permission": "ALLOW",
       "property": "validateTwoFactorToken"
+    },
+    {     
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "getFirebaseAuthToken"
     }
   ],
   "methods": {}
