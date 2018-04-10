@@ -53,6 +53,10 @@
       "type": "number",
       "default": 0
     },
+    "bountyHunter": {
+      "type": "boolean",
+      "default": false
+    },
     "feedState": {
       "type": {
         "news": [
