@@ -257,7 +257,7 @@
       "principalType": "ROLE",
       "principalId": "$authenticated",
       "permission": "ALLOW",
-      "property": "getFirebaseAuth"
+      "property": "getFirebaseAuthToken"
     }
   ],
   "methods": {}

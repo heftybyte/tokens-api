@@ -566,11 +566,11 @@ module.exports = function(Account) {
     });
   };
 
-  Account.prototype.getFirebaseAuth = async function (cb) {
+  Account.prototype.getFirebaseAuthToken = async function (cb) {
     try {
-      const token = await firebaseAdmin.auth().createCustomToken(this.id)
-      return cb(null, { token })
-    } catch(e) {
+      const token = await firebaseAdmin.auth().createCustomToken(this.id.toString())
+      return cb(null, token)
+    } catch(err) {
       console.log('err', err)
       return cb(err)
     }
@@ -1349,10 +1349,10 @@ module.exports = function(Account) {
     description: ['Verify two factor token'],
   });
 
-  Account.remoteMethod('getFirebaseAuth', {
+  Account.remoteMethod('getFirebaseAuthToken', {
     isStatic: false,
     http: {
-      path: '/firebase-auth',
+      path: '/firebase-auth-token',
       verb: 'get',
     },
     returns: {
