@@ -75,7 +75,7 @@ module.exports = function(Account) {
     //   err = new Error("You need a valid invitation code to register.\nTweet @tokens_express to get one.");
     //   err.statusCode = 400;
     //   return cb(err);
-    // } else 
+    // } else
 
     if (!invite || !invite.claimed || !INVITE_ENABLED) {
 
@@ -407,6 +407,7 @@ module.exports = function(Account) {
     let err
     const addressList = addresses.map(a=>a.id).join(',')
     const balances = !addressList ? {} : await app.default.models.Balance.getBalances(addressList).catch(e=>err=e)
+    const userPreferredExchange = account.preference.currency
 
     if (err) {
       // metrics
@@ -418,7 +419,7 @@ module.exports = function(Account) {
     const symbols = Object.keys(balances)
     const symbolList = symbols.concat(account.watchList).join(',')
     let { priceMap, watchListTokens } = await all({
-      priceMap: !symbolList ? {} : app.default.models.Ticker.currentPrices(symbolList, 'USD'),
+      priceMap: !symbolList ? {} : app.default.models.Ticker.currentPrices(symbolList, userPreferredExchange),
       watchListTokens: getTokensBySymbol(account.watchList)
     })
     const prices = symbols.map(mapPrice.bind(null, priceMap))
@@ -736,6 +737,36 @@ module.exports = function(Account) {
       return cb(null, newAccount)
     }
     return cb(null, account)
+  }
+
+  Account.prototype.currencyPreference = async function(data, cb) {
+    const validCurrencies = [
+      "ETH", "BTC", "AUD", "CNY", "EUR", "JPY", "KRW", "USD"
+    ]
+    let currency = data.toUpperCase()
+    let { err, account } = await getAccount(this.id)
+
+    if (err) {
+      return cb(err)
+    }
+
+    if (!validCurrencies.includes(currency)) {
+      err = new Error(`Currency must be one of the following: ${validCurrencies}`)
+      return cb(err)
+    }
+
+    account.preference.currency = currency
+    await account.save().catch(e=>err=e)
+
+    if (err) {
+      err = new Error('Could not update account preference')
+      err.status = 500
+      cb(err)
+      return err
+    }
+
+    cb(null, account)
+    return account
   }
 
   Account.prototype.changeEmail = async function (data, cb) {
@@ -1187,6 +1218,26 @@ module.exports = function(Account) {
       'as well as its tokens, their respective prices, and balances'],
   });
 
+  Account.remoteMethod('currencyPreference', {
+    isStatic: false,
+    http: {
+      path: '/preferences/curency/:currency',
+      verb: 'post'
+    },
+    accepts: [{
+      arg: 'currency',
+      type: 'string',
+      http: {
+        source: 'path'
+      },
+      description: 'default currency for conversions'
+    }],
+    returns: {
+      root: true
+    },
+    description: ['Sets the user\'s preferred currency']
+  })
+
   Account.remoteMethod('getPortfolio', {
     isStatic: false,
     http: {
@@ -1275,7 +1326,7 @@ module.exports = function(Account) {
     description: ['Gets the total balance across all ethereum addresses',
       'as well as its tokens, their respective prices, and balances'],
   });
- 
+
   Account.remoteMethod('changeEmail', {
     isStatic: false,
     http: {
