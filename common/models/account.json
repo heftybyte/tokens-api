@@ -17,6 +17,9 @@
       "type": "string",
       "required": false
     },
+    "description": {
+      "type": "string"
+    },
     "notification_tokens": {
       "type": [
         "string"
