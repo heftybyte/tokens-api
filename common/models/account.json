@@ -45,6 +45,14 @@
     "invite_code": {
       "type": "string"
     },
+    "followers": {
+      "type": "number",
+      "default": 0
+    },
+    "following": {
+      "type": "number",
+      "default": 0
+    },
     "feedState": {
       "type": {
         "news": [
