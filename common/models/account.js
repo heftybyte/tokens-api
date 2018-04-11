@@ -1221,7 +1221,7 @@ module.exports = function(Account) {
   Account.remoteMethod('currencyPreference', {
     isStatic: false,
     http: {
-      path: '/preferences/curency/:currency',
+      path: '/preferences/currency/:currency',
       verb: 'post'
     },
     accepts: [{
