@@ -849,13 +849,17 @@ module.exports = function(Account) {
   }
 
   Account.prototype.validateTwoFactorToken = async function(data, cb){
-    const { token, time } = data
+    const { token, confirm } = data
     let {account, err} =  await getAccount(this.id)
     const result = await verifyTwoFactorToken(token, account.two_factor_secret)
     if(!result){
       const err = new Error('token not valid')
       err.status = 400
       return cb(err)
+    }
+    if (result && confirm) {
+      await account.updateAttribute('two_factor_enabled', true).catch(e=>err=e)
+      if(err) return cb(err)
     }
     cb(null, result)
   }
