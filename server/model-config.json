@@ -38,7 +38,8 @@
   },
   "account": {
     "dataSource": "mongodb",
-    "public": true
+    "public": true,
+    "normalizeUndefinedInQuery": "nullify"
   },
   "eth": {
     "dataSource": "mongodb",

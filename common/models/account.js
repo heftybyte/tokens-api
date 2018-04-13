@@ -17,11 +17,12 @@ const _ = require('lodash')
 const constants = require('../../constants/');
 const TOP_N = 100
 import { measureMetric } from '../../lib/statsd';
-
+const axios = require('axios')
 import web3 from '../../lib/web3'
 import { generateTwoFactorKey, verifyTwoFactorToken } from '../../lib/two-factor-auth';
 
 const INVITE_ENABLED = true
+const DEFAULT_MAX_TTL = 31556926; // 1 year in seconds
 
 const defaultPriceData = {
   price: 0,
@@ -81,13 +82,22 @@ module.exports = function(Account) {
 
       // metrics
       measureMetric(constants.METRICS.register.success, start_time);
-
-      const instance = await Account.create({
+      const accountData = {
         username: data.username,
         password: data.password,
         email: data.email,
         invite_code: data.invite_code
-      }).catch(e=>err=e)
+      }
+
+      if (data.withGoogle) {
+        accountData.password = uuidv4()
+        accountData.google = {
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+          serverAuthCode: data.serverAuthCode
+        }
+      }
+      const instance = await Account.create(accountData).catch(e=>err=e)
       if (err) {
         err = new Error(err.message);
         err.status = 400;
@@ -348,7 +358,6 @@ module.exports = function(Account) {
 
   Account.prototype.addExchangeAccount = async function (data, cb) {
     const { key, secret, name, passphrase, exchangeId } = data
-    console.log({ accountId: this.id, key, secret, name, passphrase, exchangeId })
     let err = null
 
     if (this.exchangeAccounts.find((acct)=> acct.key.toLowerCase() === key.toLowerCase()) ) {
@@ -588,7 +597,6 @@ module.exports = function(Account) {
   const calculatePortfolioChart = async ({period='1m', addresses, cb}) => {
     let err = null
     const addressList = addresses.map(a=>a.id).join(',')
-    console.log({addressList,cb})
     const balances = !addressList ? {} : await app.default.models.Balance.getBalances(addressList).catch(e=>err=e)
     const symbols = Object.keys(balances)
     if (err || !symbols.length) {
@@ -870,6 +878,44 @@ module.exports = function(Account) {
     return fn.promise;
   };
 
+  Account.googleSignIn = async (data, cb) => {
+    let err;
+    const userInfo = await axios({ 
+      method: 'GET',
+      url: 'https://www.googleapis.com/userinfo/v2/me',
+      headers: { 
+        Authorization: `Bearer ${data.accessToken}`
+      }
+    }).catch(e=>err=e);
+
+    if (err) {
+      console.log('google api error', err)
+      return cb(err)
+    }
+
+    const account = await Account.findOne({where: {email: userInfo.data.email}}).catch(e=>err=e)
+    if (!err && !account) {
+      err = new Error('Account not found')
+      err.status = 404
+    } else if (!err && (account.email !== userInfo.data.email)) {
+      err = new Error('Unauthorized access attempt')
+      err.status = 401
+    }
+
+    if (err) {
+      console.log(err)
+      return cb(err)
+    }
+
+    const token = await account.createAccessToken(DEFAULT_MAX_TTL).catch(e=>err=e)
+    if (err) {
+      console.log(err);
+      return cb(err);
+    }
+    token.__data.user = account;
+    cb(err, token);
+  }
+
   Account.validatesLengthOf('password', {min: 5, message: {min: 'Password should be at least 5 characters'}});
 
   Account.afterRemoteError('prototype.login', function(ctx, next) {
@@ -965,6 +1011,27 @@ module.exports = function(Account) {
       "type": "account"
     },
     description: 'Registers a User\'s deviceId in the database',
+  });
+
+  Account.remoteMethod('googleSignIn', {
+    http: {
+      path: '/google-signin',
+      verb: 'post',
+    },
+    accepts: {
+      arg: 'data',
+      type: 'object',
+      http: {
+        source: 'body',
+      },
+      description: 'Username and Google access token'
+    },
+    returns: {
+      arg: 'accessToken',
+      type: 'object',
+      root: true
+    },
+    description: 'Sign a user in via Google auth',
   });
 
   Account.remoteMethod('addAddress', {

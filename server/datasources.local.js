@@ -10,16 +10,8 @@ module.exports = {
     "database": process.env.MONGODB_DATABASE || "tokens-api",
     "password": process.env.MONGODB_PASSWORD || "",
     "user": process.env.MONGODB_USER || "",
-    "connector": "mongodb"
-  },
-  'arangodbDs': {
-    'host': process.env.DB_HOST || 'localhost',
-    'port': process.env.DB_PORT || '8529',
-    'database': process.env.DB_DATABASE || 'tokens-api',
-    'username': process.env.DB_USER || 'root',
-    'password': process.env.DB_PASSWORD || 'root',
-    'name': 'arangodbDs',
-    'connector': 'loopback-connector-arangodb',
+    "connector": "mongodb",
+    "normalizeUndefinedInQuery": "nullify"
   },
   'TickerApiService': {
     'name': 'TickerApiService',
