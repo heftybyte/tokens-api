@@ -840,28 +840,56 @@ module.exports = function(Account) {
     return cb(null, result)
   }
 
-  Account.prototype.enableTwoFactorAuth = async function(cb){
-    let {account, err} =  await getAccount(this.id)
-    const authSecret = await generateTwoFactorKey()
-    const result = await  account.updateAttribute('two_factor_secret', authSecret).catch(e=>err=e)
-    if(err) return cb(err)
-    return cb(null, result)
-  }
-
-  Account.prototype.validateTwoFactorToken = async function(data, cb){
-    const { token, confirm } = data
-    let {account, err} =  await getAccount(this.id)
-    const result = await verifyTwoFactorToken(token, account.two_factor_secret)
-    if(!result){
-      const err = new Error('token not valid')
-      err.status = 400
+  Account.prototype.setTwoFactorAuthSecret = async function(cb){
+    try {
+      const account = await Account.findById(this.id)
+      const authSecret = await generateTwoFactorKey()
+      const result = await account.updateAttributes({
+        'two_factor_secret': authSecret,
+        'two_factor_enabled': false // auth shouldn't be required until new secret is confirmed
+      })
+      return cb(null, account)
+    } catch (err) {
+      console.log('setTwoFactorAuthSecret', err)
       return cb(err)
     }
-    if (result && confirm) {
-      await account.updateAttribute('two_factor_enabled', true).catch(e=>err=e)
-      if(err) return cb(err)
+  }
+
+  Account.prototype.disableTwoFactorAuth = async function(cb){
+    try {
+      const account = await Account.findById(this.id)
+      const result = await account.updateAttributes({
+        'two_factor_secret': '',
+        'two_factor_enabled': false
+      })
+      return cb(null, account)
+    } catch (err) {
+      console.log('setTwoFactorAuthSecret', err)
+      return cb(err)
     }
-    cb(null, result)
+  }
+
+  Account.verifyTwoFactorToken = async function(data, cb){
+    try {
+      const { id, token, confirm, login } = data
+      const account = await Account.findById(id)
+      let result = await verifyTwoFactorToken(token, account.two_factor_secret)
+      if (!result){
+        const err = new Error('Invalid auth token')
+        err.status = 401
+        throw err
+      } else if (confirm) {
+        result = await account.updateAttribute('two_factor_enabled', true)
+      } else if (login) {
+        result = await createAccessToken(account)
+      }
+      cb(null, result)
+      return Promise.resolve(result)
+    } catch (err) {
+        console.log(err)
+        cb(err)
+        return Promise.reject(err)
+    }
   }
 
   Account.logout = async function(accessToken, data, fn) {
@@ -913,6 +941,41 @@ module.exports = function(Account) {
     return fn.promise;
   };
 
+  async function createAccessToken(account) {
+    try {
+      const token = await account.createAccessToken(DEFAULT_MAX_TTL)
+      token.__data.user = account;
+      return token
+    } catch (err) {
+      console.error('createAccessToken', account.username, err)
+      throw err
+    }
+  }
+
+  const login = Account.login
+  Account.login = async (credentials, include, fn) => {
+    if (typeof include === 'function') {
+      fn = include;
+      include = undefined;
+    }
+    try {
+      const token = await login.call(Account, credentials, include)
+      const { user } = token.toJSON()
+      if (user.two_factor_enabled) {
+        const res = { userId: user.id, twoFactorRequired: true }
+        fn(null, res)
+        return Promise.resolve(res)
+      } else {
+        fn(null, token) // normal login
+        return Promise.resolve(token)
+      }
+    } catch (err) {
+      console.error('login', err)
+      fn(err)
+      return Promise.reject(err)
+    }
+  }
+
   Account.googleSignIn = async (data, cb) => {
     let err;
     const userInfo = await axios({ 
@@ -935,20 +998,23 @@ module.exports = function(Account) {
     } else if (!err && (account.email !== userInfo.data.email)) {
       err = new Error('Unauthorized access attempt')
       err.status = 401
-    }
-
-    if (err) {
+    } else if (err) {
       console.log(err)
       return cb(err)
     }
 
-    const token = await account.createAccessToken(DEFAULT_MAX_TTL).catch(e=>err=e)
-    if (err) {
-      console.log(err);
-      return cb(err);
+    try {
+      let token
+      if (account.two_factor_enabled) {
+        token = { userId: account.id, twoFactorRequired: true }
+      } else {
+        token = await createAccessToken(account)
+      }
+      return cb(null, token)
+    } catch (err) {
+      console.error('googleSignIn accessToken', err)
+      return cb(err)
     }
-    token.__data.user = account;
-    cb(err, token);
   }
 
   Account.validatesLengthOf('password', {min: 5, message: {min: 'Password should be at least 5 characters'}});
@@ -1438,10 +1504,10 @@ module.exports = function(Account) {
     description: ['Change the username of a user'],
   });
 
-  Account.remoteMethod('enableTwoFactorAuth', {
+  Account.remoteMethod('setTwoFactorAuthSecret', {
     isStatic: false,
     http: {
-      path: '/two-factor/enable',
+      path: '/two-factor/set',
       verb: 'post',
     },
     accepts: [],
@@ -1451,8 +1517,20 @@ module.exports = function(Account) {
     description: ['Enable two factor auth'],
   });
 
-  Account.remoteMethod('validateTwoFactorToken', {
+  Account.remoteMethod('disableTwoFactorAuth', {
     isStatic: false,
+    http: {
+      path: '/two-factor/disable',
+      verb: 'post',
+    },
+    accepts: [],
+    returns: {
+      root: true,
+    },
+    description: ['Enable two factor auth'],
+  });
+
+  Account.remoteMethod('verifyTwoFactorToken', {
     http: {
       path: '/two-factor/verify',
       verb: 'post',

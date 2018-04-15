@@ -285,14 +285,21 @@
       "principalType": "ROLE",
       "principalId": "$authenticated",
       "permission": "ALLOW",
-      "property": "enableTwoFactorAuth"
+      "property": "setTwoFactorAuthSecret"
     },
     {
       "accessType": "EXECUTE",
       "principalType": "ROLE",
       "principalId": "$authenticated",
       "permission": "ALLOW",
-      "property": "validateTwoFactorToken"
+      "property": "disableTwoFactorAuth"
+    },
+    {
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "verifyTwoFactorToken"
     },
     {
       "accessType": "EXECUTE",
