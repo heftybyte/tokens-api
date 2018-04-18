@@ -1,39 +1,41 @@
-/**
- * Created by Samparsky on 22/02/2018.
- */
-
 import Kapacitor from "../../lib/kapacitor";
 import Expo from 'expo-server-sdk';
 console.log({Expo}, Expo.isExpoPushToken)
 const app = require('../../server/server');
 const uuidv4 = require('uuid/v4');
+const ObjectID = require('mongodb').ObjectID
 
 
 module.exports = (Alert) => {
 
   const getAlertTemplateID = (type) => type==0 ? process.env.KAPACITOR_GT_ALERT_TEMPLATE_ID : process.env.KAPACITOR_LS_ALERT_TEMPLATE_ID;
 
-  const pushNotification = async (data) => {
+  const pushNotification = async (data, alert) => {
+
+    let expo = new Expo()
+
     const Account = app.default.models.Account
+    const result = await Promise.all(data.map((alert)=>( Account.findById(alert['userId']))))
 
-    const result = await Promise.all(data.map((alert)=>{ Account.findById(alert['userId'])}))
+    let notification_tokens = result.map((item)=>item.notification_tokens.toJSON())
+    notification_tokens = [].concat(...notification_tokens)
 
-    const messages = result
-      .filter(item => Expo.isExpoPushToken(item.user.notification_tokens.toJSON()))
+    const messages = notification_tokens
+      .filter(item => Expo.isExpoPushToken(item))
       .map(item => ({
-        to: item.user.notification_tokens.toJSON(),
+        to: item,
         sound: 'default',
-        body: item['level'] == 0 ?
-          `Price for token ${item['fsym']} is greater than ${item['price']}`:
-          `Price for token ${item['fsym']} is lesser than ${item['price']}`,
+        body: alert['type'] == 0 ?
+          `Price for token ${alert['fsym']} is greater than ${alert['price']}`:
+          `Price for token ${alert['fsym']} is lesser than ${alert['price']}`,
         data: {
-          fsym: item['fsym'],
-          tsym: item['tsym'],
-          price: item['price'],
-          frequency: item['frequency'],
+          fsym: alert['fsym'],
+          tsym: alert['tsym'],
+          price: alert['price'],
+          frequency: alert['frequency'],
           type: 'PRICE_ALERT'
         }
-      }))
+     }))
 
     let chunks = expo.chunkPushNotifications(messages);
 
@@ -51,7 +53,7 @@ module.exports = (Alert) => {
     data
       .filter(item => item['frequency'] == 0)
       .forEach((user) => {
-        Alert.updateAll({userId: user['userId']}, {'status': false}, function (err, result) {
+        Alert.updateAll({userId: new ObjectID(user['userId'])}, {'status': false}, function (err, result) {
           if (err) {
             console.log(err)
             return
@@ -72,21 +74,61 @@ module.exports = (Alert) => {
     }
   }
 
-  Alert.make = async function (access_token, fsym, tsym, price, type, frequency, cb) {
-    if (!access_token || !access_token.userId) {
-      const err = new Error('accessToken is required to');
-      err.status = 401
-      cb(err, null)
+
+  Alert.fetchAll = async function(access_token, {fsym}=data, cb) {
+    let err = null
+    
+    let userId = access_token.userId.toString()
+    userId = new ObjectID(userId)
+    
+    const query = (fsym) ? {where: {fsym, userId}} : {where: {userId}}
+    const result = await Alert.find(query).catch(e=>err=e)
+    if(err){
+      cb(err)
       return
     }
 
+    cb(null, result)
+  }
+
+  Alert.disable = async function(accessToken, alertId, cb){
+    let err = null
+
+    let userId = accessToken.userId.toString()
+    userId = new ObjectID(userId)
+    alertId = new ObjectID(alertId)
+
+    const result = await Alert.updateAll({ userId, id: alertId }, { status: false }).catch(e=>err=e)
+    if(err){
+      cb(err)
+      return
+    }
+    cb(null, {'status':true, result})
+  }
+
+  Alert.enable = async function(accessToken, alertId, cb){
+    let err = null
+  
+    let userId = accessToken.userId.toString()
+    userId = new ObjectID(userId)
+    alertId = new ObjectID(alertId)
+
+    const result = await Alert.updateAll({userId, 'id': alertId }, { status: true }).catch(e=>err=e)
+    if(err){
+      cb(err)
+      return
+    }
+    cb(null, {'status':true, result})
+  }
+
+  Alert.createAlert = async function (access_token, fsym, tsym, price, type, frequency, cb) {
     let err = null
 
     const KapacitorAlert = app.default.models.KapacitorAlert
 
     const findAlert = await KapacitorAlert.findOrCreate(
       {where: {fsym, tsym, price, type, 'status': true}},
-      {fsym, tsym, price, type}
+      { fsym, tsym, price, type }
     ).catch(e => err = e);
 
     if (err != null) {
@@ -105,18 +147,19 @@ module.exports = (Alert) => {
       "userId": access_token.userId.toString(),
     }
 
-    const result = await Alert.create({frequency, "alertId": data['alertId'], "userId": data['userId']})
+    const result = await Alert.create({fsym, tsym, price, frequency, "alert": data['alertId'], "userId": data['userId']})
       .catch(e => err = e)
 
     if (err) {
       cb(err, null)
       return err
     }
+
     // create task on kapacitor
     const template_id = getAlertTemplateID(type)
 
     const httpOutput = process.env.KAPACITOR_TRIGGER_URL ?
-      process.env.KAPACITOR_TRIGGER_URL : 'localhost:3000/api//Alert/trigger'
+      process.env.KAPACITOR_TRIGGER_URL : 'localhost:3000/api/Alert/trigger'
 
     const script_id = uuidv4()
 
@@ -153,18 +196,20 @@ module.exports = (Alert) => {
       where: {"script_id": alertData['id']}
     }).catch(e => err = e);
 
-    const query = {where: {alertId: kAlert['id'].toString(), status:true }}
+    const alertId = new ObjectID(kAlert['id'].toString())
+    console.log(alertId)
+    const query = { where: {"alert" : alertId, status:true }}
     const data = await Alert.find(query).catch(e=>err=e);
+    console.log(data)
 
-    pushNotification(data)
-    disableAlertNotification(data)
-    disableKapacitorTask(data, kAlert)
-
+    await pushNotification(data, kAlert)
+    await disableAlertNotification(data)
+    await disableKapacitorTask(data, kAlert)
     cb(null, {'data': 'success'})
 
   }
 
-  Alert.remoteMethod('make', {
+  Alert.remoteMethod('createAlert', {
     http: {
       path: '/',
       verb: 'post'
@@ -200,6 +245,68 @@ module.exports = (Alert) => {
     returns: {root: true},
   })
 
+  Alert.remoteMethod('fetchAll', {
+    http: {
+      path: '/',
+      verb: 'get'
+    },
+    accepts: [
+      {
+        arg: 'access_token', type: 'object', http: function (ctx) {
+        let req = ctx && ctx.req;
+        let accessToken = req && req.accessToken;
+        return accessToken;
+        }, description: 'Do not supply this argument, it is automatically extracted ' +
+                        'from request headers.',
+      },
+      {arg: 'data', type: 'object', http: {source: 'body'}}
+    ],
+    description: 'Fetch User Alerts based on fsym',
+    returns: {root: true},
+  })
+
+  Alert.remoteMethod('disable', {
+    http: {
+      path: '/disable/:id',
+      verb: 'post'
+    },
+    accepts: [
+      {
+        arg: 'access_token', type: 'object', http: function (ctx) {
+        let req = ctx && ctx.req;
+        let accessToken = req && req.accessToken;
+        return accessToken;
+        }, description: 'Do not supply this argument, it is automatically extracted ' +
+                        'from request headers.',
+      },
+      { arg: 'id', type: 'string', http: { source: 'path' }, description: 'Alert Id' }
+    ],
+    description: 'Disable User Alert',
+    returns: {root: true},
+  })
+
+  Alert.remoteMethod('enable', {
+    http: {
+      path: '/enable/:id',
+      verb: 'post'
+    },
+    accepts: [
+      {
+        arg: 'access_token', type: 'object', http: function (ctx) {
+        let req = ctx && ctx.req;
+        let accessToken = req && req.accessToken;
+        return accessToken;
+        }, description: 'Do not supply this argument, it is automatically extracted ' +
+                        'from request headers.',
+      },
+      { arg: 'id', type: 'string', http: { source: 'path' }, description: 'Alert Id' }
+    ],
+    description: 'Enable User Alert',
+    returns: {root: true},
+  })
+
+  Alert.disableRemoteMethodByName('get');
   Alert.disableRemoteMethodByName('create');
+
 
 }

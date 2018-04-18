@@ -15,6 +15,8 @@ import boot from 'loopback-boot';
 
 const app = loopback();
 
+require('loopback-datatype-objectid')(app)
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 

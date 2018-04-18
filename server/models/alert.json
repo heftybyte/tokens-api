@@ -1,7 +1,8 @@
 {
   "name": "Alert",
   "base": "PersistedModel",
-  "idInjection": true,
+  "idInjection": false,
+  "strict": true,
   "options": {
     "validateUpsert": true
   },
@@ -22,14 +23,51 @@
       "type": "date"
     },
     "userId": {
-      "type": "string"
+      "type": "objectid"
     },
     "alert": {
-      "type": "string"
+      "type": "objectid"
+    },
+    "fsym": {
+      "type": "string",
+      "required": true
+    },
+    "tsym": {
+      "type": "string",
+      "required": true
+    },
+    "price": {
+      "type": "number",
+      "required": true
     }
   },
   "validations": [],
-  "relations": {},
-  "acls": [],
+  "relations": {
+    "user":{
+      "type": "belongsTo",
+      "model": "account",
+      "foreignKey": "userId" 
+    }
+  },
+  "acls": [
+    {
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": ["fetchAll", "createAlert"]
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$owner",
+      "permission": "ALLOW",
+      "property": ["enable", "disable", "deleteById", "updateById"]
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "DENY",
+      "property": "*"
+    }
+  ],
   "methods": {}
 }
