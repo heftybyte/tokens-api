@@ -2,21 +2,25 @@
   {
       "name": "Bitcoin",
       "website": "https://bitcoin.org/",
-      "asset": "BTC"
+      "asset": "BTC",
+      "id": "bitcoin"
   },
   {
       "name": "Ethereum",
       "website": "https://ethereum.org/",
-      "asset": "ETH"
+      "asset": "ETH",
+      "id": "ethereum"
   },
   {
       "name": "NEO",
       "website": "https://neo.org/",
-      "asset": "NEO"
+      "asset": "NEO",
+      "id": "neo"
   },
   {
       "name": "Stellar",
       "website": "https://www.stellar.org/",
-      "asset": "XLM"
+      "asset": "XLM",
+      "id": "stellar"
   }
 ]

@@ -179,6 +179,30 @@
       "principalType": "ROLE",
       "principalId": "$everyone",
       "permission": "DENY",
+      "property": "getPortfolio"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$owner",
+      "permission": "ALLOW",
+      "property": "getPortfolio"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "DENY",
+      "property": "getPortfolioChart"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$owner",
+      "permission": "ALLOW",
+      "property": "getPortfolioChart"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "DENY",
       "property": "refreshAddress"
     },
     {

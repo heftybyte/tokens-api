@@ -180,7 +180,7 @@ module.exports = function(Account) {
     //metric timing
     const start_time = new Date().getTime();
 
-    let { address } = data;
+    let { address, platform } = data;
     address = address.toLowerCase();
     let err = null
     if (!web3.utils.isAddress(address)) {
@@ -198,12 +198,12 @@ module.exports = function(Account) {
       return err
     }
     const { newAddressQueue } = app.default.queues.address
-    await newAddressQueue.add({ address, userId: this.id }, { jobId: uuidv4() }).catch(e=>err=e)
+    await newAddressQueue.add({ address, userId: this.id, platform }, { jobId: uuidv4() }).catch(e=>err=e)
     if (err) {
       cb(err);
       return err
     }
-    this.addresses.push({ id: address })
+    this.addresses.push({ id: address, platform })
     let account = await this.save().catch(e=>err=e)
     if (err) {
       err.status = 500
@@ -308,7 +308,12 @@ module.exports = function(Account) {
       cb(err)
       return err
     }
-
+    const { newAddressQueue } = app.default.queues.address
+    await newAddressQueue.add({ address, userId: this.id, platform }, { jobId: uuidv4() }).catch(e=>err=e)
+    if (err) {
+      cb(err);
+      return err
+    }
     this.wallets.push({id: address, platform})
     let account = await this.save().catch(e=>err=e)
 
@@ -367,7 +372,7 @@ module.exports = function(Account) {
       return err
     }
 
-    this.exchangeAccounts.push({ id: uuidv4(), key, secret, name, passphrase, exchangeId })
+    this.exchangeAccounts.push({ id: uuidv4(), key, secret, name, passphrase, platform: exchangeId })
     let account = await this.save().catch(e=>err=e)
 
     if (err) {
@@ -412,12 +417,11 @@ module.exports = function(Account) {
     return account
   }
 
-  const calculatePortfolio = async ({account, addresses, cb, start_time}) => {
+  async function calculatePortfolio({account, addresses, includeWatchList, cb, start_time}) {
     let err
     const addressList = addresses.map(a=>a.id).join(',')
     const balances = !addressList ? {} : await app.default.models.Balance.getBalances(addressList).catch(e=>err=e)
-    const userPreferredExchange = account.preference.currency
-
+    const currencyPreference = account.preference.currency
     if (err) {
       // metrics
       measureMetric(constants.METRICS.get_portfolio.failed, start_time);
@@ -426,14 +430,17 @@ module.exports = function(Account) {
     }
 
     const symbols = Object.keys(balances)
-    const symbolList = symbols.concat(account.watchList).join(',')
-    let { priceMap, watchListTokens } = await all({
-      priceMap: !symbolList ? {} : app.default.models.Ticker.currentPrices(symbolList, userPreferredExchange),
-      watchListTokens: getTokensBySymbol(account.watchList)
-    })
+    const symbolList = symbols.concat(includeWatchList ? account.watchList : []).join(',')
+    const queries = {
+      priceMap: !symbolList ? {} : app.default.models.Ticker.currentPrices(symbolList, currencyPreference),
+    }
+    if (includeWatchList) {
+      queries.watchListTokens = getTokensBySymbol(account.watchList)
+    }
+    let { priceMap, watchListTokens } = await all(queries)
     const prices = symbols.map(mapPrice.bind(null, priceMap))
-    const watchListPrices = account.watchList.map(mapPrice.bind(null, priceMap))
-    const watchList = watchListTokens.map((token, i)=>({
+    const watchListPrices = !includeWatchList ? [] : account.watchList.map(mapPrice.bind(null, priceMap))
+    const watchList = !includeWatchList ? undefined : watchListTokens.map((token, i)=>({
       ...token,
       ...watchListPrices[i],
       symbol: account.watchList[i]
@@ -469,6 +476,54 @@ module.exports = function(Account) {
     cb && cb(null, portfolio)
     return portfolio
   }
+
+  async function calculatePortfolioChart({period='1m', addresses, cb}) {
+    let err = null
+    const addressList = addresses.map(a=>a.id).join(',')
+    const balances = !addressList ? {} : await app.default.models.Balance.getBalances(addressList).catch(e=>err=e)
+    const symbols = Object.keys(balances)
+    if (err || !symbols.length) {
+      cb && cb(err)
+      return err
+    }
+    const ticker = !symbols.length ? {} : await app.default.models.Ticker.historicalPrices(
+      symbols.join(','), 'USD', 0, 0, 'chart', period, periodInterval[period] || '1d'
+    ).catch(e=>err=e)
+    if (err) {
+      cb && cb(err)
+      return err
+    }
+    if (!Object.keys(ticker).length) {
+      cb(null, [])
+      return []
+    }
+    const tsym = 'USD'
+    const chartData = []
+    const numBuckets = ticker[symbols[0]][tsym].length
+
+    for (let i = 0; i < numBuckets; i++) {
+      const time = ticker[symbols[0]][tsym][i].x
+      const aggregatePrice = symbols.reduce((acc, symbol)=>{
+        const point = ticker[symbol][tsym][i] || { y: 0 }
+        return acc + (balances[symbol] * point.y)
+      }, 0)
+      const aggregateChange = symbols.reduce((acc, symbol)=>{
+        const point = ticker[symbol][tsym][i] || { y: 0 }
+        return acc + (balances[symbol] * point.change_close)
+      }, 0)
+      const aggregatePrevPrice = aggregatePrice - aggregateChange
+      chartData.push({
+        x: time,
+        y: aggregatePrice,
+        change_close: aggregateChange,
+        change_pct: aggregatePrice > aggregatePrevPrice ?
+          ((1/(aggregatePrevPrice / aggregatePrice))-1)*100 :
+          (aggregatePrice / aggregatePrevPrice) - 1
+      })
+    }
+    cb(null, chartData)
+    return chartData
+  };
 
   const getAccount = async (id) => {
     let err = null
@@ -523,6 +578,53 @@ module.exports = function(Account) {
     return { symbols, tokens }
   };
 
+  const AccountTypes = {
+    'address': 'addresses',
+    'wallet': 'wallets',
+    'exchange-account': 'exchangeAccounts'
+  }
+  
+  function verifyAccountOwner(owner={}, accountId, type) {
+    const accountType = AccountTypes[type]
+    const accounts = owner[accountType] || []
+    if (!accounts.find(a=>a.id.toLowerCase()===accountId.toLowerCase())) {
+      const err = new Error('Unauthorized Access')
+      err.status = 401
+      throw err
+    }
+    return true
+  }
+
+  Account.prototype.getPortfolio = async function (type, accountId, cb) {
+    try {
+      const account = await Account.findById(this.id);
+      verifyAccountOwner(account, accountId, type);
+      return calculatePortfolio({
+        account,
+        cb,
+        addresses: [{ id: accountId }]
+      });
+    } catch (err) {
+      console.error(err)
+      return cb(err)
+    }
+  };
+
+  Account.prototype.getPortfolioChart = async function (type, accountId, period, cb) {
+    try {
+      const account = await Account.findById(this.id);
+      verifyAccountOwner(account, accountId, type);
+      return calculatePortfolioChart({
+        addresses: [{ id: accountId }],
+        period,
+        cb
+      });
+    } catch (err) {
+      console.error(err)
+      return cb(err)
+    }
+  };
+
   Account.prototype.getEntirePortfolio = async function (cb) {
     const start_time = new Date().getTime();
 
@@ -537,42 +639,17 @@ module.exports = function(Account) {
       account,
       cb,
       start_time,
-      addresses: account.addresses
+      addresses: account.addresses,
+      includeWatchList: true
     });
   };
 
-  const AccountTypes = {
-    'address': 'addresses',
-    'wallet': 'wallets',
-    'exchange-account': 'exchangeAccounts'
-  }
-  Account.prototype.getPortfolio = async function (type, id, cb) {
-    const start_time = new Date().getTime();
-
+  Account.prototype.getEntirePortfolioChart = async function (period, cb) {
     let {err, account} = await getAccount(this.id);
-    if (err) {
-      // metrics
-      measureMetric(constants.METRICS.get_portfolio.failed, start_time);
-      cb && cb(err)
-      return err
-    }
-
-    const accountType = AccountTypes[type]
-    const accounts = account[accountType] || []
-    if (!accounts.find(a=>a.id===id)) {
-      err = new Error('Unauthorized Access')
-      err.status = 401
-      cb && cb(err)
-      return err
-    }
-
-    let addresses = [id]
-
-    return calculatePortfolio({
-      account,
-      cb,
-      start_time,
-      addresses: account.addresses
+    return calculatePortfolioChart({
+      addresses: account.addresses,
+      period,
+      cb
     });
   };
 
@@ -594,86 +671,6 @@ module.exports = function(Account) {
     '1y': '1w',
     'all': '1w'
   }
-
-  const calculatePortfolioChart = async ({period='1m', addresses, cb}) => {
-    let err = null
-    const addressList = addresses.map(a=>a.id).join(',')
-    const balances = !addressList ? {} : await app.default.models.Balance.getBalances(addressList).catch(e=>err=e)
-    const symbols = Object.keys(balances)
-    if (err || !symbols.length) {
-      cb && cb(err)
-      return err
-    }
-    const ticker = !symbols.length ? {} : await app.default.models.Ticker.historicalPrices(
-      symbols.join(','), 'USD', 0, 0, 'chart', period, periodInterval[period] || '1d'
-    ).catch(e=>err=e)
-    if (err) {
-      cb && cb(err)
-      return err
-    }
-    if (!Object.keys(ticker).length) {
-      cb(null, [])
-      return []
-    }
-    const tsym = 'USD'
-    const chartData = []
-    const numBuckets = ticker[symbols[0]][tsym].length
-
-    for (let i = 0; i < numBuckets; i++) {
-      const time = ticker[symbols[0]][tsym][i].x
-      const aggregatePrice = symbols.reduce((acc, symbol)=>{
-        const point = ticker[symbol][tsym][i] || { y: 0 }
-        return acc + (balances[symbol] * point.y)
-      }, 0)
-      const aggregateChange = symbols.reduce((acc, symbol)=>{
-        const point = ticker[symbol][tsym][i] || { y: 0 }
-        return acc + (balances[symbol] * point.change_close)
-      }, 0)
-      const aggregatePrevPrice = aggregatePrice - aggregateChange
-      chartData.push({
-        x: time,
-        y: aggregatePrice,
-        change_close: aggregateChange,
-        change_pct: aggregatePrice > aggregatePrevPrice ?
-          ((1/(aggregatePrevPrice / aggregatePrice))-1)*100 :
-          (aggregatePrice / aggregatePrevPrice) - 1
-      })
-    }
-    cb(null, chartData)
-    return chartData
-  };
-
-  Account.prototype.getEntirePortfolioChart = async function (period, cb) {
-    let {err, account} = await getAccount(this.id);
-    return calculatePortfolioChart({
-      addresses: account.addresses,
-      period,
-      cb
-    });
-  };
-
-
-  Account.prototype.getPortfolioChart = async function (type, id, period, cb) {
-    let {err, account} = await getAccount(this.id);
-    if (err) {
-      cb && cb(err)
-      return err
-    }
-    const accountType = AccountTypes[type]
-    const accounts = account[accountType] || []
-    if (!accounts.find(a=>a.id===id)) {
-      err = new Error('Unauthorized Access')
-      err.status = 401
-      cb && cb(err)
-      return err
-    }
-    return calculatePortfolioChart({
-      addresses: [id],
-      period,
-      cb
-    });
-  };
-
 
   const getPriceChange = ({price, balance, change}) => {
     const totalValue = price * (balance || 1)
@@ -1264,7 +1261,7 @@ module.exports = function(Account) {
     },
     accepts: [
       {
-        arg: 'watchlist',
+        arg: 'data',
         type: 'object',
         http: {
           source: 'body',
@@ -1342,19 +1339,6 @@ module.exports = function(Account) {
     description: 'Delete an ethereum address from a user\'s account'
   });
 
-  Account.remoteMethod('getEntirePortfolio', {
-    isStatic: false,
-    http: {
-      path: '/portfolio',
-      verb: 'get',
-    },
-    returns: {
-      root: true,
-    },
-    description: ['Gets the total balance for the specified Ethereum Address ',
-      'as well as its tokens, their respective prices, and balances'],
-  });
-
   Account.remoteMethod('currencyPreference', {
     isStatic: false,
     http: {
@@ -1375,34 +1359,16 @@ module.exports = function(Account) {
     description: ['Sets the user\'s preferred currency']
   })
 
-  Account.remoteMethod('getPortfolio', {
+  Account.remoteMethod('getEntirePortfolio', {
     isStatic: false,
     http: {
-      path: '/portfolio/:type/:id',
+      path: '/portfolio',
       verb: 'get',
     },
-    accepts: [
-      {
-        arg: 'type',
-        type: 'string',
-        http: {
-          source: 'path'
-        },
-        description: 'all|wallet|exchange|address',
-      },
-      {
-        arg: 'id',
-        type: 'string',
-        http: {
-          source: 'path'
-        },
-        description: 'account id for type != all',
-      }
-    ],
     returns: {
       root: true,
     },
-    description: ['Gets the total balance for the specified account ',
+    description: ['Gets the total balance for the specified Ethereum Address ',
       'as well as its tokens, their respective prices, and balances'],
   });
 
@@ -1426,10 +1392,10 @@ module.exports = function(Account) {
       'as well as its tokens, their respective prices, and balances'],
   });
 
-  Account.remoteMethod('getPortfolioChart', {
+  Account.remoteMethod('getPortfolio', {
     isStatic: false,
     http: {
-      path: '/portfolio-chart/:type/:id',
+      path: '/portfolio/:type/:accountId',
       verb: 'get',
     },
     accepts: [
@@ -1442,12 +1408,43 @@ module.exports = function(Account) {
         description: 'all|wallet|exchange|address',
       },
       {
-        arg: 'id',
+        arg: 'accountId',
         type: 'string',
         http: {
           source: 'path'
         },
-        description: 'account id for type != all',
+        description: 'individual account id',
+      }
+    ],
+    returns: {
+      root: true,
+    },
+    description: ['Gets the total balance for the specified account ',
+      'as well as its tokens, their respective prices, and balances'],
+  });
+
+  Account.remoteMethod('getPortfolioChart', {
+    isStatic: false,
+    http: {
+      path: '/portfolio-chart/:type/:accountId',
+      verb: 'get',
+    },
+    accepts: [
+      {
+        arg: 'type',
+        type: 'string',
+        http: {
+          source: 'path'
+        },
+        description: 'all|wallet|exchange|address',
+      },
+      {
+        arg: 'accountId',
+        type: 'string',
+        http: {
+          source: 'path'
+        },
+        description: 'individual account id',
       },
       {
         arg: 'period',

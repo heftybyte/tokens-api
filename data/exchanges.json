@@ -2,132 +2,158 @@
   {
       "name": "Bibox",
       "website": "https://www.bibox.com",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "bibox"
   },
   {
       "name": "Binance",
       "website": "https://www.binance.com",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "binance"
   },
   {
       "name": "Bit-Z",
       "website": "https://www.bit-z.com/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "bit-z"
   },
   {
       "name": "Bitbank",
       "website": "https://bitbank.cc/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "bitbank"
   },
   {
       "name": "Bitfinex",
       "website": "https://www.bitfinex.com/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "bitfinex"
   },
   {
       "name": "bitFlyer",
       "website": "https://bitflyer.com",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "bitFlyer"
   },
   {
       "name": "Bittrex",
       "website": "https://bittrex.com/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "bittrex"
   },
   {
       "name": "Bitstamp",
       "website": "https://www.bitstamp.net/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "bitstamp"
   },
   {
       "name": "Bithumb",
       "website": "https://www.bithumb.com/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "bithumb"
   },
   {
       "name": "BTCBOX",
       "website": " https://www.btcbox.co.jp/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "btcbox"
   },
   {
       "name": "BTCC",
       "website": "https://exchange.btcc.com/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "btcc"
   },
   {
       "name": "Coinone",
       "website": "https://coinone.co.kr/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "coinone"
   },
   {
       "name": "EXMO",
       "website": "https://exmo.com/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "exmo"
   },
   {
       "name": "EXX",
       "website": "https://www.exx.com/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "exx"
   },
   {
       "name": "Gate.io",
       "website": "https://gate.io/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "gate-io"
   },
   {
       "name": "GDAX",
       "website": "https://www.gdax.com/",
-      "requiresPassphrase": true
+      "requiresPassphrase": true,
+      "id": "gdax"
   },
   {
       "name": "Gemini",
       "website": "https://gemini.com/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "gemini"
   },
   {
       "name": "HitBTC",
       "website": "https://hitbtc.com/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "hitbtc"
   },
   {
       "name": "Huobi",
       "website": "https://www.huobi.pro/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "huobi"
   },
   {
       "name": "Kraken",
       "website": "https://www.kraken.com",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "kraken"
   },
   {
       "name": "Kucoin",
       "website": "https://www.kucoin.com/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "kucoin"
   },
   {
       "name": "LBANK",
       "name": "LBANK",
       "website": "https://www.lbank.info/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "lbank"
   },
   {
       "name": "Liqui",
       "website": "https://liqui.io/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "liqui"
   },
   {
       "name": "Poloniex",
       "website": "https://poloniex.com/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "poloniex"
   },
   {
       "name": "Wex",
       "website": "https://wex.nz/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "wex"
   },
   {
       "name": "ZB",
       "website": "https://www.zb.com/",
-      "requiresPassphrase": false
+      "requiresPassphrase": false,
+      "id": "zb"
   }
 ]

@@ -2,6 +2,7 @@
   "name": "wallet",
   "base": "Model",
   "idInjection": false,
+  "forceId": false,
   "options": {
     "validateUpsert": true
   },
@@ -12,14 +13,16 @@
     },
     "name": {
       "type": "string"
-    },
-    "platform": {
-      "type": "string",
-      "required": true
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "platform": {
+      "type": "belongsTo",
+      "model": "Blockchain",
+      "foreignKey": ""
+    }
+  },
   "acls": [],
   "methods": {}
 }

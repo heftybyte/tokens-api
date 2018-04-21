@@ -1,11 +1,16 @@
 {
   "name": "Exchange",
   "base": "PersistedModel",
-  "idInjection": true,
+  "idInjection": false,
+  "forceId": false,
   "options": {
     "validateUpsert": true
   },
   "properties": {
+    "id": {
+      "type": "string",
+      "required": true
+    },
     "name": {
       "type": "string",
       "required": true

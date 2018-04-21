@@ -2,6 +2,7 @@
   "name": "address",
   "base": "Model",
   "idInjection": false,
+  "forceId": false,
   "options": {
     "validateUpsert": true
   },
@@ -22,7 +23,13 @@
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "platform": {
+      "type": "belongsTo",
+      "model": "Blockchain",
+      "foreignKey": ""
+    }
+  },
   "acls": [],
   "methods": {}
 }
