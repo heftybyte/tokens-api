@@ -6,6 +6,7 @@
     "validateUpsert": true
   },
   "forceId": false,
+  "hidden": ["passphrase", "key", "secret"],
   "properties": {
     "name": {
       "type": "string"
@@ -29,10 +30,11 @@
   },
   "validations": [],
   "relations": {
-    "platform": {
+    "_platform": {
       "type": "belongsTo",
       "model": "Exchange",
-      "foreignKey": ""
+      "foreignKey": "",
+      "property": "platform"
     }
   },
   "acls": [],

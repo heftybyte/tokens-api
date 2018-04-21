@@ -17,10 +17,11 @@
   },
   "validations": [],
   "relations": {
-    "platform": {
+    "_platform": {
       "type": "belongsTo",
       "model": "Blockchain",
-      "foreignKey": ""
+      "foreignKey": "",
+      "property": "platform"
     }
   },
   "acls": [],

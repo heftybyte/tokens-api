@@ -180,7 +180,7 @@ module.exports = function(Account) {
     //metric timing
     const start_time = new Date().getTime();
 
-    let { address, platform } = data;
+    let { address, platform='ethereum' } = data;  // default to ethereum until new client release
     address = address.toLowerCase();
     let err = null
     if (!web3.utils.isAddress(address)) {
@@ -292,7 +292,7 @@ module.exports = function(Account) {
   }
 
   Account.prototype.addWallet = async function (data, cb) {
-    let { address, platform } = data
+    let { address, platform='ethereum' } = data // default to ethereum until new client release
     let err = null
 
     address = address.toLowerCase()
@@ -363,26 +363,26 @@ module.exports = function(Account) {
 
   Account.prototype.addExchangeAccount = async function (data, cb) {
     const { key, secret, name, passphrase, exchangeId } = data
-    let err = null
 
     if (this.exchangeAccounts.find((acct)=> acct.key.toLowerCase() === key.toLowerCase()) ) {
-      err = new Error('This exchange account has already been added for this user')
+      const err = new Error('This exchange account has already been added for this user')
       err.status = 422
       cb(err)
       return err
     }
 
     this.exchangeAccounts.push({ id: uuidv4(), key, secret, name, passphrase, platform: exchangeId })
-    let account = await this.save().catch(e=>err=e)
-
-    if (err) {
+    
+    try {
+      let account = await this.save()
+      cb(null, account)
+      return Promise.resolve(account)
+    } catch (err) {
       err.status = 500
+      console.error(err)
       cb(err);
-      return err
+      return Promise.reject(err)
     }
-
-    cb(null, account)
-    return account
   }
 
   Account.prototype.deleteExchangeAccount = async function (id, cb) {
