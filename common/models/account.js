@@ -977,33 +977,26 @@ module.exports = function(Account) {
   }
 
   Account.googleSignIn = async (data, cb) => {
-    let err;
-    const userInfo = await axios({ 
-      method: 'GET',
-      url: 'https://www.googleapis.com/userinfo/v2/me',
-      headers: { 
-        Authorization: `Bearer ${data.accessToken}`
-      }
-    }).catch(e=>err=e);
-
-    if (err) {
-      console.log('google api error', err)
-      return cb(err)
-    }
-
-    const account = await Account.findOne({where: {email: userInfo.data.email}}).catch(e=>err=e)
-    if (!err && !account) {
-      err = new Error('Account not found')
-      err.status = 404
-    } else if (!err && (account.email !== userInfo.data.email)) {
-      err = new Error('Unauthorized access attempt')
-      err.status = 401
-    } else if (err) {
-      console.log(err)
-      return cb(err)
-    }
-
     try {
+      const userInfo = await axios({ 
+        method: 'GET',
+        url: 'https://www.googleapis.com/userinfo/v2/me',
+        headers: { 
+          Authorization: `Bearer ${data.accessToken}`
+        }
+      })
+      const account = await Account.findOne({where: {email: userInfo.data.email}})
+
+      if (!account) {
+        const err = new Error('Account not found')
+        err.status = 404
+        throw err
+      } else if (account.email !== userInfo.data.email) {
+        const err = new Error('Unauthorized access attempt')
+        err.status = 401
+        throw err
+      }
+
       let token
       if (account.two_factor_enabled) {
         token = { userId: account.id, twoFactorRequired: true }
@@ -1012,7 +1005,7 @@ module.exports = function(Account) {
       }
       return cb(null, token)
     } catch (err) {
-      console.error('googleSignIn accessToken', err)
+      console.error('googleSignIn err', err)
       return cb(err)
     }
   }
