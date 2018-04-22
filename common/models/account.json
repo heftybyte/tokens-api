@@ -30,6 +30,16 @@
         }
       }
     },
+    "coinbase": {
+      "type": {
+        "accessToken":  {
+          "type": "string"
+        },
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
     "description": {
       "type": "string"
     },
@@ -342,12 +352,33 @@
       "permission": "ALLOW",
       "property": "currencyPreference"
     },
-    {     
+    {
       "accessType": "EXECUTE",
       "principalType": "ROLE",
       "principalId": "$everyone",
       "permission": "ALLOW",
       "property": "googleSignIn"
+    },
+    {
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "coinbaseSignIn"
+    },
+    {
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "fetchCoinbaseCredentials"
+    },
+    {
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "coinbaseOauthProvider"
     }
   ],
   "methods": {}
