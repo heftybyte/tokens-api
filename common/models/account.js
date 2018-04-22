@@ -362,16 +362,19 @@ module.exports = function(Account) {
   }
 
   Account.prototype.addExchangeAccount = async function (data, cb) {
-    const { key, secret, name, passphrase, exchangeId } = data
-
-    if (this.exchangeAccounts.find((acct)=> acct.key.toLowerCase() === key.toLowerCase()) ) {
+    const { key, secret, name, passphrase, platform } = data
+    const exists = this.exchangeAccounts.find((acct)=>{
+      return acct.key.toLowerCase() === key.toLowerCase() &&
+        acct.platform === platform
+    })
+    if (exists) {
       const err = new Error('This exchange account has already been added for this user')
       err.status = 422
       cb(err)
       return err
     }
 
-    this.exchangeAccounts.push({ id: uuidv4(), key, secret, name, passphrase, platform: exchangeId })
+    this.exchangeAccounts.push({ id: uuidv4(), key, secret, name, passphrase, platform })
     
     try {
       let account = await this.save()
