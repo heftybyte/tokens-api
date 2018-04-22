@@ -11,15 +11,8 @@
       "type": "string",
       "required": true
     },
-    "ether": {
-      "type": "number",
-      "default": 0
-    },
-    "tokens": {
-      "type": [
-        "object"
-      ],
-      "default": []
+    "name": {
+      "type": "string"
     }
   },
   "validations": [],

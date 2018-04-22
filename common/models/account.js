@@ -180,7 +180,7 @@ module.exports = function(Account) {
     //metric timing
     const start_time = new Date().getTime();
 
-    let { address, platform='ethereum' } = data;  // default to ethereum until new client release
+    let { address, platform='ethereum', name } = data;  // default to ethereum until new client release
     address = address.toLowerCase();
     let err = null
     if (!web3.utils.isAddress(address)) {
@@ -203,7 +203,7 @@ module.exports = function(Account) {
       cb(err);
       return err
     }
-    this.addresses.push({ id: address, platform })
+    this.addresses.push({ id: address, platform, name })
     let account = await this.save().catch(e=>err=e)
     if (err) {
       err.status = 500
@@ -292,7 +292,7 @@ module.exports = function(Account) {
   }
 
   Account.prototype.addWallet = async function (data, cb) {
-    let { address, platform='ethereum' } = data // default to ethereum until new client release
+    let { address, platform='ethereum', name } = data // default to ethereum until new client release
     let err = null
 
     address = address.toLowerCase()
@@ -314,7 +314,7 @@ module.exports = function(Account) {
       cb(err);
       return err
     }
-    this.wallets.push({id: address, platform})
+    this.wallets.push({id: address, platform, name})
     let account = await this.save().catch(e=>err=e)
 
     if (err) {
