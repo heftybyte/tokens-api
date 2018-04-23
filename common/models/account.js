@@ -420,18 +420,10 @@ module.exports = function(Account) {
     return account
   }
 
-  async function calculatePortfolio({account, addresses, includeWatchList, cb, start_time}) {
-    let err
+  async function calculatePortfolio({account, addresses, includeWatchList, start_time}) {
     const addressList = addresses.map(a=>a.id).join(',')
-    const balances = !addressList ? {} : await app.default.models.Balance.getBalances(addressList).catch(e=>err=e)
+    const balances = await app.default.models.Balance.getBalances(addressList)
     const currencyPreference = account.preference.currency
-    if (err) {
-      // metrics
-      measureMetric(constants.METRICS.get_portfolio.failed, start_time);
-      cb && cb(err)
-      return err
-    }
-
     const symbols = Object.keys(balances)
     const symbolList = symbols.concat(includeWatchList ? account.watchList : []).join(',')
     const queries = {
@@ -476,28 +468,20 @@ module.exports = function(Account) {
       totalPriceChangePct7d,
       top: []
     }
-    cb && cb(null, portfolio)
     return portfolio
   }
 
-  async function calculatePortfolioChart({period='1m', addresses, cb}) {
-    let err = null
+  async function calculatePortfolioChart({period='1m', addresses}) {
     const addressList = addresses.map(a=>a.id).join(',')
-    const balances = !addressList ? {} : await app.default.models.Balance.getBalances(addressList).catch(e=>err=e)
+    const balances = !addressList ? {} : await app.default.models.Balance.getBalances(addressList)
     const symbols = Object.keys(balances)
-    if (err || !symbols.length) {
-      cb && cb(err)
-      return err
+    if (!symbols.length) {
+      return []
     }
-    const ticker = !symbols.length ? {} : await app.default.models.Ticker.historicalPrices(
+    const ticker = await app.default.models.Ticker.historicalPrices(
       symbols.join(','), 'USD', 0, 0, 'chart', period, periodInterval[period] || '1d'
-    ).catch(e=>err=e)
-    if (err) {
-      cb && cb(err)
-      return err
-    }
+    )
     if (!Object.keys(ticker).length) {
-      cb(null, [])
       return []
     }
     const tsym = 'USD'
@@ -524,7 +508,6 @@ module.exports = function(Account) {
           (aggregatePrice / aggregatePrevPrice) - 1
       })
     }
-    cb(null, chartData)
     return chartData
   };
 
@@ -602,14 +585,16 @@ module.exports = function(Account) {
     try {
       const account = await Account.findById(this.id);
       verifyAccountOwner(account, accountId, type);
-      return calculatePortfolio({
+      const portfolio = await calculatePortfolio({
         account,
-        cb,
         addresses: [{ id: accountId }]
       });
+      cb && cb(null, portfolio)
+      return Promise.resolve(portfolio)
     } catch (err) {
       console.error(err)
-      return cb(err)
+      cb && cb(err)
+      return Promise.reject(err)
     }
   };
 
@@ -617,43 +602,51 @@ module.exports = function(Account) {
     try {
       const account = await Account.findById(this.id);
       verifyAccountOwner(account, accountId, type);
-      return calculatePortfolioChart({
+      const chartData = await calculatePortfolioChart({
         addresses: [{ id: accountId }],
-        period,
-        cb
+        period
       });
+      cb && cb(null, chartData)
+      return Promise.resolve(chartData)
     } catch (err) {
       console.error(err)
-      return cb(err)
+      cb && cb(err)
+      return Promise.reject(err)
     }
   };
 
   Account.prototype.getEntirePortfolio = async function (cb) {
     const start_time = new Date().getTime();
-
-    const {err, account} = await getAccount(this.id);
-    if (err) {
+    try {
+      const account = await Account.findById(this.id);
+      const portfolio = await calculatePortfolio({
+        account,
+        start_time,
+        addresses: account.addresses,
+        includeWatchList: true
+      });
+      cb && cb(null, portfolio)
+      return Promise.resolve(portfolio)
+    } catch (err) {
       // metrics
       measureMetric(constants.METRICS.get_portfolio.failed, start_time);
       cb && cb(err)
-      return err
+      return Promise.reject(err)
     }
-    return calculatePortfolio({
-      account,
-      cb,
-      start_time,
-      addresses: account.addresses,
-      includeWatchList: true
-    });
   };
 
   Account.prototype.getEntirePortfolioChart = async function (period, cb) {
-    let {err, account} = await getAccount(this.id);
-    return calculatePortfolioChart({
-      addresses: account.addresses,
-      period,
-      cb
-    });
+    try {
+      const account = await Account.findById(this.id);
+      const chartData = await calculatePortfolioChart({
+        addresses: account.addresses,
+        period
+      });
+      cb && cb(null, chartData)
+    } catch (err) {
+      cb && cb(err)
+      return Promise.reject(err)
+    }
   };
 
   Account.prototype.getFirebaseAuthToken = async function (cb) {
@@ -1132,7 +1125,7 @@ module.exports = function(Account) {
     },
     accepts: [
       {
-        arg: 'address',
+        arg: 'data',
         type: 'object',
         http: {
           source: 'body',
