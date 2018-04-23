@@ -91,6 +91,10 @@
           "defaultFn": "now"
         }
       }
+    },
+    "chatEnabled": {
+      "type": "boolean",
+      "default": false
     }
   },
   "hidden": ["google", "password", "verificationToken"],

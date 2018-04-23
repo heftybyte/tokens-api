@@ -3,10 +3,10 @@ import Hash from 'object-hash';
 import tokenData from '../data/tokens.json';
 import redisClient from '../server/boot/redisConnector';
 
-const storeInRedis = (redisClient, tokens, checksum) => {
+const storeInRedis = async (redisClient, tokens, checksum) => {
   if (!redisClient) return;
-  redisClient.set('tokenChecksum', checksum);
-  redisClient.set('tokens', JSON.stringify(tokens));
+  await redisClient.setAsync('tokenChecksum', checksum);
+  await redisClient.setAsync('tokens', JSON.stringify(tokens));
   redisClient.quit();
 };
 
@@ -28,12 +28,13 @@ async function run() {
     .map(token => Token.upsertWithWhere({ symbol: token.symbol }, token));
 
   Promise.all(savePromises)
-    .then((tokens) => {
+    .then(async (tokens) => {
+      const symbols = tokens.map((token)=>token.symbol);
       const tokensJSON = tokens.map((token)=>token.toJSON());
-      const checksum = Hash(Object.keys(tokensJSON));
+      const checksum = Hash(symbols);
       console.log(checksum, 'tokens hash');
       console.log('Seeded tokens collection.');
-      storeInRedis(redisClient, tokensJSON, checksum);
+      await storeInRedis(redisClient, tokensJSON, checksum);
       console.log('Cached tokens in redis.');
       process.exit()
     })

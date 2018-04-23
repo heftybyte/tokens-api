@@ -17,8 +17,9 @@ module.exports = function(Token) {
     if (!tokens) {
       throw new Error('no tokens found');
     }
+    const symbols = tokens.map((token)=>token.symbol);
     const tokensJSON = tokens.map((token)=>token.toJSON());
-    const checksum = Hash(Object.keys(tokensJSON));
+    const checksum = Hash(symbols);
     // store in redis for next time
     redisClient.set('tokenChecksum', checksum);
     redisClient.set('tokens', JSON.stringify(tokensJSON));

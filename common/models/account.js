@@ -700,8 +700,9 @@ module.exports = function(Account) {
     let totalValue = balance * price
     const priceChange = getPriceChange({price, balance, change: change_pct_24_hr})
     const priceChange7d = 0
-    const { website, reddit, twitter, name, videoUrl } = TOKEN_CONTRACTS[symbol] || {}
+    const { website, reddit, twitter, name, videoUrl, id } = TOKEN_CONTRACTS[symbol] || {}
     return cb(null, {
+      ...(TOKEN_CONTRACTS[symbol] || {}),
       price,
       balance,
       totalValue,
@@ -711,12 +712,7 @@ module.exports = function(Account) {
       priceChange,
       priceChange7d,
       supply,
-      symbol,
-      name,
-      website,
-      reddit,
-      twitter,
-      videoUrl
+      symbol
     });
   };
 
@@ -996,7 +992,7 @@ module.exports = function(Account) {
         err.status = 401
         throw err
       }
-
+      
       let token
       if (account.two_factor_enabled) {
         token = { userId: account.id, twoFactorRequired: true }
