@@ -32,6 +32,10 @@ const defaultPriceData = {
   period: '24h'
 };
 
+const featuredTokens = [
+  'OMG', 'TNT', 'GNT', 'SNT', 'BAT'
+].reverse();
+
 const mapPrice = (priceMap, symbol) => {
   const priceData = priceMap[symbol] && priceMap[symbol]['USD'] ?
     priceMap[symbol]['USD'] : defaultPriceData
@@ -420,26 +424,27 @@ module.exports = function(Account) {
     return account
   }
 
-  async function calculatePortfolio({account, addresses, includeWatchList, start_time}) {
+  async function getTokenList(symbols=[], currency='USD') {
+    const queries = {
+      priceMap: app.default.models.Ticker.currentPrices(symbols.join(','), currency),
+      tokens: getTokensBySymbol(symbols)
+    }
+    const { priceMap, tokens } = await all(queries)
+    const prices = symbols.map(mapPrice.bind(null, priceMap))
+    return tokens.map((token, i)=>({
+      ...token,
+      ...prices[i],
+      symbol: symbols[i]
+    }))
+  }
+
+  async function calculatePortfolio({account, addresses=[]}) {
     const addressList = addresses.map(a=>a.id).join(',')
-    const balances = await app.default.models.Balance.getBalances(addressList)
+    const balances = addresses.length ? await app.default.models.Balance.getBalances(addressList) : []
     const currencyPreference = account.preference.currency
     const symbols = Object.keys(balances)
-    const symbolList = symbols.concat(includeWatchList ? account.watchList : []).join(',')
-    const queries = {
-      priceMap: !symbolList ? {} : app.default.models.Ticker.currentPrices(symbolList, currencyPreference),
-    }
-    if (includeWatchList) {
-      queries.watchListTokens = getTokensBySymbol(account.watchList)
-    }
-    let { priceMap, watchListTokens } = await all(queries)
+    const priceMap  = await app.default.models.Ticker.currentPrices(symbols.join(','), currencyPreference)
     const prices = symbols.map(mapPrice.bind(null, priceMap))
-    const watchListPrices = !includeWatchList ? [] : account.watchList.map(mapPrice.bind(null, priceMap))
-    const watchList = !includeWatchList ? undefined : watchListTokens.map((token, i)=>({
-      ...token,
-      ...watchListPrices[i],
-      symbol: account.watchList[i]
-    }))
     const tokens = symbols.map((symbol, i)=>({
       symbol: symbol,
       balance: balances[symbol] || 0,
@@ -456,19 +461,14 @@ module.exports = function(Account) {
       (acc, curr) => acc + (curr.priceChange7d), 0)
     const totalPriceChangePct = (1-totalValue/(totalValue+totalPriceChange))*100
     const totalPriceChangePct7d = (1-totalValue/(totalValue+totalPriceChange7d))*100
-
-    measureMetric(constants.METRICS.get_portfolio.failed, start_time);
-    const portfolio = {
-      watchList,
+    return {
       tokens,
       totalValue,
       totalPriceChange,
       totalPriceChangePct,
       totalPriceChange7d,
-      totalPriceChangePct7d,
-      top: []
+      totalPriceChangePct7d
     }
-    return portfolio
   }
 
   async function calculatePortfolioChart({period='1m', addresses}) {
@@ -616,20 +616,20 @@ module.exports = function(Account) {
   };
 
   Account.prototype.getEntirePortfolio = async function (cb) {
-    const start_time = new Date().getTime();
     try {
       const account = await Account.findById(this.id);
-      const portfolio = await calculatePortfolio({
-        account,
-        start_time,
-        addresses: account.addresses,
-        includeWatchList: true
-      });
-      cb && cb(null, portfolio)
+      const { portfolio={}, watchList=[], featured=[] } = await all({
+        portfolio: calculatePortfolio({
+          account,
+          addresses: [...account.addresses, ...account.wallets],
+        }),
+        watchList: getTokenList(account.watchList),
+        featured: getTokenList(featuredTokens)
+      })
+      cb && cb(null, { ...portfolio, watchList, featured })
       return Promise.resolve(portfolio)
     } catch (err) {
       // metrics
-      measureMetric(constants.METRICS.get_portfolio.failed, start_time);
       cb && cb(err)
       return Promise.reject(err)
     }
@@ -639,7 +639,7 @@ module.exports = function(Account) {
     try {
       const account = await Account.findById(this.id);
       const chartData = await calculatePortfolioChart({
-        addresses: account.addresses,
+        addresses: [...account.addresses, ...account.wallets],
         period
       });
       cb && cb(null, chartData)
