@@ -467,7 +467,8 @@ module.exports = function(Account) {
       totalPriceChange,
       totalPriceChangePct,
       totalPriceChange7d,
-      totalPriceChangePct7d
+      totalPriceChangePct7d,
+      top: []
     }
   }
 
