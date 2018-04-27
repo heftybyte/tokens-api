@@ -651,7 +651,13 @@ module.exports = function(Account) {
 
   Account.prototype.getFirebaseAuthToken = async function (cb) {
     try {
-      const token = await firebaseAdmin.auth().createCustomToken(this.id.toString())
+      const account = await Account.findById(this.id)
+      const claims = {
+        id: this.id,
+        name: account.username,
+        avatar: account.avatar
+      }
+      const token = await firebaseAdmin.auth().createCustomToken(this.id.toString(), claims)
       return cb(null, token)
     } catch(err) {
       console.log('err', err)

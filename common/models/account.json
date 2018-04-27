@@ -17,6 +17,9 @@
       "type": "string",
       "required": false
     },
+    "avatar": {
+      "type": "string"
+    },
     "google": {
       "type": {
         "accessToken":  {
