@@ -1029,7 +1029,7 @@ module.exports = function(Account) {
       return cb(err)
     }
 
-    redisClient.hmset('coinbase-credentials', {
+    redisClient.hmset(`coinbase-credential-${code}`, {
       temp_code: code,
       access_token: data.access_token,
       refresh_token: data.refresh_token,
@@ -1046,7 +1046,7 @@ module.exports = function(Account) {
       return cb(err)
     }
 
-    return redisClient.hgetall('coinbase-credentials', function (err, obj) {
+    return redisClient.hgetall(`coinbase-credential-${code}`, function (err, obj) {
       if (code !== obj.temp_code) {
         err = new Error('Invalid coinbase code supplied')
         err.status = 422
