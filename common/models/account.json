@@ -36,6 +36,9 @@
     "description": {
       "type": "string"
     },
+    "image_url": {
+      "type": "string"
+    },
     "notification_tokens": {
       "type": [
         "string"
@@ -345,12 +348,18 @@
       "permission": "ALLOW",
       "property": "currencyPreference"
     },
-    {     
+    {
       "accessType": "EXECUTE",
       "principalType": "ROLE",
       "principalId": "$everyone",
       "permission": "ALLOW",
       "property": "googleSignIn"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$owner",
+      "permission": "ALLOW",
+      "property": "uploadImage"
     }
   ],
   "methods": {}

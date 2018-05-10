@@ -12,6 +12,7 @@ import { healthCheck } from '../lib/statsd';
 import bodyParser from 'body-parser';
 import loopback from 'loopback';
 import boot from 'loopback-boot';
+import fileUpload from '../scripts/fileUpload';
 
 const app = loopback();
 
@@ -20,6 +21,8 @@ app.set('views', path.join(__dirname, 'views'));
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
+
+fileUpload('/api/accounts/:id/image/upload', app);
 
 // health check
 setInterval(healthCheck, 1000);

@@ -379,7 +379,7 @@ module.exports = function(Account) {
     }
 
     this.exchangeAccounts.push({ id: uuidv4(), key, secret, name, passphrase, platform })
-    
+
     try {
       let account = await this.save()
       cb(null, account)
@@ -570,7 +570,7 @@ module.exports = function(Account) {
     'wallet': 'wallets',
     'exchange-account': 'exchangeAccounts'
   }
-  
+
   function verifyAccountOwner(owner={}, accountId, type) {
     const accountType = AccountTypes[type]
     const accounts = owner[accountType] || []
@@ -774,21 +774,16 @@ module.exports = function(Account) {
   }
 
   Account.prototype.changeEmail = async function (data, cb) {
-    const { oldEmail, newEmail, password } = data
+    let err
+    const { newEmail, description } = data
 
-    let hasPassword = await this.hasPassword(password).catch(e=>err=e)
+    const { email: oldEmail } = await Account.findById(this.id).catch(e=>err=e)
     if(err)return cb(err)
-
-    if(!hasPassword){
-      const err = new Error('invalid previous password')
-      err.status = 400
-      return cb(err)
-    }
 
     const existEmail = await Account.findOne({where: {'email': newEmail}}).catch(e=>err=e)
     if(err) return cb(err)
 
-    if(existEmail){
+    if(existEmail && newEmail !== oldEmail){
       const err = new Error('Email already exists')
       err.status = 400
       return cb(err)
@@ -798,14 +793,59 @@ module.exports = function(Account) {
     if(err) return cb(err)
 
     if(!account){
-      const err = new Error('invalid previous email')
+      const err = new Error('No account associated with the specified id')
       err.status = 400
       return cb(err)
     }
 
-    const result = await account.updateAttribute('email', newEmail).catch(e=>err=e)
+    const result = await account.updateAttributes({
+      email: newEmail,
+      description
+    }).catch(e=>err=e)
+
     if(err) return cb(err)
     return cb(null, result)
+  }
+
+  const uploadImageToStorage = file => {
+    const storage = firebaseAdmin.storage();
+    return new Promise((resolve, reject) => {
+      const fileUpload = storage.bucket().file(`images/${file.originalname}`);
+      const blobStream = fileUpload.createWriteStream({
+        metadata: { contentType: file.mimetype }
+      });
+
+      blobStream.on('error', error => reject(error))
+
+      blobStream.on('finish', () => {
+        fileUpload.getMetadata()
+        .then(metadata => resolve(metadata))
+        .catch(error => reject(error))
+      });
+
+      blobStream.end(file.buffer)
+    });
+  }
+
+  Account.prototype.uploadImage = async function (req, cb) {
+    try {
+      const res = await uploadImageToStorage(req.files.file[0])
+      const storage = firebaseAdmin.storage();
+      const file = storage.bucket().file(res[0].name)
+      const url = await file.getSignedUrl({
+        action: 'read',
+        expires: '03-09-2491'
+      })
+      const account = await Account.findById(this.id)
+      const result = await account.updateAttributes({
+        'image_url': url[0]
+      })
+
+      return cb(null, result)
+    } catch(err) {
+      console.log(err);
+      return cb(err);
+    }
   }
 
   Account.prototype.changeUsername = async function ( data, cb) {
@@ -974,10 +1014,10 @@ module.exports = function(Account) {
 
   Account.googleSignIn = async (data, cb) => {
     try {
-      const userInfo = await axios({ 
+      const userInfo = await axios({
         method: 'GET',
         url: 'https://www.googleapis.com/userinfo/v2/me',
-        headers: { 
+        headers: {
           Authorization: `Bearer ${data.accessToken}`
         }
       })
@@ -992,7 +1032,7 @@ module.exports = function(Account) {
         err.status = 401
         throw err
       }
-      
+
       let token
       if (account.two_factor_enabled) {
         token = { userId: account.id, twoFactorRequired: true }
@@ -1472,6 +1512,23 @@ module.exports = function(Account) {
     },
     description: ['Change Email adddress of a user'],
   });
+
+  Account.remoteMethod('uploadImage', {
+    isStatic: false,
+    http: {
+      path: '/image/upload',
+      verb: 'post'
+    },
+    accepts: {
+      arg: 'req',
+      type: 'object',
+      'http': { source: 'req' }
+    },
+    returns: {
+      root: true
+    },
+    description: ['Upload and save profile picture for a user']
+  })
 
   Account.remoteMethod('changeUsername', {
     isStatic: false,
