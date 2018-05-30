@@ -773,67 +773,62 @@ module.exports = function(Account) {
     return account
   }
 
-  Account.prototype.changeEmail = async function (data, cb) {
-    const { oldEmail, newEmail, password } = data
+  Account.prototype.changeUniqueField = async function (field, value) {
+    try {
+      if (!['email', 'username'].includes(field)) {
+        const err = new Error('Forbidden field change')
+        err.status = 403
+        throw err
+      }
 
-    let hasPassword = await this.hasPassword(password).catch(e=>err=e)
-    if(err)return cb(err)
+      const account = await Account.findById(this.id)
+      const duplicate = await Account.findOne({ where: { [field]: value }})
 
-    if(!hasPassword){
-      const err = new Error('invalid previous password')
-      err.status = 400
-      return cb(err)
+      if (duplicate) {
+        const err = new Error(`This ${field} already exists`)
+        err.status = 400
+        throw err
+      }
+      
+      const result = await account.updateAttribute(field, value)
+      return Promise.resolve(result)
+    } catch (err) {
+      console.error(err)
+      return Promise.reject(err)
     }
-
-    const existEmail = await Account.findOne({where: {'email': newEmail}}).catch(e=>err=e)
-    if(err) return cb(err)
-
-    if(existEmail){
-      const err = new Error('Email already exists')
-      err.status = 400
-      return cb(err)
-    }
-
-    const account = await Account.findOne({where:{'email': oldEmail }}).catch(e=>err=e)
-    if(err) return cb(err)
-
-    if(!account){
-      const err = new Error('invalid previous email')
-      err.status = 400
-      return cb(err)
-    }
-
-    const result = await account.updateAttribute('email', newEmail).catch(e=>err=e)
-    if(err) return cb(err)
-    return cb(null, result)
   }
 
-  Account.prototype.changeUsername = async function ( data, cb) {
-    const {  newUsername, password } = data
-    let hasPassword = await this.hasPassword(password).catch(e=>err=e)
-    if(err) return cb(err)
+  Account.prototype.update = async function (data, cb) {
+    console.log({data})
+    const { email, username, password, description } = data
+    const tasks = []
 
-    if(!hasPassword){
-      const err = new Error('password invalid')
-      err.status = 400
-      return cb(err)
+    if (email) {
+      tasks.push(this.changeUniqueField('email', email))
     }
 
-    const usernameExists = await Account.findOne({where: {'username': newUsername}}).catch(e=>err=e)
-    if(err) return cb(err)
-
-    if(usernameExists){
-      err = new Error('username exists')
-      err.status = 400
-      return cb(err)
+    if (username) {
+      tasks.push(this.changeUniqueField('username', username))
     }
 
-    let {account, err} = await getAccount(this.id)
-    if(err) return cb(err)
+    if (password) {
+      tasks.push(this.updateAttribute('password', Account.app.models.User.hashPassword(password)))
+    }
 
-    const result = await account.updateAttribute('username', newUsername).catch(e=>err=e)
-    if(err) return cb(err)
-    return cb(null, result)
+    if (description) {
+      tasks.push(this.updateAttribute('description', description))
+    }
+
+    try {
+      await Promise.all(tasks)
+      const account = await Account.findById(this.id)
+      cb(null, account)
+      return Promise.resolve(account)
+    } catch (err) {
+      console.log(err)
+      cb(err)
+      return Promise.reject(err)
+    }
   }
 
   Account.prototype.setTwoFactorAuthSecret = async function(cb){
@@ -949,7 +944,7 @@ module.exports = function(Account) {
   }
 
   const login = Account.login
-  Account.login = async (credentials, include, fn) => {
+  Account.login = async (credentials, include='user', fn) => {
     if (typeof include === 'function') {
       fn = include;
       include = undefined;
@@ -1491,6 +1486,26 @@ module.exports = function(Account) {
       root: true,
     },
     description: ['Change the username of a user'],
+  });
+
+  Account.remoteMethod('update', {
+    isStatic: false,
+    http: {
+      path: '/update',
+      verb: 'post',
+    },
+    accepts: [{
+      arg: 'data',
+      type: 'object',
+      http: {
+        source: 'body'
+      },
+      description: 'contains new profile info'
+    }],
+    returns: {
+      root: true,
+    },
+    description: ['Change the details of a user'],
   });
 
   Account.remoteMethod('setTwoFactorAuthSecret', {
