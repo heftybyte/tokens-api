@@ -4,27 +4,31 @@
       "website": "https://bitcoin.org/",
       "asset": "BTC",
       "id": "bitcoin",
-      "enabled": false
+      "enabled": false,
+      "order": 2
   },
   {
       "name": "Ethereum",
       "website": "https://ethereum.org/",
       "asset": "ETH",
       "id": "ethereum",
-      "enabled": true
+      "enabled": true,
+      "order": 1
   },
   {
       "name": "NEO",
       "website": "https://neo.org/",
       "asset": "NEO",
       "id": "neo",
-      "enabled": false
+      "enabled": false,
+      "order": 3
   },
   {
       "name": "Stellar",
       "website": "https://www.stellar.org/",
       "asset": "XLM",
       "id": "stellar",
-      "enabled": false
+      "enabled": false,
+      "order": 4
   }
 ]
