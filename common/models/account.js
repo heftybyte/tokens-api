@@ -20,6 +20,7 @@ import { measureMetric } from '../../lib/statsd';
 const axios = require('axios')
 import web3 from '../../lib/web3'
 import { generateTwoFactorKey, verifyTwoFactorToken } from '../../lib/two-factor-auth';
+import redisClient from '../../server/boot/redisConnector';
 
 const INVITE_ENABLED = true
 const DEFAULT_MAX_TTL = 31556926; // 1 year in seconds
@@ -93,12 +94,20 @@ module.exports = function(Account) {
         invite_code: data.invite_code
       }
 
-      if (data.withGoogle) {
-        accountData.password = uuidv4()
+      if (data.oauth) accountData.password = uuidv4()
+
+      if (data.oauth && data.oauth_provider === 'google') {
         accountData.google = {
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,
           serverAuthCode: data.serverAuthCode
+        }
+      }
+
+      if (data.oauth && data.oauth_provider === 'coinbase') {
+        accountData.coinbase = {
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken
         }
       }
       const instance = await Account.create(accountData).catch(e=>err=e)
@@ -379,7 +388,7 @@ module.exports = function(Account) {
     }
 
     this.exchangeAccounts.push({ id: uuidv4(), key, secret, name, passphrase, platform })
-    
+
     try {
       let account = await this.save()
       cb(null, account)
@@ -570,7 +579,7 @@ module.exports = function(Account) {
     'wallet': 'wallets',
     'exchange-account': 'exchangeAccounts'
   }
-  
+
   function verifyAccountOwner(owner={}, accountId, type) {
     const accountType = AccountTypes[type]
     const accounts = owner[accountType] || []
@@ -967,34 +976,110 @@ module.exports = function(Account) {
     }
   }
 
+  const oauthSignIn = async (email, cb) => {
+    const account = await Account.findOne({where: { email }})
+    if (!account) {
+      const err = new Error('Account not found')
+      err.status = 404
+      throw err
+    } else if (account.email !== email) {
+      const err = new Error('Unauthorized access attempt')
+      err.status = 401
+      throw err
+    }
+
+    let token
+    if (account.two_factor_enabled) {
+      token = { userId: account.id, twoFactorRequired: true }
+    } else {
+      token = await createAccessToken(account)
+    }
+    return cb(null, token)
+  }
+
+  Account.coinbaseOauthProvider = async (code, req, cb) => {
+    const uri = `${req.protocol}://${req.get('host')}${req.originalUrl}`.split('?code=')[0]
+    let err;
+
+    const { data } = await axios({
+      method: 'POST',
+      url: 'https://api.coinbase.com/oauth/token',
+      data: {
+        code,
+        grant_type: 'authorization_code',
+        client_id: process.env.COINBASE_CLIENT_ID,
+        client_secret: process.env.COINBASE_CLIENT_SECRET,
+        redirect_uri: uri
+      }
+    }).catch(e => err=e)
+
+    if (err) {
+      console.log(err.response.data)
+      return cb(err)
+    }
+
+    const { data: userData } = await axios({
+      method: 'GET',
+      url: 'https://api.coinbase.com/v2/user',
+      headers: {
+        Authorization: `Bearer ${data.access_token}`
+      }
+    }).catch(e=>err=e);
+
+    if (err) {
+      console.log(err.response.data)
+      return cb(err)
+    }
+
+    redisClient.hmset(`coinbase-credential-${code}`, {
+      temp_code: code,
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+      email: userData.data.email
+    })
+
+    cb()
+  }
+
+  Account.fetchCoinbaseCredentials = (code, cb) => {
+    let err;
+
+    if ( err ) {
+      return cb(err)
+    }
+
+    return redisClient.hgetall(`coinbase-credential-${code}`, function (err, obj) {
+      if (code !== obj.temp_code) {
+        err = new Error('Invalid coinbase code supplied')
+        err.status = 422
+        return cb(err)
+      }
+
+      return cb(err, obj)
+    })
+  }
+
+  Account.coinbaseSignIn = (data, cb) => {
+    try {
+      const { email } = data
+      return oauthSignIn(email, cb)
+    } catch (err) {
+      console.error('coinbaseSignIn err', err)
+      return cb(err)
+    }
+  }
+
   Account.googleSignIn = async (data, cb) => {
     try {
-      const userInfo = await axios({ 
+      const userInfo = await axios({
         method: 'GET',
         url: 'https://www.googleapis.com/userinfo/v2/me',
-        headers: { 
+        headers: {
           Authorization: `Bearer ${data.accessToken}`
         }
       })
-      const account = await Account.findOne({where: {email: userInfo.data.email}})
 
-      if (!account) {
-        const err = new Error('Account not found')
-        err.status = 404
-        throw err
-      } else if (account.email !== userInfo.data.email) {
-        const err = new Error('Unauthorized access attempt')
-        err.status = 401
-        throw err
-      }
-      
-      let token
-      if (account.two_factor_enabled) {
-        token = { userId: account.id, twoFactorRequired: true }
-      } else {
-        token = await createAccessToken(account)
-      }
-      return cb(null, token)
+      return oauthSignIn(userInfo.data.email, cb)
     } catch (err) {
       console.error('googleSignIn err', err)
       return cb(err)
@@ -1117,6 +1202,58 @@ module.exports = function(Account) {
       root: true
     },
     description: 'Sign a user in via Google auth',
+  });
+
+  Account.remoteMethod('coinbaseSignIn', {
+    http: {
+      path: '/coinbase-signin',
+      verb: 'post',
+    },
+    accepts: {
+      arg: 'data',
+      type: 'object',
+      http: {
+        source: 'body',
+      },
+      description: 'Email for coinbase connect'
+    },
+    returns: {
+      arg: 'accessToken',
+      type: 'object',
+      root: true
+    },
+    description: 'Sign a user in via Coinbase auth',
+  });
+
+  Account.remoteMethod('coinbaseOauthProvider', {
+    http: {
+      path: '/oauth/coinbase',
+      verb: 'get',
+    },
+    accepts: [
+      { arg: 'code', type: 'string', http: { source: 'query' } },
+      { arg: 'req', type: 'object', http: { source: 'req' } },
+    ],
+    description: 'Handle coinbase oauth redirect with temporary code',
+  });
+
+  Account.remoteMethod('fetchCoinbaseCredentials', {
+    http: {
+      path: '/fetch-coinbase-credentials',
+      verb: 'get',
+    },
+    accepts: {
+      arg: 'code',
+      type: 'string',
+      http: {
+        source: 'query',
+      },
+    },
+    returns: {
+      type: 'object',
+      root: true
+    },
+    description: 'Fetch coinbase credentials if temporary code is valid'
   });
 
   Account.remoteMethod('addAddress', {
