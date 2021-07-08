@@ -11,7 +11,7 @@ import {
   TOKEN_CONTRACTS
 } from '../../lib/eth.js';
 import { all } from '../../lib/async-promise';
-import firebaseAdmin from '../../lib/firebaseAdmin'
+// import firebaseAdmin from '../../lib/firebaseAdmin'
 const app = require('../../server/server');
 const _ = require('lodash')
 const constants = require('../../constants/');
